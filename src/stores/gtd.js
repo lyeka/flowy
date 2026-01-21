@@ -20,10 +20,10 @@ export const GTD_LISTS = {
 }
 
 export const GTD_LIST_META = {
-  [GTD_LISTS.INBOX]: { label: '收集箱', icon: 'Inbox', color: 'text-blue-500' },
-  [GTD_LISTS.TODAY]: { label: '今日待办', icon: 'Sun', color: 'text-amber-500' },
-  [GTD_LISTS.NEXT]: { label: '下一步行动', icon: 'ArrowRight', color: 'text-green-500' },
-  [GTD_LISTS.SOMEDAY]: { label: '将来/也许', icon: 'Calendar', color: 'text-purple-500' },
+  [GTD_LISTS.INBOX]: { label: '收集箱', icon: 'Inbox', color: 'text-muted-foreground' },
+  [GTD_LISTS.TODAY]: { label: '今日待办', icon: 'Sun', color: 'text-muted-foreground' },
+  [GTD_LISTS.NEXT]: { label: '下一步行动', icon: 'ArrowRight', color: 'text-muted-foreground' },
+  [GTD_LISTS.SOMEDAY]: { label: '将来/也许', icon: 'Calendar', color: 'text-muted-foreground' },
   [GTD_LISTS.DONE]: { label: '已完成', icon: 'CheckCircle', color: 'text-muted-foreground' }
 }
 

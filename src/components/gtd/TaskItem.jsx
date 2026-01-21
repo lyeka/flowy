@@ -220,7 +220,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
               {task.dueDate && (
                 <button
                   onClick={handleClearDate}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive mt-2"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-2"
                 >
                   <X className="h-3 w-3" />
                   清除日期

@@ -18,7 +18,7 @@ const formatDate = (timestamp) => {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} · ${weekday}`
 }
 
-export function NotesPanel({ task, onUpdate, onClose }) {
+export function NotesPanel({ task, onUpdate, onClose, style }) {
   const textareaRef = useRef(null)
   const [lineCount, setLineCount] = useState(0)
 
@@ -52,9 +52,10 @@ export function NotesPanel({ task, onUpdate, onClose }) {
     <motion.aside
       initial={{ opacity: 0, x: '100%' }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: '100%' }}
+      exit={{ opacity: 0, x: '100%', width: 0 }}
       transition={gentle}
-      className="flex-1 border-l bg-card flex flex-col relative"
+      className="border-l bg-card flex flex-col relative overflow-hidden"
+      style={style}
     >
       {/* 关闭按钮 - 右上角，降低对比度 */}
       <Button

@@ -5,7 +5,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useGTD, GTD_LIST_META, GTD_LISTS } from '@/stores/gtd'
 import { Sidebar } from '@/components/gtd/Sidebar'
 import { QuickCapture } from '@/components/gtd/QuickCapture'
@@ -33,6 +33,8 @@ function App() {
 
   const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
   const [selectedTaskId, setSelectedTaskId] = useState(null)
+  const [notesPanelWidth, setNotesPanelWidth] = useState(() => Math.floor(window.innerWidth / 2)) // 笔记面板宽度，默认为页面一半
+  const [isResizing, setIsResizing] = useState(false)
   const selectedTask = tasks.find(t => t.id === selectedTaskId)
 
   const handleAdd = (title) => {
@@ -54,6 +56,39 @@ function App() {
     toast.success('任务已删除')
   }
 
+  // 处理面板大小调整
+  const handleMouseDown = (e) => {
+    setIsResizing(true)
+    e.preventDefault()
+  }
+
+  const handleMouseMove = useCallback((e) => {
+    const newWidth = window.innerWidth - e.clientX
+    if (newWidth >= 400 && newWidth <= 1000) {
+      setNotesPanelWidth(newWidth)
+    }
+  }, [])
+
+  const handleMouseUp = useCallback(() => {
+    setIsResizing(false)
+  }, [])
+
+  // 监听全局鼠标事件
+  useEffect(() => {
+    if (isResizing) {
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+        window.removeEventListener('mousemove', handleMouseMove)
+        window.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isResizing, handleMouseMove, handleMouseUp])
+
   const meta = GTD_LIST_META[activeList]
 
   return (
@@ -73,7 +108,7 @@ function App() {
           onAddTask={handleAddWithDate}
         />
       ) : (
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col transition-all duration-[350ms] ease-out">
           <header className="p-6 h-[88px] flex flex-col justify-center">
             <h2 className="text-2xl font-bold">{meta.label}</h2>
             <p className="text-sm text-muted-foreground mt-1">
@@ -98,11 +133,22 @@ function App() {
       )}
       <AnimatePresence>
         {viewMode === 'list' && selectedTaskId && selectedTask && (
-          <NotesPanel
-            task={selectedTask}
-            onUpdate={updateTask}
-            onClose={() => setSelectedTaskId(null)}
-          />
+          <>
+            {/* 可拖动的分隔条 */}
+            <div
+              onMouseDown={handleMouseDown}
+              className="w-px bg-border/40 hover:bg-primary/60 cursor-col-resize transition-colors relative group flex-shrink-0"
+            >
+              {/* 扩大点击区域 */}
+              <div className="absolute inset-y-0 -left-2 -right-2" />
+            </div>
+            <NotesPanel
+              task={selectedTask}
+              onUpdate={updateTask}
+              onClose={() => setSelectedTaskId(null)}
+              style={{ width: `${notesPanelWidth}px`, flexShrink: 0 }}
+            />
+          </>
         )}
       </AnimatePresence>
       <Toaster position="bottom-right" />
