@@ -14,13 +14,14 @@ import { snappy } from '@/lib/motion'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
-export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange }) {
+export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, className }) {
   const [collapsed, setCollapsed] = useState(false)
 
   return (
     <aside className={cn(
       "border-r bg-sidebar p-4 flex flex-col gap-4 transition-all duration-300",
-      collapsed ? "w-20" : "w-64"
+      collapsed ? "w-20" : "w-64",
+      className
     )}>
       {/* 标题栏 + 折叠按钮 */}
       <div className={cn(
