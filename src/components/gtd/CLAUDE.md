@@ -12,5 +12,6 @@ CalendarGrid.jsx: 日历网格渲染，星期标题 + 日期矩阵
 CalendarCell.jsx: 单日格子，显示日期和任务，支持拖放
 CalendarTaskChip.jsx: 日历内任务小卡片，可拖拽
 UnscheduledPanel.jsx: 无日期任务面板，可折叠，支持拖拽到日历
+NotesPanel.jsx: 任务副文本编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

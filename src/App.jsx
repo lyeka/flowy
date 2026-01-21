@@ -11,9 +11,11 @@ import { Sidebar } from '@/components/gtd/Sidebar'
 import { QuickCapture } from '@/components/gtd/QuickCapture'
 import { TaskList } from '@/components/gtd/TaskList'
 import { CalendarView } from '@/components/gtd/CalendarView'
+import { NotesPanel } from '@/components/gtd/NotesPanel'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { AnimatePresence } from 'framer-motion'
 
 function App() {
   const {
@@ -30,6 +32,8 @@ function App() {
   } = useGTD()
 
   const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
+  const [selectedTaskId, setSelectedTaskId] = useState(null)
+  const selectedTask = tasks.find(t => t.id === selectedTaskId)
 
   const handleAdd = (title) => {
     addTask(title)
@@ -45,6 +49,7 @@ function App() {
   }
 
   const handleDelete = (id) => {
+    if (id === selectedTaskId) setSelectedTaskId(null)
     deleteTask(id)
     toast.success('任务已删除')
   }
@@ -69,7 +74,7 @@ function App() {
         />
       ) : (
         <main className="flex-1 flex flex-col">
-          <header className="border-b p-6">
+          <header className="p-6 h-[88px] flex flex-col justify-center">
             <h2 className="text-2xl font-bold">{meta.label}</h2>
             <p className="text-sm text-muted-foreground mt-1">
               {counts[activeList]} 个任务
@@ -86,10 +91,20 @@ function App() {
               onMove={moveTask}
               onDelete={handleDelete}
               onUpdateDate={(id, dueDate) => updateTask(id, { dueDate })}
+              onTaskClick={setSelectedTaskId}
             />
           </ScrollArea>
         </main>
       )}
+      <AnimatePresence>
+        {viewMode === 'list' && selectedTaskId && selectedTask && (
+          <NotesPanel
+            task={selectedTask}
+            onUpdate={updateTask}
+            onClose={() => setSelectedTaskId(null)}
+          />
+        )}
+      </AnimatePresence>
       <Toaster position="bottom-right" />
     </div>
   )

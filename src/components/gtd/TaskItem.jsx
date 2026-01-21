@@ -41,7 +41,7 @@ const formatDate = (timestamp) => {
   return `${d.getMonth() + 1}/${d.getDate()}`
 }
 
-export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate }) {
+export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTaskClick }) {
   const [dateOpen, setDateOpen] = useState(false)
   const dateStr = formatDate(task.dueDate)
 
@@ -95,8 +95,9 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={snappy}
+      onClick={() => onTaskClick?.(task.id)}
       className={cn(
-        "group flex items-center gap-3 p-3 rounded-lg border bg-card",
+        "group flex items-center gap-3 p-3 rounded-lg border bg-card cursor-pointer",
         "hover:shadow-sm transition-shadow"
       )}
     >
@@ -108,7 +109,10 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate }) {
       >
         <Checkbox
           checked={task.completed}
-          onCheckedChange={() => onToggle(task.id)}
+          onCheckedChange={(checked, e) => {
+            e?.stopPropagation?.()
+            onToggle(task.id)
+          }}
           className="h-5 w-5 shadow-lg ring-1 ring-border"
         />
       </motion.div>
@@ -132,6 +136,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate }) {
         <Popover open={dateOpen} onOpenChange={setDateOpen}>
           <PopoverTrigger asChild>
             <button
+              onClick={(e) => e.stopPropagation()}
               className={cn(
                 "flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors",
                 dateStr
@@ -241,7 +246,13 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate }) {
             if (key === task.list) return null
             const Icon = ICONS[meta.icon]
             return (
-              <DropdownMenuItem key={key} onClick={() => onMove(task.id, key)}>
+              <DropdownMenuItem
+                key={key}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onMove(task.id, key)
+                }}
+              >
                 <Icon className={cn("h-4 w-4 mr-2", meta.color)} />
                 移动到 {meta.label}
               </DropdownMenuItem>
@@ -249,7 +260,10 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate }) {
           })}
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={() => onDelete(task.id)}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete(task.id)
+            }}
             className="text-destructive focus:text-destructive"
           >
             <Trash2 className="h-4 w-4 mr-2" />

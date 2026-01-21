@@ -11,7 +11,7 @@ import { GTD_LIST_META } from '@/stores/gtd'
 import { staggerContainer, staggerItem, smooth } from '@/lib/motion'
 import { Inbox } from 'lucide-react'
 
-export function TaskList({ tasks, activeList, onToggle, onMove, onDelete, onUpdateDate }) {
+export function TaskList({ tasks, activeList, onToggle, onMove, onDelete, onUpdateDate, onTaskClick }) {
   const meta = GTD_LIST_META[activeList]
 
   if (tasks.length === 0) {
@@ -52,6 +52,7 @@ export function TaskList({ tasks, activeList, onToggle, onMove, onDelete, onUpda
             onMove={onMove}
             onDelete={onDelete}
             onUpdateDate={onUpdateDate}
+            onTaskClick={onTaskClick}
           />
         ))}
       </AnimatePresence>
