@@ -58,13 +58,13 @@ export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
         <h2 className="text-xl font-bold min-w-32">{title}</h2>
 
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" onClick={handlePrev}>
+          <Button variant="ghost" size="icon" onClick={handlePrev}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={goToday}>
+          <Button variant="ghost" size="sm" onClick={goToday}>
             今天
           </Button>
-          <Button variant="outline" size="icon" onClick={handleNext}>
+          <Button variant="ghost" size="icon" onClick={handleNext}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

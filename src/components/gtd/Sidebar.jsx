@@ -1,13 +1,15 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标
+ * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion
  * [OUTPUT]: 导出 Sidebar 组件
  * [POS]: GTD 侧边栏导航，上下排布，支持视图切换和列表导航
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { GTD_LISTS, GTD_LIST_META } from '@/stores/gtd'
 import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List } from 'lucide-react'
+import { snappy } from '@/lib/motion'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
@@ -19,7 +21,10 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
       {/* 视图分组 */}
       <div className="flex flex-col gap-1">
         <h2 className="text-xs font-semibold text-muted-foreground px-3 mb-1">视图</h2>
-        <button
+        <motion.button
+          whileHover={{ y: -2, scale: 1.02 }}
+          whileTap={{ scale: 0.96 }}
+          transition={snappy}
           onClick={() => onViewModeChange('list')}
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
@@ -29,8 +34,11 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
         >
           <List className="h-4 w-4" />
           列表视图
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileHover={{ y: -2, scale: 1.02 }}
+          whileTap={{ scale: 0.96 }}
+          transition={snappy}
           onClick={() => onViewModeChange('calendar')}
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
@@ -40,7 +48,7 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
         >
           <CalendarDays className="h-4 w-4" />
           日历视图
-        </button>
+        </motion.button>
       </div>
 
       {/* GTD 列表分组 */}
@@ -51,8 +59,11 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
             const Icon = ICONS[meta.icon]
             const isActive = activeList === key
             return (
-              <button
+              <motion.button
                 key={key}
+                whileHover={{ y: -2, scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                transition={snappy}
                 onClick={() => onSelect(key)}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
@@ -67,7 +78,7 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
                     {counts[key]}
                   </span>
                 )}
-              </button>
+              </motion.button>
             )
           })}
         </div>

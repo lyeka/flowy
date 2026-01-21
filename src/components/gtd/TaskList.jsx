@@ -8,7 +8,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { TaskItem } from './TaskItem'
 import { GTD_LIST_META } from '@/stores/gtd'
-import { staggerContainer, staggerItem } from '@/lib/motion'
+import { staggerContainer, staggerItem, smooth } from '@/lib/motion'
 import { Inbox } from 'lucide-react'
 
 export function TaskList({ tasks, activeList, onToggle, onMove, onDelete, onUpdateDate }) {
@@ -21,7 +21,16 @@ export function TaskList({ tasks, activeList, onToggle, onMove, onDelete, onUpda
         animate={{ opacity: 1 }}
         className="flex flex-col items-center justify-center py-16 text-muted-foreground"
       >
-        <Inbox className="h-12 w-12 mb-4 opacity-50" />
+        <motion.div
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{
+            ...smooth,
+            repeat: Infinity,
+            duration: 3
+          }}
+        >
+          <Inbox className="h-12 w-12 mb-4 opacity-50" />
+        </motion.div>
         <p className="text-sm">{meta.label} 暂无任务</p>
       </motion.div>
     )

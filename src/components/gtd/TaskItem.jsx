@@ -25,7 +25,7 @@ import {
 import { cn } from '@/lib/utils'
 import { GTD_LISTS, GTD_LIST_META } from '@/stores/gtd'
 import { MoreHorizontal, Trash2, ArrowRight, Inbox, Sun, Calendar, CheckCircle, CalendarDays, X } from 'lucide-react'
-import { snappy } from '@/lib/motion'
+import { snappy, bouncy } from '@/lib/motion'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
@@ -100,17 +100,32 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate }) {
         "hover:shadow-sm transition-shadow"
       )}
     >
-      <Checkbox
-        checked={task.completed}
-        onCheckedChange={() => onToggle(task.id)}
-        className="h-5 w-5 shadow-lg ring-1 ring-border"
-      />
-      <span className={cn(
-        "flex-1 text-sm",
-        task.completed && "line-through text-muted-foreground"
-      )}>
+      <motion.div
+        key={task.completed ? 'checked' : 'unchecked'}
+        initial={{ scale: 1 }}
+        animate={task.completed ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+        transition={bouncy}
+      >
+        <Checkbox
+          checked={task.completed}
+          onCheckedChange={() => onToggle(task.id)}
+          className="h-5 w-5 shadow-lg ring-1 ring-border"
+        />
+      </motion.div>
+      <motion.span
+        layout
+        animate={{
+          opacity: task.completed ? 0.5 : 1,
+          x: task.completed ? 4 : 0
+        }}
+        transition={snappy}
+        className={cn(
+          "flex-1 text-sm",
+          task.completed && "line-through text-muted-foreground"
+        )}
+      >
         {task.title}
-      </span>
+      </motion.span>
 
       {/* 日期显示/编辑 */}
       {onUpdateDate && (
@@ -132,36 +147,60 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate }) {
             {/* 快捷日期按钮 */}
             <div className="flex gap-2 mb-3">
               <Button
+                asChild
                 variant="outline"
                 size="sm"
-                onClick={() => handleQuickDate('today')}
                 className="text-xs"
               >
-                今天
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  transition={snappy}
+                  onClick={() => handleQuickDate('today')}
+                >
+                  今天
+                </motion.button>
               </Button>
               <Button
+                asChild
                 variant="outline"
                 size="sm"
-                onClick={() => handleQuickDate('tomorrow')}
                 className="text-xs"
               >
-                明天
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  transition={snappy}
+                  onClick={() => handleQuickDate('tomorrow')}
+                >
+                  明天
+                </motion.button>
               </Button>
               <Button
+                asChild
                 variant="outline"
                 size="sm"
-                onClick={() => handleQuickDate('next-week')}
                 className="text-xs"
               >
-                下周
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  transition={snappy}
+                  onClick={() => handleQuickDate('next-week')}
+                >
+                  下周
+                </motion.button>
               </Button>
               <Button
+                asChild
                 variant="outline"
                 size="sm"
-                onClick={() => handleQuickDate('next-month')}
                 className="text-xs"
               >
-                下个月
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  transition={snappy}
+                  onClick={() => handleQuickDate('next-month')}
+                >
+                  下个月
+                </motion.button>
               </Button>
             </div>
 
