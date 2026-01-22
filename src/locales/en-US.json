@@ -27,7 +27,7 @@
   },
   "views": {
     "list": "Things",
-    "calendar": "Calendar"
+    "calendar": "Schedule"
   },
   "calendar": {
     "months": {
@@ -69,7 +69,10 @@
     "setDate": "Set Date",
     "notes": "Notes",
     "notesPlaceholder": "Write your thoughts here...",
-    "taskCount": "{{count}} tasks"
+    "taskCount": "{{count}} tasks",
+    "charCount": "{{count}} chars",
+    "wordCount": "{{count}} words",
+    "readingTime": "· ~{{minutes}} min"
   },
   "toast": {
     "taskAdded": "Task added to Tasks",

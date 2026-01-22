@@ -13,7 +13,7 @@ import { gentle } from '@/lib/motion'
 import { useEffect, useRef, useState } from 'react'
 
 export function NotesPanel({ task, onUpdate, onClose, style }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const textareaRef = useRef(null)
   const [lineCount, setLineCount] = useState(0)
 
@@ -50,6 +50,12 @@ export function NotesPanel({ task, onUpdate, onClose, style }) {
   }, [onClose])
 
   const dateStr = formatDate(task.dueDate)
+  const notesText = task.notes || ''
+  const isZh = i18n.language?.startsWith('zh')
+  const wordCount = (notesText.match(/\b[\p{L}\p{N}']+\b/gu) || []).length
+  const charCount = notesText.length
+  const count = isZh ? charCount : wordCount
+  const minutes = count > 0 ? Math.ceil(count / (isZh ? 300 : 200)) : 0
 
   return (
     <motion.aside
@@ -124,8 +130,10 @@ export function NotesPanel({ task, onUpdate, onClose, style }) {
           transition={{ delay: 0.5, duration: 0.3 }}
           className="absolute bottom-6 right-6 text-xs text-muted-foreground/60"
         >
-          {task.notes?.length || 0} 字
-          {task.notes?.length > 0 && ` · 约 ${Math.ceil(task.notes.length / 300)} 分钟`}
+          {isZh
+            ? t('tasks.charCount', { count })
+            : t('tasks.wordCount', { count })}
+          {count > 0 && ` ${t('tasks.readingTime', { minutes })}`}
         </motion.div>
       </div>
     </motion.aside>

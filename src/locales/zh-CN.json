@@ -26,8 +26,8 @@
     "done": "了结"
   },
   "views": {
-    "list": "事项",
-    "calendar": "日历"
+    "list": "事务",
+    "calendar": "日程"
   },
   "calendar": {
     "months": {
@@ -69,7 +69,10 @@
     "setDate": "设置日期",
     "notes": "备注",
     "notesPlaceholder": "在这里记录想法...",
-    "taskCount": "{{count}} 个任务"
+    "taskCount": "{{count}} 个任务",
+    "charCount": "{{count}} 字",
+    "wordCount": "{{count}} 词",
+    "readingTime": "· 约 {{minutes}} 分钟"
   },
   "toast": {
     "taskAdded": "任务已添加到未了",
