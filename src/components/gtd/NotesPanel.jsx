@@ -13,7 +13,16 @@ import { gentle } from '@/lib/motion'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
-export function NotesPanel({ task, onUpdate, onClose, style, immersive = false, onToggleImmersive, className }) {
+export function NotesPanel({
+  task,
+  onUpdate,
+  onClose,
+  style,
+  immersive = false,
+  onToggleImmersive,
+  className,
+  motionPreset = 'dock'
+}) {
   const { t, i18n } = useTranslation()
   const textareaRef = useRef(null)
   const [lineCount, setLineCount] = useState(0)
@@ -61,12 +70,26 @@ export function NotesPanel({ task, onUpdate, onClose, style, immersive = false, 
   const count = isZh ? charCount : wordCount
   const minutes = count > 0 ? Math.ceil(count / (isZh ? 300 : 200)) : 0
 
+  const motionConfig = motionPreset === 'immersive'
+    ? {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+        transition: { duration: 0.2, ease: 'easeOut' }
+      }
+    : {
+        initial: { opacity: 0, x: '100%' },
+        animate: { opacity: 1, x: 0 },
+        exit: { opacity: 0, x: '100%', width: 0 },
+        transition: gentle
+      }
+
   return (
     <motion.aside
-      initial={{ opacity: 0, x: '100%' }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: '100%', width: 0 }}
-      transition={gentle}
+      initial={motionConfig.initial}
+      animate={motionConfig.animate}
+      exit={motionConfig.exit}
+      transition={motionConfig.transition}
       className={cn(
         "bg-card flex flex-col relative overflow-hidden notes-panel",
         immersive ? "rounded-2xl border border-border/60 shadow-2xl" : "border-l",

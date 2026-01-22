@@ -5,7 +5,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGTD, GTD_LIST_META, GTD_LISTS } from '@/stores/gtd'
 import { Sidebar } from '@/components/gtd/Sidebar'
@@ -16,7 +16,7 @@ import { NotesPanel } from '@/components/gtd/NotesPanel'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { exportData, importData, showNotification, isTauri } from '@/lib/tauri'
 import { cn } from '@/lib/utils'
 
@@ -42,7 +42,11 @@ function App() {
   const [notesPanelWidth, setNotesPanelWidth] = useState(() => Math.floor(window.innerWidth / 2)) // 笔记面板宽度，默认为页面一半
   const [isResizing, setIsResizing] = useState(false)
   const [isImmersive, setIsImmersive] = useState(false)
+  const [dockRect, setDockRect] = useState(null)
+  const dockPanelRef = useRef(null)
+  const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
   const selectedTask = tasks.find(t => t.id === selectedTaskId)
+  const showNotesPanel = viewMode === 'list' && selectedTaskId && selectedTask
 
   const handleAdd = (title) => {
     const targetList = activeList === GTD_LISTS.DONE ? GTD_LISTS.INBOX : activeList
@@ -138,12 +142,58 @@ function App() {
     }
   }, [selectedTaskId, viewMode])
 
+  useLayoutEffect(() => {
+    if (!showNotesPanel || isImmersive || !dockPanelRef.current) return
+    const rect = dockPanelRef.current.getBoundingClientRect()
+    setDockRect({
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height
+    })
+  }, [showNotesPanel, isImmersive, notesPanelWidth])
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewport({ width: window.innerWidth, height: window.innerHeight })
+      if (!showNotesPanel || isImmersive || !dockPanelRef.current) return
+      const rect = dockPanelRef.current.getBoundingClientRect()
+      setDockRect({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height
+      })
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [showNotesPanel, isImmersive])
+
   const meta = GTD_LIST_META[activeList]
-  const showNotesPanel = viewMode === 'list' && selectedTaskId && selectedTask
   const handleCloseNotes = () => {
     setSelectedTaskId(null)
     setIsImmersive(false)
   }
+  const handleEnterImmersive = () => {
+    if (dockPanelRef.current) {
+      const rect = dockPanelRef.current.getBoundingClientRect()
+      setDockRect({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height
+      })
+    }
+    setIsImmersive(true)
+  }
+
+  const immersiveRect = {
+    width: Math.min(viewport.width * 0.9, 1100),
+    height: Math.min(viewport.height * 0.85, 900)
+  }
+  immersiveRect.left = (viewport.width - immersiveRect.width) / 2
+  immersiveRect.top = (viewport.height - immersiveRect.height) / 2
+  const fromRect = dockRect || immersiveRect
 
   return (
     <div className="flex h-screen bg-background">
@@ -195,9 +245,9 @@ function App() {
           </ScrollArea>
         </main>
       )}
-      <AnimatePresence>
+      <AnimatePresence mode="sync" initial={false}>
         {showNotesPanel && !isImmersive && (
-          <>
+          <div key="notes-dock" className="flex">
             {/* 可拖动的分隔条 */}
             <div
               onMouseDown={handleMouseDown}
@@ -206,28 +256,45 @@ function App() {
               {/* 扩大点击区域 */}
               <div className="absolute inset-y-0 -left-2 -right-2" />
             </div>
-            <NotesPanel
-              task={selectedTask}
-              onUpdate={updateTask}
-              onClose={handleCloseNotes}
-              onToggleImmersive={() => setIsImmersive(true)}
-              style={{ width: `${notesPanelWidth}px`, flexShrink: 0 }}
-            />
-          </>
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
-        {showNotesPanel && isImmersive && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/40 backdrop-blur-sm">
-            <NotesPanel
-              task={selectedTask}
-              onUpdate={updateTask}
-              onClose={handleCloseNotes}
-              immersive
-              onToggleImmersive={() => setIsImmersive(false)}
-              className="w-[90vw] max-w-[1100px] h-[85vh] max-h-[900px]"
-            />
+            <div ref={dockPanelRef} style={{ width: `${notesPanelWidth}px`, flexShrink: 0 }}>
+              <NotesPanel
+                task={selectedTask}
+                onUpdate={updateTask}
+                onClose={handleCloseNotes}
+                onToggleImmersive={handleEnterImmersive}
+                motionPreset="dock"
+                style={{ width: '100%', flexShrink: 0 }}
+              />
+            </div>
           </div>
+        )}
+        {showNotesPanel && isImmersive && (
+          <motion.div
+            key="immersive-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+            className="fixed inset-0 z-50 bg-background/40 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={fromRect}
+              animate={immersiveRect}
+              exit={fromRect}
+              transition={{ type: 'spring', damping: 34, stiffness: 150, mass: 0.9 }}
+              style={{ position: 'fixed', transformOrigin: 'right center' }}
+            >
+              <NotesPanel
+                task={selectedTask}
+                onUpdate={updateTask}
+                onClose={handleCloseNotes}
+                immersive
+                onToggleImmersive={() => setIsImmersive(false)}
+                motionPreset="immersive"
+                className="h-full w-full"
+              />
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
       <Toaster position="bottom-right" />
