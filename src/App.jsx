@@ -152,7 +152,10 @@ function App() {
           onAddTask={handleAddWithDate}
         />
       ) : (
-        <main className="flex-1 flex flex-col transition-all duration-[350ms] ease-out">
+        <main
+          className="flex-1 flex flex-col transition-all duration-[350ms] ease-out"
+          onClick={() => selectedTaskId && setSelectedTaskId(null)}
+        >
           <header className="p-6 h-[88px] flex flex-col justify-center">
             <h2 className="text-2xl font-bold">{t(`gtd.${meta.key}`)}</h2>
             <p className="text-sm text-muted-foreground mt-1">

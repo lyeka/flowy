@@ -57,7 +57,7 @@ export function NotesPanel({ task, onUpdate, onClose, style }) {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: '100%', width: 0 }}
       transition={gentle}
-      className="border-l bg-card flex flex-col relative overflow-hidden"
+      className="border-l bg-card flex flex-col relative overflow-hidden notes-panel"
       style={style}
     >
       {/* 关闭按钮 - 右上角，降低对比度 */}

@@ -98,7 +98,10 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={snappy}
-      onClick={() => onTaskClick?.(task.id)}
+      onClick={(e) => {
+        e.stopPropagation()
+        onTaskClick?.(task.id)
+      }}
       className={cn(
         "group flex items-center gap-3 p-3 rounded-lg border bg-card cursor-pointer",
         "hover:shadow-sm transition-shadow"
