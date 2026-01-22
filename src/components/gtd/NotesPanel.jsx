@@ -122,7 +122,7 @@ export function NotesPanel({
       )}
 
       {/* 内容区域 - 增加留白 */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-16 py-16 flex flex-col">
+      <div className="notes-scroll flex-1 min-h-0 overflow-y-auto px-16 py-16 flex flex-col">
         {/* 标题 - 增大字号，添加底部边框效果，微妙缩放动画 */}
         <motion.input
           value={task.title}
