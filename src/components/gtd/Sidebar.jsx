@@ -20,7 +20,6 @@ const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, onExport, onImport, settingsOpen, onSettingsOpenChange, className }) {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(false)
-  const [listExpanded, setListExpanded] = useState(true)
 
   return (
     <aside className={cn(
@@ -52,13 +51,9 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           whileTap={{ scale: 0.96 }}
           transition={snappy}
           onClick={() => {
-            if (viewMode === 'list') {
-              setListExpanded(!listExpanded)
-            } else {
-              onViewModeChange('list')
-              setListExpanded(true)
-            }
+            onViewModeChange('list')
           }}
+          title={collapsed ? t('views.list') : undefined}
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
             "hover:bg-sidebar-accent/50",
@@ -67,14 +62,7 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           )}
         >
           <List className="h-[18px] w-[18px]" />
-          {!collapsed && (
-            <>
-              <span className="flex-1 text-left">{t('views.list')}</span>
-              {viewMode === 'list' && (
-                listExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
-              )}
-            </>
-          )}
+          {!collapsed && <span className="flex-1 text-left">{t('views.list')}</span>}
         </motion.button>
         <motion.button
           whileHover={{ y: -2, scale: 1.02 }}
@@ -82,8 +70,8 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           transition={snappy}
           onClick={() => {
             onViewModeChange('calendar')
-            setListExpanded(false)
           }}
+          title={collapsed ? t('views.calendar') : undefined}
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
             "hover:bg-sidebar-accent/50",
@@ -98,13 +86,13 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
 
       {/* GTD 列表分组 */}
       <AnimatePresence>
-        {listExpanded && viewMode === 'list' && (
+        {viewMode === 'list' && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="flex flex-col gap-1 overflow-hidden"
+            className="flex flex-col gap-1 overflow-hidden border-t border-sidebar-primary/60 pt-2"
           >
             {Object.entries(GTD_LIST_META).map(([key, meta]) => {
               const Icon = ICONS[meta.icon]
@@ -116,15 +104,16 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
                   whileTap={{ scale: 0.96 }}
                   transition={snappy}
                   onClick={() => onSelect(key)}
+                  title={collapsed ? t(`gtd.${meta.key}`) : undefined}
                   className={cn(
                     "flex items-center gap-3 py-2 rounded-lg text-sm transition-colors",
-                    "pl-8 pr-3",
+                    "px-3",
                     "hover:bg-sidebar-accent",
                     isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
                     collapsed && "justify-center"
                   )}
                 >
-                  <Icon className={cn("h-[18px] w-[18px]", meta.color)} />
+                  <Icon className={cn(collapsed ? "h-5 w-5" : "h-[18px] w-[18px]", meta.color)} />
                   {!collapsed && (
                     <>
                       <span className="flex-1 text-left">{t(`gtd.${meta.key}`)}</span>
@@ -150,6 +139,7 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
             whileTap={{ scale: 0.96 }}
             transition={snappy}
             onClick={() => onSettingsOpenChange(true)}
+            title={collapsed ? t('common.settings') : undefined}
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
               "hover:bg-sidebar-accent/50 text-muted-foreground",
