@@ -308,7 +308,7 @@ function App() {
               "flex h-full",
               (immersivePhase !== 'dock' || dockClosing) && "pointer-events-none"
             )}
-            style={dockClosing && dockRect ? {
+            style={(dockClosing || immersivePhase === 'closing') && dockRect ? {
               position: 'fixed',
               top: dockRect.top,
               left: dockRect.left,
