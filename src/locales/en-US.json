@@ -19,10 +19,10 @@
     "en-US": "English"
   },
   "gtd": {
-    "inbox": "Inbox",
+    "inbox": "Tasks",
     "today": "Today",
-    "next": "Next Actions",
-    "someday": "Someday/Maybe",
+    "next": "Next",
+    "someday": "Someday",
     "done": "Done"
   },
   "views": {
@@ -72,10 +72,10 @@
     "taskCount": "{{count}} tasks"
   },
   "toast": {
-    "taskAdded": "Task added to Inbox",
+    "taskAdded": "Task added to Tasks",
     "taskAddedWithDate": "Task added",
     "taskDeleted": "Task deleted",
-    "taskCompleted": "Completed: {{title}}",
+    "taskCompleted": "Done: {{title}}",
     "exportSuccess": "Data exported to: {{path}}",
     "exportFailed": "Export failed",
     "importSuccess": "Data imported successfully",

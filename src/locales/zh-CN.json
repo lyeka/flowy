@@ -19,11 +19,11 @@
     "en-US": "English"
   },
   "gtd": {
-    "inbox": "收集箱",
-    "today": "今日待办",
-    "next": "下一步行动",
-    "someday": "将来/也许",
-    "done": "已完成"
+    "inbox": "未了",
+    "today": "今朝",
+    "next": "来日",
+    "someday": "搁置",
+    "done": "了结"
   },
   "views": {
     "list": "事项",
@@ -72,10 +72,10 @@
     "taskCount": "{{count}} 个任务"
   },
   "toast": {
-    "taskAdded": "任务已添加到收集箱",
+    "taskAdded": "任务已添加到未了",
     "taskAddedWithDate": "任务已添加",
     "taskDeleted": "任务已删除",
-    "taskCompleted": "已完成: {{title}}",
+    "taskCompleted": "了结: {{title}}",
     "exportSuccess": "数据已导出到: {{path}}",
     "exportFailed": "导出失败",
     "importSuccess": "数据导入成功",
