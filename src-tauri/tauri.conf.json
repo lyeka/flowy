@@ -1,7 +1,7 @@
 {
-  "productName": "GTD Manager",
+  "productName": "Flowy",
   "version": "0.1.0",
-  "identifier": "com.gtd.manager",
+  "identifier": "com.flowy.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:5173",
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "GTD Manager",
+        "title": "Flowy",
         "width": 1200,
         "height": 800,
         "minWidth": 800,
@@ -33,8 +33,8 @@
     "resources": [],
     "copyright": "",
     "category": "Productivity",
-    "shortDescription": "GTD 时间项目管理",
-    "longDescription": "基于 GTD 方法论的时间和项目管理工具",
+    "shortDescription": "Flowy - GTD 时间项目管理",
+    "longDescription": "Flowy 是基于 GTD 方法论的优雅时间和项目管理工具",
     "macOS": {
       "minimumSystemVersion": "10.13"
     }
