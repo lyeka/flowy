@@ -181,6 +181,15 @@ function App() {
   const meta = GTD_LIST_META[activeList]
   const handleCloseNotes = () => {
     if (immersivePhase === 'dock') {
+      if (dockPanelRef.current) {
+        const rect = dockPanelRef.current.getBoundingClientRect()
+        setDockRect({
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height
+        })
+      }
       setDockClosing(true)
       return
     }
@@ -299,6 +308,14 @@ function App() {
               "flex h-full",
               (immersivePhase !== 'dock' || dockClosing) && "pointer-events-none"
             )}
+            style={dockClosing && dockRect ? {
+              position: 'fixed',
+              top: dockRect.top,
+              left: dockRect.left,
+              width: dockRect.width,
+              height: dockRect.height,
+              zIndex: 50
+            } : undefined}
           >
             {/* 可拖动的分隔条 */}
             <div
