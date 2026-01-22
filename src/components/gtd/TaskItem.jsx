@@ -113,6 +113,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
       exit={{ opacity: 0, x: -20 }}
       transition={snappy}
       onClick={(e) => {
+        if (e.target.closest?.('[data-no-note]')) return
         e.stopPropagation()
         onTaskClick?.(task.id)
       }}
@@ -126,6 +127,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
         initial={{ scale: 1 }}
         animate={task.completed ? { scale: [1, 1.3, 1] } : { scale: 1 }}
         transition={bouncy}
+        data-no-note
       >
         <Checkbox
           checked={task.completed}
@@ -156,7 +158,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
         <Popover open={dateOpen} onOpenChange={setDateOpen}>
           <PopoverTrigger asChild>
             <button
-              onClick={(e) => e.stopPropagation()}
+              data-no-note
               className={cn(
                 "flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors",
                 dateStr
@@ -259,6 +261,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
             variant="ghost"
             size="icon"
             className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+            data-no-note
           >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
