@@ -16,6 +16,7 @@ import { snappy } from '@/lib/motion'
 export function Settings({ open, onOpenChange, onExport, onImport }) {
   const { t, i18n } = useTranslation()
   const { theme, setTheme } = useTheme()
+  const currentTheme = theme ?? 'light'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -27,7 +28,7 @@ export function Settings({ open, onOpenChange, onExport, onImport }) {
           {/* 主题设置 */}
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">{t('common.theme')}</span>
-            <Select value={theme} onValueChange={setTheme}>
+            <Select value={currentTheme} onValueChange={setTheme}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>

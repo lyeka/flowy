@@ -1,5 +1,5 @@
 // [INPUT]: Tauri 核心库、插件(notification, global-shortcut, dialog, fs)
-// [OUTPUT]: 桌面应用主进程、全局快捷键、通知、文件操作命令
+// [OUTPUT]: 桌面应用主进程、全局快捷键、通知、文件操作命令、开发菜单
 // [POS]: Tauri 应用入口,负责初始化桌面端能力并暴露给前端
 // [PROTOCOL]: 变更时更新此头部,然后检查 CLAUDE.md
 
@@ -9,6 +9,20 @@ use tauri::Manager;
 use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
+
+#[cfg(debug_assertions)]
+use tauri::menu::{Menu, MenuItem, Submenu};
+#[cfg(debug_assertions)]
+use tauri::Runtime;
+
+#[cfg(debug_assertions)]
+fn build_menu<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<Menu<R>> {
+    let menu = Menu::default(app)?;
+    let devtools = MenuItem::with_id(app, "toggle_devtools", "Toggle DevTools", true, None::<&str>)?;
+    let developer = Submenu::with_items(app, "Developer", true, &[&devtools])?;
+    menu.append_items(&[&developer])?;
+    Ok(menu)
+}
 
 // ============================================================
 // 命令: 显示桌面通知
@@ -64,12 +78,28 @@ async fn import_data(app: tauri::AppHandle) -> Result<String, String> {
 }
 
 fn main() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_fs::init())
-        .setup(|app| {
+        .plugin(tauri_plugin_fs::init());
+
+    #[cfg(debug_assertions)]
+    let builder = builder
+        .menu(|app| build_menu(app))
+        .on_menu_event(|app, event| {
+            if event.id() == "toggle_devtools" {
+                if let Some(window) = app.get_webview_window("main") {
+                    if window.is_devtools_open() {
+                        window.close_devtools();
+                    } else {
+                        window.open_devtools();
+                    }
+                }
+            }
+        });
+
+    builder.setup(|app| {
             // ============================================================
             // 注册全局快捷键: Cmd+Shift+Space (macOS) / Ctrl+Shift+Space (Windows/Linux)
             // ============================================================
