@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion
+ * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/tauri 桌面端 API
  * [OUTPUT]: 导出 Sidebar 组件
- * [POS]: GTD 侧边栏导航，上下排布，支持视图切换和列表导航，支持折叠
+ * [POS]: GTD 侧边栏导航，上下排布，支持视图切换和列表导航，支持折叠，支持数据导出/导入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -9,12 +9,13 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { GTD_LISTS, GTD_LIST_META } from '@/stores/gtd'
-import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, Download, Upload } from 'lucide-react'
 import { snappy } from '@/lib/motion'
+import { isTauri, exportData, importData } from '@/lib/tauri'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
-export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, className }) {
+export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, onExport, onImport, className }) {
   const [collapsed, setCollapsed] = useState(false)
 
   return (
@@ -110,6 +111,41 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
               </motion.button>
             )
           })}
+        </div>
+      )}
+
+      {/* 桌面端操作 */}
+      {isTauri() && (
+        <div className="mt-auto flex flex-col gap-1">
+          {!collapsed && <h2 className="text-xs font-semibold text-muted-foreground px-3 mb-1">数据</h2>}
+          <motion.button
+            whileHover={{ y: -2, scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            transition={snappy}
+            onClick={onExport}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+              "hover:bg-sidebar-accent/50 text-muted-foreground",
+              collapsed && "justify-center"
+            )}
+          >
+            <Download className="h-[18px] w-[18px]" />
+            {!collapsed && '导出数据'}
+          </motion.button>
+          <motion.button
+            whileHover={{ y: -2, scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            transition={snappy}
+            onClick={onImport}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+              "hover:bg-sidebar-accent/50 text-muted-foreground",
+              collapsed && "justify-center"
+            )}
+          >
+            <Upload className="h-[18px] w-[18px]" />
+            {!collapsed && '导入数据'}
+          </motion.button>
         </div>
       )}
     </aside>

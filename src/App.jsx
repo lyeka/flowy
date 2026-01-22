@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd, @/components/gtd/*, @/components/ui/sonner
+ * [INPUT]: 依赖 @/stores/gtd, @/components/gtd/*, @/components/ui/sonner, @/lib/tauri
  * [OUTPUT]: 导出 App 根组件
- * [POS]: 应用入口，组装 GTD 布局，支持列表/日历视图切换
+ * [POS]: 应用入口，组装 GTD 布局，支持列表/日历视图切换，集成桌面端功能
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -16,6 +16,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { AnimatePresence } from 'framer-motion'
+import { exportData, importData, showNotification, isTauri } from '@/lib/tauri'
 
 function App() {
   const {
@@ -28,7 +29,8 @@ function App() {
     updateTask,
     toggleComplete,
     moveTask,
-    deleteTask
+    deleteTask,
+    loadTasks
   } = useGTD()
 
   const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
@@ -54,6 +56,41 @@ function App() {
     if (id === selectedTaskId) setSelectedTaskId(null)
     deleteTask(id)
     toast.success('任务已删除')
+  }
+
+  // 导出数据
+  const handleExport = async () => {
+    try {
+      const filePath = await exportData(tasks)
+      if (filePath) {
+        toast.success(`数据已导出到: ${filePath}`)
+      }
+    } catch (error) {
+      toast.error('导出失败')
+    }
+  }
+
+  // 导入数据
+  const handleImport = async () => {
+    try {
+      const data = await importData()
+      if (data && Array.isArray(data)) {
+        loadTasks(data)
+        toast.success('数据导入成功')
+      }
+    } catch (error) {
+      toast.error('导入失败')
+    }
+  }
+
+  // 任务完成时显示桌面通知
+  const handleToggleComplete = (id) => {
+    const task = tasks.find(t => t.id === id)
+    toggleComplete(id)
+
+    if (task && !task.completed && isTauri()) {
+      showNotification('任务完成', `已完成: ${task.title}`)
+    }
   }
 
   // 处理面板大小调整
@@ -99,12 +136,14 @@ function App() {
         counts={counts}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        onExport={handleExport}
+        onImport={handleImport}
       />
       {viewMode === 'calendar' ? (
         <CalendarView
           tasks={tasks}
           onUpdateTask={updateTask}
-          onToggle={toggleComplete}
+          onToggle={handleToggleComplete}
           onAddTask={handleAddWithDate}
         />
       ) : (
@@ -122,7 +161,7 @@ function App() {
             <TaskList
               tasks={filteredTasks}
               activeList={activeList}
-              onToggle={toggleComplete}
+              onToggle={handleToggleComplete}
               onMove={moveTask}
               onDelete={handleDelete}
               onUpdateDate={(id, dueDate) => updateTask(id, { dueDate })}

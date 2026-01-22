@@ -104,6 +104,13 @@ export function useGTD() {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, list, completed: list === GTD_LISTS.DONE } : t))
   }, [])
 
+  // 加载任务(用于导入)
+  const loadTasksFromData = useCallback((data) => {
+    if (Array.isArray(data)) {
+      setTasks(data)
+    }
+  }, [])
+
   // 按列表筛选
   const filteredTasks = useMemo(() => {
     return tasks.filter(t => t.list === activeList)
@@ -127,6 +134,7 @@ export function useGTD() {
     updateTask,
     deleteTask,
     toggleComplete,
-    moveTask
+    moveTask,
+    loadTasks: loadTasksFromData
   }
 }
