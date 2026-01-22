@@ -7,10 +7,10 @@
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { GTD_LISTS, GTD_LIST_META } from '@/stores/gtd'
-import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, Settings } from 'lucide-react'
+import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, ChevronDown, Settings } from 'lucide-react'
 import { snappy } from '@/lib/motion'
 import { isTauri, exportData, importData } from '@/lib/tauri'
 import { Settings as SettingsDialog } from './Settings'
@@ -20,6 +20,7 @@ const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, onExport, onImport, settingsOpen, onSettingsOpenChange, className }) {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(false)
+  const [listExpanded, setListExpanded] = useState(true)
 
   return (
     <aside className={cn(
@@ -46,12 +47,18 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
 
       {/* 视图分组 */}
       <div className="flex flex-col gap-1">
-        {!collapsed && <h2 className="text-xs font-semibold text-muted-foreground px-3 mb-1">{t('views.list')}</h2>}
         <motion.button
           whileHover={{ y: -2, scale: 1.02 }}
           whileTap={{ scale: 0.96 }}
           transition={snappy}
-          onClick={() => onViewModeChange('list')}
+          onClick={() => {
+            if (viewMode === 'list') {
+              setListExpanded(!listExpanded)
+            } else {
+              onViewModeChange('list')
+              setListExpanded(true)
+            }
+          }}
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
             "hover:bg-sidebar-accent/50",
@@ -60,13 +67,23 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           )}
         >
           <List className="h-[18px] w-[18px]" />
-          {!collapsed && t('views.list')}
+          {!collapsed && (
+            <>
+              <span className="flex-1 text-left">{t('views.list')}</span>
+              {viewMode === 'list' && (
+                listExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
+              )}
+            </>
+          )}
         </motion.button>
         <motion.button
           whileHover={{ y: -2, scale: 1.02 }}
           whileTap={{ scale: 0.96 }}
           transition={snappy}
-          onClick={() => onViewModeChange('calendar')}
+          onClick={() => {
+            onViewModeChange('calendar')
+            setListExpanded(false)
+          }}
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
             "hover:bg-sidebar-accent/50",
@@ -80,47 +97,54 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
       </div>
 
       {/* GTD 列表分组 */}
-      {viewMode === 'list' && (
-        <div className="flex flex-col gap-1">
-          {!collapsed && <h2 className="text-xs font-semibold text-muted-foreground px-3 mb-1">列表</h2>}
-          {Object.entries(GTD_LIST_META).map(([key, meta]) => {
-            const Icon = ICONS[meta.icon]
-            const isActive = activeList === key
-            return (
-              <motion.button
-                key={key}
-                whileHover={{ y: -2, scale: 1.02 }}
-                whileTap={{ scale: 0.96 }}
-                transition={snappy}
-                onClick={() => onSelect(key)}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                  "hover:bg-sidebar-accent",
-                  isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-                  collapsed && "justify-center"
-                )}
-              >
-                <Icon className={cn("h-[18px] w-[18px]", meta.color)} />
-                {!collapsed && (
-                  <>
-                    <span className="flex-1 text-left">{t(`gtd.${meta.key}`)}</span>
-                    {counts[key] > 0 && (
-                      <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded-full font-medium inline-flex items-center justify-center leading-none">
-                        {counts[key]}
-                      </span>
-                    )}
-                  </>
-                )}
-              </motion.button>
-            )
-          })}
-        </div>
-      )}
+      <AnimatePresence>
+        {listExpanded && viewMode === 'list' && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col gap-1 overflow-hidden"
+          >
+            {Object.entries(GTD_LIST_META).map(([key, meta]) => {
+              const Icon = ICONS[meta.icon]
+              const isActive = activeList === key
+              return (
+                <motion.button
+                  key={key}
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={snappy}
+                  onClick={() => onSelect(key)}
+                  className={cn(
+                    "flex items-center gap-3 py-2 rounded-lg text-sm transition-colors",
+                    "pl-8 pr-3",
+                    "hover:bg-sidebar-accent",
+                    isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                    collapsed && "justify-center"
+                  )}
+                >
+                  <Icon className={cn("h-[18px] w-[18px]", meta.color)} />
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1 text-left">{t(`gtd.${meta.key}`)}</span>
+                      {counts[key] > 0 && (
+                        <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded-full font-medium inline-flex items-center justify-center leading-none">
+                          {counts[key]}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </motion.button>
+              )
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 桌面端操作 */}
       {isTauri() && (
         <div className="mt-auto flex flex-col gap-1">
-          {!collapsed && <h2 className="text-xs font-semibold text-muted-foreground px-3 mb-1">{t('common.settings')}</h2>}
           <motion.button
             whileHover={{ y: -2, scale: 1.02 }}
             whileTap={{ scale: 0.96 }}

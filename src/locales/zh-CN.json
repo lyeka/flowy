@@ -20,8 +20,8 @@
     "done": "已完成"
   },
   "views": {
-    "list": "列表视图",
-    "calendar": "日历视图"
+    "list": "事项",
+    "calendar": "日历"
   },
   "calendar": {
     "months": {

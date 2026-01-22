@@ -20,8 +20,8 @@
     "done": "Done"
   },
   "views": {
-    "list": "List View",
-    "calendar": "Calendar View"
+    "list": "Things",
+    "calendar": "Calendar"
   },
   "calendar": {
     "months": {
