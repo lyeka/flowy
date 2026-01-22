@@ -1,0 +1,19 @@
+# locales/
+> L2 | 父级: src/CLAUDE.md
+
+## 成员清单
+
+zh-CN.json: 中文翻译文件，包含所有界面文本的中文版本
+en-US.json: 英文翻译文件，包含所有界面文本的英文版本
+
+## 翻译结构
+
+- common: 通用文本（设置、语言、数据同步等）
+- languages: 语言名称
+- gtd: GTD 列表名称（收集箱、今日待办等）
+- views: 视图名称（列表视图、日历视图）
+- calendar: 日历相关（月份、星期、快捷日期）
+- tasks: 任务操作（添加、移动、删除、备注）
+- toast: 提示消息
+
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

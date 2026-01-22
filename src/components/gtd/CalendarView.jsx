@@ -1,11 +1,12 @@
 /**
- * [INPUT]: 依赖 @/stores/calendar，依赖 CalendarGrid, UnscheduledPanel
+ * [INPUT]: 依赖 @/stores/calendar，依赖 CalendarGrid, UnscheduledPanel, react-i18next
  * [OUTPUT]: 导出 CalendarView 组件
  * [POS]: 日历视图容器，组装 Header + Grid + UnscheduledPanel
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useCalendar } from '@/stores/calendar'
 import { CalendarGrid } from './CalendarGrid'
 import { UnscheduledPanel } from './UnscheduledPanel'
@@ -14,6 +15,7 @@ import { ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from 'lucide-r
 import { cn } from '@/lib/utils'
 
 export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
+  const { t } = useTranslation()
   const {
     grid,
     tasksByDate,
@@ -45,24 +47,27 @@ export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
   }
 
   const handleAddTask = (date) => {
-    const title = prompt('添加任务:')
+    const title = prompt(t('tasks.addPlaceholder'))
     if (title?.trim()) {
       onAddTask(title, date)
     }
   }
 
+  const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+  const formattedTitle = `${title.year}年 ${t(`calendar.months.${monthNames[title.month]}`)}`
+
   return (
     <div className="flex-1 flex flex-col">
       {/* Header */}
       <header className="border-b p-4 flex items-center gap-4">
-        <h2 className="text-xl font-bold min-w-32">{title}</h2>
+        <h2 className="text-xl font-bold min-w-32">{formattedTitle}</h2>
 
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={handlePrev}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="sm" onClick={goToday}>
-            今天
+            {t('calendar.today')}
           </Button>
           <Button variant="ghost" size="icon" onClick={handleNext}>
             <ChevronRight className="h-4 w-4" />
@@ -81,7 +86,7 @@ export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
             )}
           >
             <CalendarDays className="h-4 w-4" />
-            月
+            {t('calendar.month')}
           </button>
           <button
             onClick={() => setViewMode('week')}
@@ -91,7 +96,7 @@ export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
             )}
           >
             <CalendarRange className="h-4 w-4" />
-            周
+            {t('calendar.week')}
           </button>
         </div>
       </header>

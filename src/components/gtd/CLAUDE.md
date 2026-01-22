@@ -4,7 +4,8 @@
 ## 成员清单
 
 QuickCapture.jsx: 快速收集输入框，顶部任务添加入口
-Sidebar.jsx: 侧边栏导航，GTD 五大列表切换 + 列表/日历视图切换
+Sidebar.jsx: 侧边栏导航，GTD 五大列表切换 + 列表/日历视图切换 + 设置入口
+Settings.jsx: 设置对话框，数据导入/导出入口
 TaskItem.jsx: 单任务项，支持完成/移动/删除/日期设置
 TaskList.jsx: 任务列表容器，处理空状态和序列动画
 CalendarView.jsx: 日历视图容器，组装 Header + Grid + UnscheduledPanel

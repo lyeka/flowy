@@ -1,15 +1,14 @@
 /**
- * [INPUT]: 依赖 framer-motion，依赖 CalendarCell
+ * [INPUT]: 依赖 framer-motion，依赖 CalendarCell, react-i18next
  * [OUTPUT]: 导出 CalendarGrid 组件
  * [POS]: 日历网格渲染，包含星期标题和日期矩阵
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { CalendarCell } from './CalendarCell'
 import { gentle } from '@/lib/motion'
-
-const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 
 export function CalendarGrid({
   grid,
@@ -21,16 +20,19 @@ export function CalendarGrid({
   onToggle,
   direction
 }) {
+  const { t } = useTranslation()
+  const weekdays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+
   return (
     <div className="flex-1 flex flex-col border-l border-t">
       {/* 星期标题 */}
       <div className="grid grid-cols-7 border-b">
-        {WEEKDAYS.map(day => (
+        {weekdays.map(day => (
           <div
             key={day}
             className="py-2 text-center text-sm font-medium text-muted-foreground border-r"
           >
-            {day}
+            {t(`calendar.weekdays.${day}`)}
           </div>
         ))}
       </div>

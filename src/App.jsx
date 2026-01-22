@@ -1,11 +1,12 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd, @/components/gtd/*, @/components/ui/sonner, @/lib/tauri
+ * [INPUT]: 依赖 @/stores/gtd, @/components/gtd/*, @/components/ui/sonner, @/lib/tauri, react-i18next
  * [OUTPUT]: 导出 App 根组件
  * [POS]: 应用入口，组装 GTD 布局，支持列表/日历视图切换，集成桌面端功能
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useGTD, GTD_LIST_META, GTD_LISTS } from '@/stores/gtd'
 import { Sidebar } from '@/components/gtd/Sidebar'
 import { QuickCapture } from '@/components/gtd/QuickCapture'
@@ -19,6 +20,7 @@ import { AnimatePresence } from 'framer-motion'
 import { exportData, importData, showNotification, isTauri } from '@/lib/tauri'
 
 function App() {
+  const { t } = useTranslation()
   const {
     tasks,
     filteredTasks,
@@ -34,6 +36,7 @@ function App() {
   } = useGTD()
 
   const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [selectedTaskId, setSelectedTaskId] = useState(null)
   const [notesPanelWidth, setNotesPanelWidth] = useState(() => Math.floor(window.innerWidth / 2)) // 笔记面板宽度，默认为页面一半
   const [isResizing, setIsResizing] = useState(false)
@@ -41,7 +44,7 @@ function App() {
 
   const handleAdd = (title) => {
     addTask(title)
-    toast.success('任务已添加到收集箱')
+    toast.success(t('toast.taskAdded'))
   }
 
   const handleAddWithDate = (title, date) => {
@@ -49,13 +52,13 @@ function App() {
     if (task && date) {
       updateTask(task.id, { dueDate: date.getTime() })
     }
-    toast.success('任务已添加')
+    toast.success(t('toast.taskAddedWithDate'))
   }
 
   const handleDelete = (id) => {
     if (id === selectedTaskId) setSelectedTaskId(null)
     deleteTask(id)
-    toast.success('任务已删除')
+    toast.success(t('toast.taskDeleted'))
   }
 
   // 导出数据
@@ -63,10 +66,10 @@ function App() {
     try {
       const filePath = await exportData(tasks)
       if (filePath) {
-        toast.success(`数据已导出到: ${filePath}`)
+        toast.success(t('toast.exportSuccess', { path: filePath }))
       }
     } catch (error) {
-      toast.error('导出失败')
+      toast.error(t('toast.exportFailed'))
     }
   }
 
@@ -76,10 +79,10 @@ function App() {
       const data = await importData()
       if (data && Array.isArray(data)) {
         loadTasks(data)
-        toast.success('数据导入成功')
+        toast.success(t('toast.importSuccess'))
       }
     } catch (error) {
-      toast.error('导入失败')
+      toast.error(t('toast.importFailed'))
     }
   }
 
@@ -89,7 +92,7 @@ function App() {
     toggleComplete(id)
 
     if (task && !task.completed && isTauri()) {
-      showNotification('任务完成', `已完成: ${task.title}`)
+      showNotification(t('toast.taskCompleted', { title: '' }), t('toast.taskCompleted', { title: task.title }))
     }
   }
 
@@ -138,6 +141,8 @@ function App() {
         onViewModeChange={setViewMode}
         onExport={handleExport}
         onImport={handleImport}
+        settingsOpen={settingsOpen}
+        onSettingsOpenChange={setSettingsOpen}
       />
       {viewMode === 'calendar' ? (
         <CalendarView
@@ -149,9 +154,9 @@ function App() {
       ) : (
         <main className="flex-1 flex flex-col transition-all duration-[350ms] ease-out">
           <header className="p-6 h-[88px] flex flex-col justify-center">
-            <h2 className="text-2xl font-bold">{meta.label}</h2>
+            <h2 className="text-2xl font-bold">{t(`gtd.${meta.key}`)}</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {counts[activeList]} 个任务
+              {t('tasks.taskCount', { count: counts[activeList] })}
             </p>
           </header>
           <div className="p-6">

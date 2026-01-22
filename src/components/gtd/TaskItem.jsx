@@ -1,11 +1,12 @@
 /**
- * [INPUT]: 依赖 @/components/ui/checkbox, @/stores/gtd, framer-motion, lucide-react
+ * [INPUT]: 依赖 @/components/ui/checkbox, @/stores/gtd, framer-motion, lucide-react, react-i18next
  * [OUTPUT]: 导出 TaskItem 组件
  * [POS]: 单个任务项渲染，支持完成、编辑、移动、删除、日期设置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
@@ -29,20 +30,22 @@ import { snappy, bouncy } from '@/lib/motion'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
-const formatDate = (timestamp) => {
-  if (!timestamp) return null
-  const d = new Date(timestamp)
-  const today = new Date()
-  const tomorrow = new Date(today)
-  tomorrow.setDate(tomorrow.getDate() + 1)
-
-  if (d.toDateString() === today.toDateString()) return '今天'
-  if (d.toDateString() === tomorrow.toDateString()) return '明天'
-  return `${d.getMonth() + 1}/${d.getDate()}`
-}
-
 export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTaskClick }) {
+  const { t } = useTranslation()
   const [dateOpen, setDateOpen] = useState(false)
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return null
+    const d = new Date(timestamp)
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    if (d.toDateString() === today.toDateString()) return t('calendar.today')
+    if (d.toDateString() === tomorrow.toDateString()) return t('calendar.tomorrow')
+    return `${d.getMonth() + 1}/${d.getDate()}`
+  }
+
   const dateStr = formatDate(task.dueDate)
 
   const getQuickDate = (type) => {
@@ -145,7 +148,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
               )}
             >
               <CalendarDays className="h-3 w-3" />
-              {dateStr || '设置日期'}
+              {dateStr || t('tasks.setDate')}
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-3" align="end">
@@ -162,7 +165,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
                   transition={snappy}
                   onClick={() => handleQuickDate('today')}
                 >
-                  今天
+                  {t('calendar.today')}
                 </motion.button>
               </Button>
               <Button
@@ -176,7 +179,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
                   transition={snappy}
                   onClick={() => handleQuickDate('tomorrow')}
                 >
-                  明天
+                  {t('calendar.tomorrow')}
                 </motion.button>
               </Button>
               <Button
@@ -190,7 +193,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
                   transition={snappy}
                   onClick={() => handleQuickDate('next-week')}
                 >
-                  下周
+                  {t('calendar.nextWeek')}
                 </motion.button>
               </Button>
               <Button
@@ -204,7 +207,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
                   transition={snappy}
                   onClick={() => handleQuickDate('next-month')}
                 >
-                  下个月
+                  {t('calendar.nextMonth')}
                 </motion.button>
               </Button>
             </div>
@@ -223,7 +226,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
                   className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-2"
                 >
                   <X className="h-3 w-3" />
-                  清除日期
+                  {t('calendar.clearDate')}
                 </button>
               )}
             </div>
@@ -254,7 +257,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
                 }}
               >
                 <Icon className={cn("h-4 w-4 mr-2", meta.color)} />
-                移动到 {meta.label}
+                {t('tasks.moveTo')} {t(`gtd.${meta.key}`)}
               </DropdownMenuItem>
             )
           })}
@@ -267,7 +270,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
             className="text-destructive focus:text-destructive"
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            删除
+            {t('tasks.delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

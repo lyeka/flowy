@@ -1,26 +1,29 @@
 /**
- * [INPUT]: 依赖 framer-motion, lucide-react, @/lib/motion, react hooks
+ * [INPUT]: 依赖 framer-motion, lucide-react, @/lib/motion, react hooks, react-i18next
  * [OUTPUT]: 导出 NotesPanel 组件
  * [POS]: 任务副文本编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验，信件风格
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { gentle } from '@/lib/motion'
 import { useEffect, useRef, useState } from 'react'
 
-const formatDate = (timestamp) => {
-  if (!timestamp) return ''
-  const d = new Date(timestamp)
-  const weekday = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()]
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} · ${weekday}`
-}
-
 export function NotesPanel({ task, onUpdate, onClose, style }) {
+  const { t } = useTranslation()
   const textareaRef = useRef(null)
   const [lineCount, setLineCount] = useState(0)
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return ''
+    const d = new Date(timestamp)
+    const weekdays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+    const weekday = t(`calendar.weekdays.${weekdays[d.getDay()]}`)
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} · ${weekday}`
+  }
 
   const handleNotesChange = (e) => {
     onUpdate(task.id, { notes: e.target.value })
@@ -74,7 +77,7 @@ export function NotesPanel({ task, onUpdate, onClose, style }) {
           value={task.title}
           onChange={(e) => onUpdate(task.id, { title: e.target.value })}
           className="font-semibold text-3xl bg-transparent border-0 border-b border-transparent hover:border-border/50 focus:border-primary outline-none w-full transition-colors"
-          placeholder="任务标题"
+          placeholder={t('tasks.notes')}
           spellCheck={false}
           whileFocus={{ scale: 1.01 }}
           transition={{ duration: 0.2 }}
@@ -108,7 +111,7 @@ export function NotesPanel({ task, onUpdate, onClose, style }) {
             ref={textareaRef}
             value={task.notes || ''}
             onChange={handleNotesChange}
-            placeholder="在这里记录你的思考、计划和灵感..."
+            placeholder={t('tasks.notesPlaceholder')}
             className="relative w-full h-full resize-none bg-transparent border-0 outline-none text-base leading-[1.8] placeholder:text-muted-foreground/50 dark:placeholder:text-muted-foreground/40"
             spellCheck={false}
           />

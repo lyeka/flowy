@@ -144,8 +144,7 @@ export function useCalendar(tasks) {
 
   // 格式化标题
   const title = useMemo(() => {
-    const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
-    return `${year}年 ${monthNames[month]}`
+    return { year, month }
   }, [year, month])
 
   return {

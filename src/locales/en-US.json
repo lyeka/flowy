@@ -1,0 +1,78 @@
+{
+  "common": {
+    "settings": "Settings",
+    "language": "Language",
+    "dataSync": "Data Sync",
+    "export": "Export Data",
+    "import": "Import Data",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "languages": {
+    "zh-CN": "中文",
+    "en-US": "English"
+  },
+  "gtd": {
+    "inbox": "Inbox",
+    "today": "Today",
+    "next": "Next Actions",
+    "someday": "Someday/Maybe",
+    "done": "Done"
+  },
+  "views": {
+    "list": "List View",
+    "calendar": "Calendar View"
+  },
+  "calendar": {
+    "months": {
+      "jan": "January",
+      "feb": "February",
+      "mar": "March",
+      "apr": "April",
+      "may": "May",
+      "jun": "June",
+      "jul": "July",
+      "aug": "August",
+      "sep": "September",
+      "oct": "October",
+      "nov": "November",
+      "dec": "December"
+    },
+    "weekdays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "nextWeek": "Next Week",
+    "nextMonth": "Next Month",
+    "month": "Month",
+    "week": "Week",
+    "unscheduled": "Unscheduled",
+    "clearDate": "Clear Date"
+  },
+  "tasks": {
+    "addPlaceholder": "Add new task...",
+    "moveTo": "Move to",
+    "delete": "Delete",
+    "setDate": "Set Date",
+    "notes": "Notes",
+    "notesPlaceholder": "Write your thoughts here...",
+    "taskCount": "{{count}} tasks"
+  },
+  "toast": {
+    "taskAdded": "Task added to Inbox",
+    "taskAddedWithDate": "Task added",
+    "taskDeleted": "Task deleted",
+    "taskCompleted": "Completed: {{title}}",
+    "exportSuccess": "Data exported to: {{path}}",
+    "exportFailed": "Export failed",
+    "importSuccess": "Data imported successfully",
+    "importFailed": "Import failed"
+  }
+}

@@ -1,11 +1,12 @@
 /**
- * [INPUT]: 依赖 framer-motion，依赖 CalendarTaskChip
+ * [INPUT]: 依赖 framer-motion，依赖 CalendarTaskChip, react-i18next
  * [OUTPUT]: 导出 UnscheduledPanel 组件
  * [POS]: 无日期任务面板，可折叠，支持拖拽到日历
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CalendarTaskChip } from './CalendarTaskChip'
 import { ChevronDown, ChevronRight, Inbox } from 'lucide-react'
@@ -13,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { gentle, staggerContainer, staggerItem } from '@/lib/motion'
 
 export function UnscheduledPanel({ tasks, onToggle }) {
+  const { t } = useTranslation()
   const [isExpanded, setIsExpanded] = useState(true)
 
   if (tasks.length === 0) return null
@@ -30,7 +32,7 @@ export function UnscheduledPanel({ tasks, onToggle }) {
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         )}
         <Inbox className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm font-medium">无日期任务</span>
+        <span className="text-sm font-medium">{t('calendar.unscheduled')}</span>
         <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full ml-auto">
           {tasks.length}
         </span>
