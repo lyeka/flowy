@@ -15,7 +15,7 @@ import { ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from 'lucide-r
 import { cn } from '@/lib/utils'
 
 export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const {
     grid,
     tasksByDate,
@@ -54,7 +54,9 @@ export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
   }
 
   const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
-  const formattedTitle = `${title.year}年 ${t(`calendar.months.${monthNames[title.month]}`)}`
+  const monthLabel = t(`calendar.months.${monthNames[title.month]}`)
+  const isZh = i18n.language?.startsWith('zh')
+  const formattedTitle = isZh ? `${title.year}年 ${monthLabel}` : `${monthLabel} ${title.year}`
 
   return (
     <div className="flex-1 flex flex-col">
