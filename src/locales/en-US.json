@@ -2,11 +2,17 @@
   "common": {
     "settings": "Settings",
     "language": "Language",
+    "theme": "Theme",
     "dataSync": "Data Sync",
     "export": "Export Data",
     "import": "Import Data",
     "cancel": "Cancel",
     "confirm": "Confirm"
+  },
+  "themes": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   },
   "languages": {
     "zh-CN": "中文",

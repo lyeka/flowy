@@ -2,11 +2,17 @@
   "common": {
     "settings": "设置",
     "language": "语言",
+    "theme": "主题",
     "dataSync": "数据同步",
     "export": "导出数据",
     "import": "导入数据",
     "cancel": "取消",
     "confirm": "确认"
+  },
+  "themes": {
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
   },
   "languages": {
     "zh-CN": "中文",

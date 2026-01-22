@@ -73,9 +73,79 @@ npm run tauri:build
 ```
 
 构建产物:
-- **macOS**: `src-tauri/target/release/bundle/macos/GTD Manager.app` (~8MB)
-- **Windows**: `src-tauri/target/release/bundle/msi/GTD Manager.msi` (~10MB)
-- **Linux**: `src-tauri/target/release/bundle/appimage/gtd-manager.AppImage` (~12MB)
+- **macOS**: `src-tauri/target/release/bundle/dmg/Flowy_0.1.0_aarch64.dmg` (Apple Silicon)
+- **macOS**: `src-tauri/target/release/bundle/dmg/Flowy_0.1.0_x64.dmg` (Intel)
+- **macOS**: `src-tauri/target/release/bundle/macos/Flowy.app` (原始应用包)
+- **Windows**: `src-tauri/target/release/bundle/msi/Flowy_0.1.0_x64.msi`
+- **Linux**: `src-tauri/target/release/bundle/appimage/flowy_0.1.0_amd64.AppImage`
+
+## 分发应用
+
+### macOS 分发
+
+**方式一：分发 .dmg（推荐）**
+```bash
+# 构建后直接分发 dmg 文件
+# Apple Silicon Mac: Flowy_0.1.0_aarch64.dmg
+# Intel Mac: Flowy_0.1.0_x64.dmg
+```
+
+用户双击 .dmg 文件，拖拽到 Applications 文件夹即可安装。
+
+**方式二：分发 .app**
+```bash
+# 压缩应用包
+cd src-tauri/target/release/bundle/macos
+zip -r Flowy.zip Flowy.app
+```
+
+用户解压后拖到 Applications 文件夹。
+
+### 首次运行问题
+
+用户首次打开可能遇到"无法打开，因为无法验证开发者"提示：
+
+**解决方法 1**（推荐）：
+```bash
+# 用户在终端执行（替换为实际路径）
+xattr -cr /Applications/Flowy.app
+```
+
+**解决方法 2**：
+右键点击应用 → 选择"打开" → 点击"打开"按钮确认
+
+### 代码签名（可选）
+
+如果需要避免上述安全提示，需要 Apple Developer 账号（$99/年）进行代码签名：
+
+1. **配置签名**
+
+在 `src-tauri/tauri.conf.json` 的 `bundle.macOS` 中添加：
+```json
+{
+  "bundle": {
+    "macOS": {
+      "signingIdentity": "Developer ID Application: Your Name (TEAM_ID)",
+      "minimumSystemVersion": "10.13"
+    }
+  }
+}
+```
+
+2. **公证应用**
+```bash
+# 构建后执行公证
+xcrun notarytool submit src-tauri/target/release/bundle/dmg/Flowy_0.1.0_aarch64.dmg \
+  --apple-id your@email.com \
+  --team-id TEAM_ID \
+  --password app-specific-password \
+  --wait
+
+# 装订公证票据
+xcrun stapler staple src-tauri/target/release/bundle/dmg/Flowy_0.1.0_aarch64.dmg
+```
+
+**注意**：个人分发或小范围使用无需签名，直接使用 `xattr -cr` 命令即可。
 
 ## 项目结构
 

@@ -1,11 +1,12 @@
 /**
- * [INPUT]: 依赖 @/components/ui/dialog, @/components/ui/select，依赖 lucide-react 图标，依赖 framer-motion，依赖 react-i18next
+ * [INPUT]: 依赖 @/components/ui/dialog, @/components/ui/select，依赖 lucide-react 图标，依赖 framer-motion，依赖 react-i18next，依赖 next-themes
  * [OUTPUT]: 导出 Settings 组件
- * [POS]: 设置对话框，语言切换 + 数据导入/导出入口，被 Sidebar 调用
+ * [POS]: 设置对话框，主题切换 + 语言切换 + 数据导入/导出入口，被 Sidebar 调用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useTranslation } from 'react-i18next'
+import { useTheme } from 'next-themes'
 import { motion } from 'framer-motion'
 import { Download, Upload } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -14,6 +15,7 @@ import { snappy } from '@/lib/motion'
 
 export function Settings({ open, onOpenChange, onExport, onImport }) {
   const { t, i18n } = useTranslation()
+  const { theme, setTheme } = useTheme()
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -22,6 +24,21 @@ export function Settings({ open, onOpenChange, onExport, onImport }) {
           <DialogTitle>{t('common.settings')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-4">
+          {/* 主题设置 */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">{t('common.theme')}</span>
+            <Select value={theme} onValueChange={setTheme}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">{t('themes.light')}</SelectItem>
+                <SelectItem value="dark">{t('themes.dark')}</SelectItem>
+                <SelectItem value="system">{t('themes.system')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* 语言设置 */}
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">{t('common.language')}</span>
