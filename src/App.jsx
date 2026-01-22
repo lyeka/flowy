@@ -42,6 +42,7 @@ function App() {
   const [notesPanelWidth, setNotesPanelWidth] = useState(() => Math.floor(window.innerWidth / 2)) // 笔记面板宽度，默认为页面一半
   const [isResizing, setIsResizing] = useState(false)
   const [immersivePhase, setImmersivePhase] = useState('dock')
+  const [dockClosing, setDockClosing] = useState(false)
   const [dockRect, setDockRect] = useState(null)
   const dockPanelRef = useRef(null)
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
@@ -144,6 +145,12 @@ function App() {
     }
   }, [selectedTaskId, viewMode])
 
+  useEffect(() => {
+    if (!showNotesPanel && dockClosing) {
+      setDockClosing(false)
+    }
+  }, [showNotesPanel, dockClosing])
+
   useLayoutEffect(() => {
     if (!showNotesPanel || immersivePhase !== 'dock' || !dockPanelRef.current) return
     const rect = dockPanelRef.current.getBoundingClientRect()
@@ -173,8 +180,11 @@ function App() {
 
   const meta = GTD_LIST_META[activeList]
   const handleCloseNotes = () => {
-    setSelectedTaskId(null)
-    setImmersivePhase('dock')
+    if (immersivePhase === 'dock') {
+      setDockClosing(true)
+      return
+    }
+    setImmersivePhase('closing')
   }
   const handleEnterImmersive = () => {
     if (dockPanelRef.current) {
@@ -235,7 +245,11 @@ function App() {
             "flex-1 flex flex-col transition-all duration-[350ms] ease-out",
             immersiveActive && showNotesPanel && "opacity-0 pointer-events-none"
           )}
-          onClick={() => selectedTaskId && setSelectedTaskId(null)}
+          onClick={() => {
+            if (immersivePhase === 'dock' && selectedTaskId) {
+              setDockClosing(true)
+            }
+          }}
         >
           <header className="p-6 h-[88px] flex flex-col justify-center">
             <h2 className="text-2xl font-bold">{t(`gtd.${meta.key}`)}</h2>
@@ -261,14 +275,30 @@ function App() {
       )}
       <AnimatePresence mode="sync" initial={false}>
         {showNotesPanel && (
-          <div
+          <motion.div
             key="notes-dock"
+            animate={{
+              x: dockClosing ? '100%' : 0,
+              opacity: immersivePhase === 'dock'
+                ? (dockClosing ? 0 : 1)
+                : immersivePhase === 'exiting'
+                  ? 1
+                  : 0
+            }}
+            transition={{
+              x: { type: 'spring', damping: 32, stiffness: 220 },
+              opacity: { duration: 0.25, ease: 'easeOut', delay: immersivePhase === 'exiting' ? 0.12 : 0 }
+            }}
+            onAnimationComplete={() => {
+              if (dockClosing) {
+                setSelectedTaskId(null)
+                setDockClosing(false)
+              }
+            }}
             className={cn(
-              "flex h-full transition-opacity duration-300",
-              immersivePhase === 'immersive' && "opacity-0 pointer-events-none",
-              immersivePhase === 'exiting' && "opacity-100 pointer-events-none"
+              "flex h-full",
+              (immersivePhase !== 'dock' || dockClosing) && "pointer-events-none"
             )}
-            style={immersivePhase === 'exiting' ? { transitionDelay: '120ms' } : undefined}
           >
             {/* 可拖动的分隔条 */}
             <div
@@ -288,24 +318,34 @@ function App() {
                 style={{ width: '100%', height: '100%', flexShrink: 0 }}
               />
             </div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
       {showNotesPanel && isImmersive && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: immersivePhase === 'immersive' ? 1 : 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
           className="fixed inset-0 z-50 bg-background/40 backdrop-blur-sm"
         >
           <motion.div
             initial={fromRect}
-            animate={immersivePhase === 'immersive' ? immersiveRect : fromRect}
-            transition={{ type: 'spring', damping: 42, stiffness: 120, mass: 1.2 }}
+            animate={immersivePhase === 'immersive'
+              ? { ...immersiveRect, opacity: 1, scale: 1 }
+              : immersivePhase === 'exiting'
+                ? { ...fromRect, opacity: 1, scale: 1 }
+                : { ...immersiveRect, opacity: 0, scale: 0.98 }}
+            transition={immersivePhase === 'closing'
+              ? { duration: 0.45, ease: 'easeOut' }
+              : { type: 'spring', damping: 42, stiffness: 120, mass: 1.2 }}
             style={{ position: 'fixed', transformOrigin: 'right center' }}
             onAnimationComplete={() => {
               if (immersivePhase === 'exiting') {
-                setImmersivePhase('dock')
+                requestAnimationFrame(() => setImmersivePhase('dock'))
+              }
+              if (immersivePhase === 'closing') {
+                setSelectedTaskId(null)
+                requestAnimationFrame(() => setImmersivePhase('dock'))
               }
             }}
           >
