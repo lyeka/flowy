@@ -18,6 +18,7 @@ import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { AnimatePresence } from 'framer-motion'
 import { exportData, importData, showNotification, isTauri } from '@/lib/tauri'
+import { cn } from '@/lib/utils'
 
 function App() {
   const { t } = useTranslation()
@@ -40,6 +41,7 @@ function App() {
   const [selectedTaskId, setSelectedTaskId] = useState(null)
   const [notesPanelWidth, setNotesPanelWidth] = useState(() => Math.floor(window.innerWidth / 2)) // 笔记面板宽度，默认为页面一半
   const [isResizing, setIsResizing] = useState(false)
+  const [isImmersive, setIsImmersive] = useState(false)
   const selectedTask = tasks.find(t => t.id === selectedTaskId)
 
   const handleAdd = (title) => {
@@ -130,7 +132,18 @@ function App() {
     }
   }, [isResizing, handleMouseMove, handleMouseUp])
 
+  useEffect(() => {
+    if (!selectedTaskId || viewMode !== 'list') {
+      setIsImmersive(false)
+    }
+  }, [selectedTaskId, viewMode])
+
   const meta = GTD_LIST_META[activeList]
+  const showNotesPanel = viewMode === 'list' && selectedTaskId && selectedTask
+  const handleCloseNotes = () => {
+    setSelectedTaskId(null)
+    setIsImmersive(false)
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -154,7 +167,10 @@ function App() {
         />
       ) : (
         <main
-          className="flex-1 flex flex-col transition-all duration-[350ms] ease-out"
+          className={cn(
+            "flex-1 flex flex-col transition-all duration-[350ms] ease-out",
+            isImmersive && showNotesPanel && "opacity-0 pointer-events-none"
+          )}
           onClick={() => selectedTaskId && setSelectedTaskId(null)}
         >
           <header className="p-6 h-[88px] flex flex-col justify-center">
@@ -180,7 +196,7 @@ function App() {
         </main>
       )}
       <AnimatePresence>
-        {viewMode === 'list' && selectedTaskId && selectedTask && (
+        {showNotesPanel && !isImmersive && (
           <>
             {/* 可拖动的分隔条 */}
             <div
@@ -193,10 +209,25 @@ function App() {
             <NotesPanel
               task={selectedTask}
               onUpdate={updateTask}
-              onClose={() => setSelectedTaskId(null)}
+              onClose={handleCloseNotes}
+              onToggleImmersive={() => setIsImmersive(true)}
               style={{ width: `${notesPanelWidth}px`, flexShrink: 0 }}
             />
           </>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showNotesPanel && isImmersive && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/40 backdrop-blur-sm">
+            <NotesPanel
+              task={selectedTask}
+              onUpdate={updateTask}
+              onClose={handleCloseNotes}
+              immersive
+              onToggleImmersive={() => setIsImmersive(false)}
+              className="w-[90vw] max-w-[1100px] h-[85vh] max-h-[900px]"
+            />
+          </div>
         )}
       </AnimatePresence>
       <Toaster position="bottom-right" />

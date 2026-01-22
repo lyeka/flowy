@@ -72,7 +72,9 @@
     "taskCount": "{{count}} 个任务",
     "charCount": "{{count}} 字",
     "wordCount": "{{count}} 词",
-    "readingTime": "· 约 {{minutes}} 分钟"
+    "readingTime": "· 约 {{minutes}} 分钟",
+    "enterImmersive": "沉浸写作",
+    "exitImmersive": "退出沉浸"
   },
   "toast": {
     "taskAdded": "任务已添加到未了",

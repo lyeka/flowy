@@ -7,12 +7,13 @@
 
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { X } from 'lucide-react'
+import { X, Maximize2, Minimize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { gentle } from '@/lib/motion'
 import { useEffect, useRef, useState } from 'react'
+import { cn } from '@/lib/utils'
 
-export function NotesPanel({ task, onUpdate, onClose, style }) {
+export function NotesPanel({ task, onUpdate, onClose, style, immersive = false, onToggleImmersive, className }) {
   const { t, i18n } = useTranslation()
   const textareaRef = useRef(null)
   const [lineCount, setLineCount] = useState(0)
@@ -31,8 +32,11 @@ export function NotesPanel({ task, onUpdate, onClose, style }) {
 
   useEffect(() => {
     if (textareaRef.current) {
-      const lineHeight = parseFloat(getComputedStyle(textareaRef.current).lineHeight)
-      const height = textareaRef.current.scrollHeight
+      const textarea = textareaRef.current
+      textarea.style.height = 'auto'
+      textarea.style.height = `${textarea.scrollHeight}px`
+      const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight)
+      const height = textarea.scrollHeight
       const lines = Math.ceil(height / lineHeight)
       setLineCount(lines)
     }
@@ -63,7 +67,11 @@ export function NotesPanel({ task, onUpdate, onClose, style }) {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: '100%', width: 0 }}
       transition={gentle}
-      className="border-l bg-card flex flex-col relative overflow-hidden notes-panel"
+      className={cn(
+        "bg-card flex flex-col relative overflow-hidden notes-panel",
+        immersive ? "rounded-2xl border border-border/60 shadow-2xl" : "border-l",
+        className
+      )}
       style={style}
     >
       {/* 关闭按钮 - 右上角，降低对比度 */}
@@ -75,9 +83,21 @@ export function NotesPanel({ task, onUpdate, onClose, style }) {
       >
         <X className="h-4 w-4" />
       </Button>
+      {onToggleImmersive && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggleImmersive}
+          title={immersive ? t('tasks.exitImmersive') : t('tasks.enterImmersive')}
+          aria-label={immersive ? t('tasks.exitImmersive') : t('tasks.enterImmersive')}
+          className="absolute top-6 right-16 h-8 w-8 z-10 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+        >
+          {immersive ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+        </Button>
+      )}
 
       {/* 内容区域 - 增加留白 */}
-      <div className="flex-1 overflow-y-auto px-16 py-16 flex flex-col">
+      <div className="flex-1 min-h-0 overflow-y-auto px-16 py-16 flex flex-col">
         {/* 标题 - 增大字号，添加底部边框效果，微妙缩放动画 */}
         <motion.input
           value={task.title}
@@ -118,7 +138,7 @@ export function NotesPanel({ task, onUpdate, onClose, style }) {
             value={task.notes || ''}
             onChange={handleNotesChange}
             placeholder={t('tasks.notesPlaceholder')}
-            className="relative w-full h-full resize-none bg-transparent border-0 outline-none text-base leading-[1.8] placeholder:text-muted-foreground/50 dark:placeholder:text-muted-foreground/40"
+            className="relative w-full resize-none overflow-hidden bg-transparent border-0 outline-none text-base leading-[1.8] placeholder:text-muted-foreground/50 dark:placeholder:text-muted-foreground/40"
             spellCheck={false}
           />
         </div>

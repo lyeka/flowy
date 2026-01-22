@@ -72,7 +72,9 @@
     "taskCount": "{{count}} tasks",
     "charCount": "{{count}} chars",
     "wordCount": "{{count}} words",
-    "readingTime": "· ~{{minutes}} min"
+    "readingTime": "· ~{{minutes}} min",
+    "enterImmersive": "Immersive mode",
+    "exitImmersive": "Exit immersive"
   },
   "toast": {
     "taskAdded": "Task added to Tasks",
