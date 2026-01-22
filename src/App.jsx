@@ -41,12 +41,14 @@ function App() {
   const [selectedTaskId, setSelectedTaskId] = useState(null)
   const [notesPanelWidth, setNotesPanelWidth] = useState(() => Math.floor(window.innerWidth / 2)) // 笔记面板宽度，默认为页面一半
   const [isResizing, setIsResizing] = useState(false)
-  const [isImmersive, setIsImmersive] = useState(false)
+  const [immersivePhase, setImmersivePhase] = useState('dock')
   const [dockRect, setDockRect] = useState(null)
   const dockPanelRef = useRef(null)
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
   const selectedTask = tasks.find(t => t.id === selectedTaskId)
   const showNotesPanel = viewMode === 'list' && selectedTaskId && selectedTask
+  const isImmersive = immersivePhase !== 'dock'
+  const immersiveActive = immersivePhase === 'immersive'
 
   const handleAdd = (title) => {
     const targetList = activeList === GTD_LISTS.DONE ? GTD_LISTS.INBOX : activeList
@@ -138,12 +140,12 @@ function App() {
 
   useEffect(() => {
     if (!selectedTaskId || viewMode !== 'list') {
-      setIsImmersive(false)
+      setImmersivePhase('dock')
     }
   }, [selectedTaskId, viewMode])
 
   useLayoutEffect(() => {
-    if (!showNotesPanel || isImmersive || !dockPanelRef.current) return
+    if (!showNotesPanel || immersivePhase !== 'dock' || !dockPanelRef.current) return
     const rect = dockPanelRef.current.getBoundingClientRect()
     setDockRect({
       top: rect.top,
@@ -151,12 +153,12 @@ function App() {
       width: rect.width,
       height: rect.height
     })
-  }, [showNotesPanel, isImmersive, notesPanelWidth])
+  }, [showNotesPanel, immersivePhase, notesPanelWidth])
 
   useEffect(() => {
     const handleResize = () => {
       setViewport({ width: window.innerWidth, height: window.innerHeight })
-      if (!showNotesPanel || isImmersive || !dockPanelRef.current) return
+      if (!showNotesPanel || immersivePhase !== 'dock' || !dockPanelRef.current) return
       const rect = dockPanelRef.current.getBoundingClientRect()
       setDockRect({
         top: rect.top,
@@ -167,12 +169,12 @@ function App() {
     }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [showNotesPanel, isImmersive])
+  }, [showNotesPanel, immersivePhase])
 
   const meta = GTD_LIST_META[activeList]
   const handleCloseNotes = () => {
     setSelectedTaskId(null)
-    setIsImmersive(false)
+    setImmersivePhase('dock')
   }
   const handleEnterImmersive = () => {
     if (dockPanelRef.current) {
@@ -184,7 +186,19 @@ function App() {
         height: rect.height
       })
     }
-    setIsImmersive(true)
+    setImmersivePhase('immersive')
+  }
+  const handleExitImmersive = () => {
+    if (dockPanelRef.current) {
+      const rect = dockPanelRef.current.getBoundingClientRect()
+      setDockRect({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height
+      })
+    }
+    setImmersivePhase('exiting')
   }
 
   const immersiveRect = {
@@ -219,7 +233,7 @@ function App() {
         <main
           className={cn(
             "flex-1 flex flex-col transition-all duration-[350ms] ease-out",
-            isImmersive && showNotesPanel && "opacity-0 pointer-events-none"
+            immersiveActive && showNotesPanel && "opacity-0 pointer-events-none"
           )}
           onClick={() => selectedTaskId && setSelectedTaskId(null)}
         >
@@ -246,8 +260,11 @@ function App() {
         </main>
       )}
       <AnimatePresence mode="sync" initial={false}>
-        {showNotesPanel && !isImmersive && (
-          <div key="notes-dock" className="flex">
+        {showNotesPanel && (
+          <div
+            key="notes-dock"
+            className={cn("flex h-full transition-opacity duration-300", immersiveActive && "opacity-0 pointer-events-none")}
+          >
             {/* 可拖动的分隔条 */}
             <div
               onMouseDown={handleMouseDown}
@@ -256,47 +273,49 @@ function App() {
               {/* 扩大点击区域 */}
               <div className="absolute inset-y-0 -left-2 -right-2" />
             </div>
-            <div ref={dockPanelRef} style={{ width: `${notesPanelWidth}px`, flexShrink: 0 }}>
+            <div ref={dockPanelRef} className="h-full" style={{ width: `${notesPanelWidth}px`, flexShrink: 0 }}>
               <NotesPanel
                 task={selectedTask}
                 onUpdate={updateTask}
                 onClose={handleCloseNotes}
                 onToggleImmersive={handleEnterImmersive}
                 motionPreset="dock"
-                style={{ width: '100%', flexShrink: 0 }}
+                style={{ width: '100%', height: '100%', flexShrink: 0 }}
               />
             </div>
           </div>
         )}
-        {showNotesPanel && isImmersive && (
-          <motion.div
-            key="immersive-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.45, ease: 'easeOut' }}
-            className="fixed inset-0 z-50 bg-background/40 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={fromRect}
-              animate={immersiveRect}
-              exit={fromRect}
-              transition={{ type: 'spring', damping: 34, stiffness: 150, mass: 0.9 }}
-              style={{ position: 'fixed', transformOrigin: 'right center' }}
-            >
-              <NotesPanel
-                task={selectedTask}
-                onUpdate={updateTask}
-                onClose={handleCloseNotes}
-                immersive
-                onToggleImmersive={() => setIsImmersive(false)}
-                motionPreset="immersive"
-                className="h-full w-full"
-              />
-            </motion.div>
-          </motion.div>
-        )}
       </AnimatePresence>
+      {showNotesPanel && isImmersive && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: immersivePhase === 'immersive' ? 1 : 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="fixed inset-0 z-50 bg-background/40 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={fromRect}
+            animate={immersivePhase === 'immersive' ? immersiveRect : fromRect}
+            transition={{ type: 'spring', damping: 38, stiffness: 140, mass: 1.1 }}
+            style={{ position: 'fixed', transformOrigin: 'right center' }}
+            onAnimationComplete={() => {
+              if (immersivePhase === 'exiting') {
+                setImmersivePhase('dock')
+              }
+            }}
+          >
+            <NotesPanel
+              task={selectedTask}
+              onUpdate={updateTask}
+              onClose={handleCloseNotes}
+              immersive
+              onToggleImmersive={handleExitImmersive}
+              motionPreset="immersive"
+              className="h-full w-full"
+            />
+          </motion.div>
+        </motion.div>
+      )}
       <Toaster position="bottom-right" />
     </div>
   )

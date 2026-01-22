@@ -42,14 +42,16 @@ export function NotesPanel({
   useEffect(() => {
     if (textareaRef.current) {
       const textarea = textareaRef.current
+      const container = textarea.parentElement
+      const minHeight = container ? container.clientHeight : 0
       textarea.style.height = 'auto'
-      textarea.style.height = `${textarea.scrollHeight}px`
+      const nextHeight = Math.max(textarea.scrollHeight, minHeight)
+      textarea.style.height = `${nextHeight}px`
       const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight)
-      const height = textarea.scrollHeight
-      const lines = Math.ceil(height / lineHeight)
+      const lines = Math.ceil(nextHeight / lineHeight)
       setLineCount(lines)
     }
-  }, [task.notes])
+  }, [task.notes, immersive])
 
   // 键盘快捷键支持
   useEffect(() => {
