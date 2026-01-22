@@ -43,7 +43,8 @@ function App() {
   const selectedTask = tasks.find(t => t.id === selectedTaskId)
 
   const handleAdd = (title) => {
-    addTask(title)
+    const targetList = activeList === GTD_LISTS.DONE ? GTD_LISTS.INBOX : activeList
+    addTask(title, targetList)
     toast.success(t('toast.taskAdded'))
   }
 

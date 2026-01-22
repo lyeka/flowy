@@ -48,6 +48,53 @@ const saveTasks = (tasks) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
 }
 
+const getTodayBounds = () => {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  const end = start + 24 * 60 * 60 * 1000
+  return { start, end }
+}
+
+const isToday = (timestamp) => {
+  if (!timestamp) return false
+  const { start, end } = getTodayBounds()
+  return timestamp >= start && timestamp < end
+}
+
+const isFuture = (timestamp) => {
+  if (!timestamp) return false
+  const { end } = getTodayBounds()
+  return timestamp >= end
+}
+
+const isPast = (timestamp) => {
+  if (!timestamp) return false
+  const { start } = getTodayBounds()
+  return timestamp < start
+}
+
+const getStartOfTomorrow = () => getTodayBounds().end
+
+const isTaskInList = (task, list) => {
+  switch (list) {
+    case GTD_LISTS.INBOX:
+      return !task.completed
+    case GTD_LISTS.TODAY:
+      return !task.completed && isToday(task.dueDate)
+    case GTD_LISTS.NEXT:
+      return !task.completed && isFuture(task.dueDate)
+    case GTD_LISTS.SOMEDAY:
+      return !task.completed && (!task.dueDate || isPast(task.dueDate))
+    case GTD_LISTS.DONE:
+      return task.completed
+    default:
+      return task.list === list
+  }
+}
+
+const getSortTime = (task) => task.dueDate ?? task.createdAt ?? 0
+const getDoneSortTime = (task) => task.completedAt ?? task.dueDate ?? task.createdAt ?? 0
+
 /* ========================================
    GTD Hook
    ======================================== */
@@ -64,13 +111,20 @@ export function useGTD() {
   // 添加任务
   const addTask = useCallback((title, list = GTD_LISTS.INBOX) => {
     if (!title.trim()) return
+    const now = Date.now()
+    const dueDate = list === GTD_LISTS.TODAY
+      ? now
+      : list === GTD_LISTS.NEXT
+        ? getStartOfTomorrow()
+        : null
     const task = {
       id: generateId(),
       title: title.trim(),
       list,
-      completed: false,
-      createdAt: Date.now(),
-      dueDate: null,
+      completed: list === GTD_LISTS.DONE,
+      createdAt: now,
+      completedAt: list === GTD_LISTS.DONE ? now : null,
+      dueDate,
       notes: ''
     }
     setTasks(prev => [task, ...prev])
@@ -91,17 +145,36 @@ export function useGTD() {
   const toggleComplete = useCallback((id) => {
     setTasks(prev => prev.map(t => {
       if (t.id !== id) return t
+      const nextCompleted = !t.completed
       return {
         ...t,
-        completed: !t.completed,
-        list: !t.completed ? GTD_LISTS.DONE : t.list === GTD_LISTS.DONE ? GTD_LISTS.INBOX : t.list
+        completed: nextCompleted,
+        completedAt: nextCompleted ? Date.now() : null,
+        list: nextCompleted ? GTD_LISTS.DONE : t.list === GTD_LISTS.DONE ? GTD_LISTS.INBOX : t.list
       }
     }))
   }, [])
 
   // 移动任务到指定列表
   const moveTask = useCallback((id, list) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, list, completed: list === GTD_LISTS.DONE } : t))
+    setTasks(prev => prev.map(t => {
+      if (t.id !== id) return t
+      const now = Date.now()
+      const next = {
+        ...t,
+        list,
+        completed: list === GTD_LISTS.DONE,
+        completedAt: list === GTD_LISTS.DONE ? now : null
+      }
+      if (list === GTD_LISTS.TODAY) {
+        next.dueDate = now
+      } else if (list === GTD_LISTS.NEXT) {
+        next.dueDate = isFuture(next.dueDate) ? next.dueDate : getStartOfTomorrow()
+      } else if (list === GTD_LISTS.SOMEDAY) {
+        next.dueDate = null
+      }
+      return next
+    }))
   }, [])
 
   // 加载任务(用于导入)
@@ -113,13 +186,22 @@ export function useGTD() {
 
   // 按列表筛选
   const filteredTasks = useMemo(() => {
-    return tasks.filter(t => t.list === activeList)
+    const listTasks = tasks.filter(t => isTaskInList(t, activeList))
+    return listTasks.sort((a, b) => {
+      if (activeList === GTD_LISTS.DONE) {
+        return getDoneSortTime(b) - getDoneSortTime(a)
+      }
+      if (activeList === GTD_LISTS.INBOX) {
+        return getSortTime(a) - getSortTime(b)
+      }
+      return getSortTime(a) - getSortTime(b)
+    })
   }, [tasks, activeList])
 
   // 统计
   const counts = useMemo(() => {
     return Object.values(GTD_LISTS).reduce((acc, list) => {
-      acc[list] = tasks.filter(t => t.list === list).length
+      acc[list] = tasks.filter(t => isTaskInList(t, list)).length
       return acc
     }, {})
   }, [tasks])

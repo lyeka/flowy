@@ -5,7 +5,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -33,6 +33,8 @@ const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTaskClick }) {
   const { t } = useTranslation()
   const [dateOpen, setDateOpen] = useState(false)
+  const [calendarWidth, setCalendarWidth] = useState(null)
+  const calendarRef = useRef(null)
 
   const formatDate = (timestamp) => {
     if (!timestamp) return null
@@ -90,6 +92,18 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
     onUpdateDate?.(task.id, null)
     setDateOpen(false)
   }
+
+  useEffect(() => {
+    if (!dateOpen || !calendarRef.current) return
+    const node = calendarRef.current
+    const updateWidth = () => setCalendarWidth(node.offsetWidth || null)
+    updateWidth()
+
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => updateWidth())
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [dateOpen])
 
   return (
     <motion.div
@@ -156,12 +170,12 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
           </PopoverTrigger>
           <PopoverContent className="w-auto p-3" align="end">
             {/* 快捷日期按钮 */}
-            <div className="flex gap-2 mb-3">
+            <div className="grid grid-cols-2 gap-2 mb-3" style={calendarWidth ? { width: calendarWidth } : undefined}>
               <Button
                 asChild
                 variant="outline"
                 size="sm"
-                className="text-xs"
+                className="w-full justify-center text-xs"
               >
                 <motion.button
                   whileTap={{ scale: 0.96 }}
@@ -175,7 +189,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
                 asChild
                 variant="outline"
                 size="sm"
-                className="text-xs"
+                className="w-full justify-center text-xs"
               >
                 <motion.button
                   whileTap={{ scale: 0.96 }}
@@ -189,7 +203,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
                 asChild
                 variant="outline"
                 size="sm"
-                className="text-xs"
+                className="w-full justify-center text-xs"
               >
                 <motion.button
                   whileTap={{ scale: 0.96 }}
@@ -203,7 +217,7 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
                 asChild
                 variant="outline"
                 size="sm"
-                className="text-xs"
+                className="w-full justify-center text-xs"
               >
                 <motion.button
                   whileTap={{ scale: 0.96 }}
@@ -217,12 +231,14 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
 
             {/* 日历选择器 */}
             <div className="border-t pt-3">
-              <CalendarComponent
+              <div ref={calendarRef}>
+                <CalendarComponent
                 mode="single"
                 selected={task.dueDate ? new Date(task.dueDate) : undefined}
                 onSelect={handleCalendarSelect}
                 className="rounded-md border"
-              />
+                />
+              </div>
               {task.dueDate && (
                 <button
                   onClick={handleClearDate}
