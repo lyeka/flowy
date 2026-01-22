@@ -263,7 +263,12 @@ function App() {
         {showNotesPanel && (
           <div
             key="notes-dock"
-            className={cn("flex h-full transition-opacity duration-300", immersiveActive && "opacity-0 pointer-events-none")}
+            className={cn(
+              "flex h-full transition-opacity duration-300",
+              immersivePhase === 'immersive' && "opacity-0 pointer-events-none",
+              immersivePhase === 'exiting' && "opacity-100 pointer-events-none"
+            )}
+            style={immersivePhase === 'exiting' ? { transitionDelay: '120ms' } : undefined}
           >
             {/* 可拖动的分隔条 */}
             <div
@@ -290,13 +295,13 @@ function App() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: immersivePhase === 'immersive' ? 1 : 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
           className="fixed inset-0 z-50 bg-background/40 backdrop-blur-sm"
         >
           <motion.div
             initial={fromRect}
             animate={immersivePhase === 'immersive' ? immersiveRect : fromRect}
-            transition={{ type: 'spring', damping: 38, stiffness: 140, mass: 1.1 }}
+            transition={{ type: 'spring', damping: 42, stiffness: 120, mass: 1.2 }}
             style={{ position: 'fixed', transformOrigin: 'right center' }}
             onAnimationComplete={() => {
               if (immersivePhase === 'exiting') {
