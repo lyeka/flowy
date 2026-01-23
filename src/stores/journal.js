@@ -1,7 +1,7 @@
 /**
  * [INPUT]: React useState/useEffect/useMemo, date-fns, localStorage API
  * [OUTPUT]: useJournal hook, 日记 CRUD 操作
- * [POS]: 日记状态管理中心，与 gtd.js 平行，管理独立的日记数据
+ * [POS]: 日记状态管理中心，与 gtd.js 平行，管理独立的日记数据，写入实时同步到 localStorage
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -23,9 +23,9 @@ const generateJournalId = (date) => {
   return `journal-${format(date, 'yyyy-MM-dd')}`
 }
 
-// 生成默认标题: HH:mm · 小记
+// 生成默认标题: YYYY.MM.DD
 const generateDefaultTitle = () => {
-  return `${format(new Date(), 'HH:mm')} · 小记`
+  return format(new Date(), 'yyyy.MM.dd')
 }
 
 // 获取当天 00:00 时间戳
@@ -38,28 +38,27 @@ const getTodayTimestamp = () => {
 // ============================================================================
 
 export const useJournal = () => {
-  const [journals, setJournals] = useState([])
-
-  // 从 localStorage 加载日记
-  useEffect(() => {
+  const [journals, setJournals] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        setJournals(parsed)
-      }
+      return stored ? JSON.parse(stored) : []
     } catch (error) {
       console.error('Failed to load journals:', error)
+      return []
     }
-  }, [])
+  })
 
-  // 保存到 localStorage
-  useEffect(() => {
+  const persistJournals = (nextJournals) => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(journals))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(nextJournals))
     } catch (error) {
       console.error('Failed to save journals:', error)
     }
+  }
+
+  // 保存到 localStorage（兜底：防止外部更新漏写）
+  useEffect(() => {
+    persistJournals(journals)
   }, [journals])
 
   // 计算属性：按日期分组的日记 Map<string, Journal>
@@ -97,19 +96,25 @@ export const useJournal = () => {
       updatedAt: Date.now()
     }
 
-    setJournals(prev => [...prev, newJournal])
+    setJournals(prev => {
+      const next = [...prev, newJournal]
+      persistJournals(next)
+      return next
+    })
     return newJournal
   }
 
   // 更新日记
   const updateJournal = (id, updates) => {
-    setJournals(prev =>
-      prev.map(journal =>
+    setJournals(prev => {
+      const next = prev.map(journal =>
         journal.id === id
           ? { ...journal, ...updates, updatedAt: Date.now() }
           : journal
       )
-    )
+      persistJournals(next)
+      return next
+    })
   }
 
   // 获取指定日期的日记
@@ -125,7 +130,11 @@ export const useJournal = () => {
 
   // 删除日记（虽然设计上不鼓励删除，但保留接口）
   const deleteJournal = (id) => {
-    setJournals(prev => prev.filter(j => j.id !== id))
+    setJournals(prev => {
+      const next = prev.filter(j => j.id !== id)
+      persistJournals(next)
+      return next
+    })
   }
 
   return {

@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'com.flowy.app',
+  appId: 'com.flowy.app.dev',
   appName: 'Flowy',
   webDir: 'dist',
   server: {
