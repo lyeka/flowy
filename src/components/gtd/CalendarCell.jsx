@@ -1,22 +1,24 @@
 /**
- * [INPUT]: 依赖 framer-motion，依赖 CalendarTaskChip
+ * [INPUT]: 依赖 framer-motion，依赖 CalendarTaskChip, @/lib/platform
  * [OUTPUT]: 导出 CalendarCell 组件
- * [POS]: 日历单日格子，显示日期和任务列表，支持拖放
+ * [POS]: 日历单日格子，显示日期和任务列表，支持拖放，移动端优化尺寸
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { isMobile } from '@/lib/platform'
 import { CalendarTaskChip } from './CalendarTaskChip'
 import { Plus } from 'lucide-react'
 
 const MAX_VISIBLE = 3
 
 export function CalendarCell({ cell, tasks = [], isToday, onDrop, onAddTask, onToggle }) {
+  const mobile = isMobile()
   const [isDragOver, setIsDragOver] = useState(false)
-  const visibleTasks = tasks.slice(0, MAX_VISIBLE)
-  const moreCount = tasks.length - MAX_VISIBLE
+  const visibleTasks = tasks.slice(0, mobile ? 2 : MAX_VISIBLE)
+  const moreCount = tasks.length - (mobile ? 2 : MAX_VISIBLE)
 
   const handleDragOver = (e) => {
     e.preventDefault()
@@ -43,29 +45,32 @@ export function CalendarCell({ cell, tasks = [], isToday, onDrop, onAddTask, onT
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={cn(
-        "min-h-24 p-1 border-b border-r flex flex-col",
-        "transition-colors group",
+        "p-1 border-b border-r flex flex-col transition-colors group",
+        mobile ? "min-h-20" : "min-h-24",
         !cell.isCurrentMonth && "bg-muted/30",
         isDragOver && "bg-primary/10 ring-2 ring-primary/50 ring-inset"
       )}
     >
-      {/* 日期头 */}
+      {/* 日期头 - 移动端减小尺寸 */}
       <div className="flex items-center justify-between mb-1">
         <span
           className={cn(
-            "text-sm w-7 h-7 flex items-center justify-center rounded-full",
+            "flex items-center justify-center rounded-full",
+            mobile ? "text-xs w-6 h-6" : "text-sm w-7 h-7",
             isToday && "bg-primary text-primary-foreground font-bold",
             !cell.isCurrentMonth && "text-muted-foreground"
           )}
         >
           {cell.date.getDate()}
         </span>
-        <button
-          onClick={handleClick}
-          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-muted rounded transition-opacity"
-        >
-          <Plus className="h-3 w-3 text-muted-foreground" />
-        </button>
+        {!mobile && (
+          <button
+            onClick={handleClick}
+            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-muted rounded transition-opacity"
+          >
+            <Plus className="h-3 w-3 text-muted-foreground" />
+          </button>
+        )}
       </div>
 
       {/* 任务列表 */}

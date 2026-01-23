@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 framer-motion, lucide-react, @/lib/motion, react hooks, react-i18next
+ * [INPUT]: 依赖 framer-motion, lucide-react, @/lib/motion, @/lib/platform, react hooks, react-i18next
  * [OUTPUT]: 导出 NotesPanel 组件
- * [POS]: 任务副文本编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验，信件风格
+ * [POS]: 任务副文本编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验，信件风格，移动端全屏模式
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { X, Maximize2, Minimize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { gentle } from '@/lib/motion'
+import { isMobile } from '@/lib/platform'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +25,7 @@ export function NotesPanel({
   motionPreset = 'dock'
 }) {
   const { t, i18n } = useTranslation()
+  const mobile = isMobile()
   const textareaRef = useRef(null)
   const [lineCount, setLineCount] = useState(0)
 
@@ -104,11 +106,14 @@ export function NotesPanel({
         variant="ghost"
         size="icon"
         onClick={onClose}
-        className="absolute top-6 right-6 h-8 w-8 z-10 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+        className={cn(
+          "absolute z-10 text-muted-foreground/40 hover:text-muted-foreground transition-colors",
+          mobile ? "top-3 right-3 h-9 w-9" : "top-6 right-6 h-8 w-8"
+        )}
       >
         <X className="h-4 w-4" />
       </Button>
-      {onToggleImmersive && (
+      {onToggleImmersive && !mobile && (
         <Button
           variant="ghost"
           size="icon"
@@ -121,28 +126,40 @@ export function NotesPanel({
         </Button>
       )}
 
-      {/* 内容区域 - 增加留白 */}
-      <div className="notes-scroll flex-1 min-h-0 overflow-y-auto px-16 py-16 flex flex-col">
-        {/* 标题 - 增大字号，添加底部边框效果，微妙缩放动画 */}
+      {/* 内容区域 - 移动端减少留白 */}
+      <div className={cn(
+        "notes-scroll flex-1 min-h-0 overflow-y-auto flex flex-col",
+        mobile ? "px-6 py-8" : "px-16 py-16"
+      )}>
+        {/* 标题 - 移动端减小字号 */}
         <motion.input
           value={task.title}
           onChange={(e) => onUpdate(task.id, { title: e.target.value })}
-          className="font-semibold text-3xl bg-transparent border-0 border-b border-transparent hover:border-border/50 focus:border-primary outline-none w-full transition-colors"
+          className={cn(
+            "font-semibold bg-transparent border-0 border-b border-transparent hover:border-border/50 focus:border-primary outline-none w-full transition-colors",
+            mobile ? "text-2xl" : "text-3xl"
+          )}
           placeholder={t('tasks.notes')}
           spellCheck={false}
           whileFocus={{ scale: 1.01 }}
           transition={{ duration: 0.2 }}
         />
 
-        {/* 日期 - 增加间距 */}
+        {/* 日期 - 移动端减小间距 */}
         {dateStr && (
-          <div className="text-sm text-muted-foreground mt-4">
+          <div className={cn(
+            "text-sm text-muted-foreground",
+            mobile ? "mt-3" : "mt-4"
+          )}>
             {dateStr}
           </div>
         )}
 
-        {/* 正文区域 - 增加间距 */}
-        <div className="flex-1 relative mt-12">
+        {/* 正文区域 - 移动端减小间距 */}
+        <div className={cn(
+          "flex-1 relative",
+          mobile ? "mt-8" : "mt-12"
+        )}>
           {/* 横线层 - 降低透明度，淡入动画 */}
           <div className="absolute inset-0 pointer-events-none">
             {Array.from({ length: lineCount }).map((_, i) => (

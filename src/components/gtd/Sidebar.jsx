@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/platform 跨平台 API，依赖 react-i18next
+ * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/platform 跨平�� API，依赖 react-i18next
  * [OUTPUT]: 导出 Sidebar 组件
  * [POS]: GTD 侧边栏导航，响应式设计（桌面端侧边栏，移动端底部导航），支持视图切换和列表导航
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { GTD_LISTS, GTD_LIST_META } from '@/stores/gtd'
-import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, ChevronDown, Settings } from 'lucide-react'
+import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, ChevronDown, Settings, Plus, Menu } from 'lucide-react'
 import { snappy } from '@/lib/motion'
 import { isMobile } from '@/lib/platform'
 import { hapticsLight } from '@/lib/haptics'
@@ -18,86 +18,84 @@ import { Settings as SettingsDialog } from './Settings'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
-export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, onExport, onImport, settingsOpen, onSettingsOpenChange, className }) {
+export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, onExport, onImport, settingsOpen, onSettingsOpenChange, onDrawerOpen, onQuickCaptureOpen, className }) {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(false)
   const mobile = isMobile()
 
-  // 移动端：底部导航栏
+  // 移动端：底部导航栏（简化版：列表、FAB、日历）
   if (mobile) {
     return (
       <>
         <nav className={cn(
           "fixed bottom-0 left-0 right-0 z-50",
           "bg-sidebar border-t border-border",
-          "flex items-center justify-around",
-          "h-16 px-2 safe-area-inset-bottom",
+          "flex items-center justify-between",
+          "h-16 px-8 safe-area-inset-bottom",
           className
         )}>
-          {/* 视图切换 */}
+          {/* 列表视图按钮 */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => {
               hapticsLight()
-              onViewModeChange(viewMode === 'list' ? 'calendar' : 'list')
+              if (viewMode !== 'list') {
+                onViewModeChange('list')
+              } else {
+                onDrawerOpen()
+              }
             }}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg min-w-[60px]",
+              "relative flex items-center justify-center w-14 h-14 rounded-lg",
               "text-muted-foreground hover:text-foreground transition-colors"
             )}
           >
-            {viewMode === 'list' ? (
-              <CalendarDays className="h-5 w-5" />
-            ) : (
-              <List className="h-5 w-5" />
+            <Menu className="h-6 w-6" />
+            {viewMode === 'list' && (
+              <motion.div
+                layoutId="mobile-nav-indicator"
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full"
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              />
             )}
-            <span className="text-[10px]">{viewMode === 'list' ? t('views.calendar') : t('views.list')}</span>
           </motion.button>
 
-          {/* GTD 列表快捷入口 */}
-          {Object.values(GTD_LISTS).slice(0, 4).map(listId => {
-            const meta = GTD_LIST_META[listId]
-            const Icon = ICONS[meta.icon]
-            const count = counts[listId] || 0
-            const isActive = activeList === listId
-
-            return (
-              <motion.button
-                key={listId}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => {
-                  hapticsLight()
-                  onSelect(listId)
-                  if (viewMode === 'calendar') onViewModeChange('list')
-                }}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg min-w-[60px] relative",
-                  isActive ? "text-foreground" : "text-muted-foreground",
-                  "hover:text-foreground transition-colors"
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-[10px]">{t(`lists.${listId}`)}</span>
-                {count > 0 && (
-                  <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
-                    {count > 9 ? '9+' : count}
-                  </span>
-                )}
-              </motion.button>
-            )
-          })}
-
-          {/* 设置 */}
+          {/* FAB - 快速捕获 */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => {
               hapticsLight()
-              onSettingsOpenChange(true)
+              onQuickCaptureOpen()
             }}
-            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg min-w-[60px] text-muted-foreground hover:text-foreground transition-colors"
+            className={cn(
+              "relative flex items-center justify-center w-16 h-16 rounded-full",
+              "bg-primary text-primary-foreground shadow-lg",
+              "-mt-8" // 突出 16px (64px - 48px = 16px，但导航栏高度是 64px，所以用 -mt-8)
+            )}
           >
-            <Settings className="h-5 w-5" />
-            <span className="text-[10px]">{t('common.settings')}</span>
+            <Plus className="h-6 w-6" />
+          </motion.button>
+
+          {/* 日历视图按钮 */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+              hapticsLight()
+              onViewModeChange('calendar')
+            }}
+            className={cn(
+              "relative flex items-center justify-center w-14 h-14 rounded-lg",
+              "text-muted-foreground hover:text-foreground transition-colors"
+            )}
+          >
+            <CalendarDays className="h-6 w-6" />
+            {viewMode === 'calendar' && (
+              <motion.div
+                layoutId="mobile-nav-indicator"
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full"
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              />
+            )}
           </motion.button>
         </nav>
 
