@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/tauri 桌面端 API，依赖 react-i18next
+ * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/platform 跨平�� API，依赖 react-i18next
  * [OUTPUT]: 导出 Sidebar 组件
- * [POS]: GTD 侧边栏导航，上下排布，支持视图切换和列表导航，支持折叠，支持数据导出/导入
+ * [POS]: GTD 侧边栏导航，响应式设计（桌面端侧边栏，移动端底部导航），支持视图切换和列表导航
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -10,17 +10,106 @@ import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { GTD_LISTS, GTD_LIST_META } from '@/stores/gtd'
-import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, ChevronDown, Settings } from 'lucide-react'
+import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, ChevronDown, Settings, Plus, Menu } from 'lucide-react'
 import { snappy } from '@/lib/motion'
-import { isTauri, exportData, importData } from '@/lib/tauri'
+import { isMobile } from '@/lib/platform'
+import { hapticsLight } from '@/lib/haptics'
 import { Settings as SettingsDialog } from './Settings'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
-export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, onExport, onImport, settingsOpen, onSettingsOpenChange, className }) {
+export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, onExport, onImport, settingsOpen, onSettingsOpenChange, onDrawerOpen, onQuickCaptureOpen, className }) {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(false)
+  const mobile = isMobile()
 
+  // 移动端：底部导航栏（简化版：列表、FAB、日历）
+  if (mobile) {
+    return (
+      <>
+        <nav className={cn(
+          "fixed bottom-0 left-0 right-0 z-50",
+          "bg-sidebar border-t border-border",
+          "flex items-center justify-between",
+          "h-16 px-8 safe-area-inset-bottom",
+          className
+        )}>
+          {/* 列表视图按钮 */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+              hapticsLight()
+              if (viewMode !== 'list') {
+                onViewModeChange('list')
+              } else {
+                onDrawerOpen()
+              }
+            }}
+            className={cn(
+              "relative flex items-center justify-center w-14 h-14 rounded-lg",
+              "text-muted-foreground hover:text-foreground transition-colors"
+            )}
+          >
+            <Menu className="h-6 w-6" />
+            {viewMode === 'list' && (
+              <motion.div
+                layoutId="mobile-nav-indicator"
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full"
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              />
+            )}
+          </motion.button>
+
+          {/* FAB - 快速捕获 */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+              hapticsLight()
+              onQuickCaptureOpen()
+            }}
+            className={cn(
+              "relative flex items-center justify-center w-16 h-16 rounded-full",
+              "bg-primary text-primary-foreground shadow-lg",
+              "-mt-8" // 突出 16px (64px - 48px = 16px，但导航栏高度是 64px，所以用 -mt-8)
+            )}
+          >
+            <Plus className="h-6 w-6" />
+          </motion.button>
+
+          {/* 日历视图按钮 */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+              hapticsLight()
+              onViewModeChange('calendar')
+            }}
+            className={cn(
+              "relative flex items-center justify-center w-14 h-14 rounded-lg",
+              "text-muted-foreground hover:text-foreground transition-colors"
+            )}
+          >
+            <CalendarDays className="h-6 w-6" />
+            {viewMode === 'calendar' && (
+              <motion.div
+                layoutId="mobile-nav-indicator"
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full"
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              />
+            )}
+          </motion.button>
+        </nav>
+
+        <SettingsDialog
+          open={settingsOpen}
+          onOpenChange={onSettingsOpenChange}
+          onExport={onExport}
+          onImport={onImport}
+        />
+      </>
+    )
+  }
+
+  // 桌面端：侧边栏
   return (
     <aside className={cn(
       "border-r bg-sidebar p-4 flex flex-col gap-4 transition-all duration-300",
@@ -131,9 +220,8 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
         )}
       </AnimatePresence>
 
-      {/* 桌面端操作 */}
-      {isTauri() && (
-        <div className="mt-auto flex flex-col gap-1">
+      {/* 设置按钮 */}
+      <div className="mt-auto flex flex-col gap-1">
           <motion.button
             whileHover={{ y: -2, scale: 1.02 }}
             whileTap={{ scale: 0.96 }}
@@ -156,7 +244,6 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
             onImport={onImport}
           />
         </div>
-      )}
     </aside>
   )
 }

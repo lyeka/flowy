@@ -1,5 +1,5 @@
-# GTD 时间项目管理 (桌面版)
-Tauri 2.0 + Vite 7 + React 19 + TailwindCSS v4 + shadcn/ui + Framer Motion + react-i18next
+# GTD 时间项目管理 (跨平台版)
+Tauri 2.0 (桌面端) + Capacitor 8.0 (移动端) + Vite 7 + React 19 + TailwindCSS v4 + shadcn/ui + Framer Motion + react-i18next
 
 <directory>
 src/
@@ -7,25 +7,29 @@ src/
 │   ├── ui/          - shadcn 组件库
 │   └── gtd/         - GTD 业务组件 (11文件: QuickCapture, Sidebar, Settings, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel)
 ├── stores/          - 状态管理 (2文件: gtd.js, calendar.js)
-├── lib/             - 工具函数 (4文件: utils.js, motion.js, tauri.js, i18n.js)
+├── lib/             - 工具函数 (5文件: utils.js, motion.js, platform.js, tauri.js(废弃), i18n.js)
 ├── locales/         - 国际化翻译文件 (2文件: zh-CN.json, en-US.json)
-├── App.jsx          - 应用入口，支持列表/日历视图切换，集成桌面端功能
+├── App.jsx          - 应用入口，支持列表/日历视图切换，集成跨平台功能
 ├── main.jsx         - React 挂载点，初始化 i18n
 └── index.css        - 全局样式 + CSS 变量
 
 src-tauri/
 ├── src/
-│   └── main.rs      - Rust 主程序，系统托盘、全局快捷键、通知、文件操作
+│   └── main.rs      - Rust 主程序，系统托盘、全局快捷键、通知、文件操作（桌面端）
 ├── Cargo.toml       - Rust 依赖配置
 ├── tauri.conf.json  - Tauri 配置
 └── build.rs         - 构建脚本
+
+android/             - Capacitor Android 原生项目
+ios/                 - Capacitor iOS 原生项目
 </directory>
 
 <config>
-vite.config.js   - Vite 配置 + TailwindCSS 插件 + 路径别名
-jsconfig.json    - 路径别名配置 (@/ -> src/)
-components.json  - shadcn/ui 配置
-package.json     - 包含 tauri:dev 和 tauri:build 命令，新增 react-i18next 依赖
+vite.config.js      - Vite 配置 + TailwindCSS 插件 + 路径别名 + base: './' (Capacitor 需要)
+jsconfig.json       - 路径别名配置 (@/ -> src/)
+components.json     - shadcn/ui 配置
+capacitor.config.ts - Capacitor 配置（移动端）
+package.json        - 包含 tauri:dev/tauri:build (桌面端) 和 cap:android/cap:ios (移动端) 命令
 </config>
 
 ## GTD 核心功能
@@ -43,12 +47,22 @@ package.json     - 包含 tauri:dev 和 tauri:build 命令，新增 react-i18nex
 - 无日期任务面板
 - 点击日期快速添加任务
 
-## 桌面端特性
+## 跨平台特性
 
+### 桌面端 (Tauri)
 - 全局快捷键: Cmd+Shift+Space (macOS) / Ctrl+Shift+Space (Windows/Linux) 快速显示/隐藏窗口
+- 系统托盘: 最小化到托盘
 - 桌面通知: 任务完成时显示系统通知
 - 数据导出: 导出任务为 JSON/Markdown 文件
 - 数据导入: 从 JSON 文件导入任务
+- 离线可用: 完全本地化，无需网络
+
+### 移动端 (Capacitor)
+- 本地通知: 任务完成时显示移动端通知
+- 数据导出: 通过分享面板导出数据
+- 数据导入: 通过文件选择器导入数据
+- 触觉反馈: 任务操作时的震动反馈
+- 响应式布局: 适配小屏幕设备
 - 离线可用: 完全本地化，无需网络
 
 ## 国际化
@@ -67,8 +81,21 @@ npm run dev
 # Tauri 桌面开发模式
 npm run tauri:dev
 
-# 构建桌面应用
+# Tauri 桌面构建
 npm run tauri:build
+
+# Capacitor 移动端构建
+npm run mobile:build
+
+# Capacitor Android 运行
+npm run cap:android
+
+# Capacitor iOS 运行
+npm run cap:ios
+
+# 打开原生 IDE
+npm run cap:open:android  # Android Studio
+npm run cap:open:ios      # Xcode
 ```
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

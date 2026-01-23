@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 @/stores/calendar，依赖 CalendarGrid, UnscheduledPanel, react-i18next
+ * [INPUT]: 依赖 @/stores/calendar，依赖 CalendarGrid, UnscheduledPanel, @/lib/platform, react-i18next
  * [OUTPUT]: 导出 CalendarView 组件
- * [POS]: 日历视图容器，组装 Header + Grid + UnscheduledPanel
+ * [POS]: 日历视图容器，组装 Header + Grid + UnscheduledPanel，移动端优化布局
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -12,10 +12,12 @@ import { CalendarGrid } from './CalendarGrid'
 import { UnscheduledPanel } from './UnscheduledPanel'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from 'lucide-react'
+import { isMobile } from '@/lib/platform'
 import { cn } from '@/lib/utils'
 
 export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
   const { t, i18n } = useTranslation()
+  const mobile = isMobile()
   const {
     grid,
     tasksByDate,
@@ -60,50 +62,58 @@ export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* Header */}
-      <header className="border-b p-4 flex items-center gap-4">
-        <h2 className="text-xl font-bold min-w-32">{formattedTitle}</h2>
+      {/* Header - 移动端简化 */}
+      <header className={cn(
+        "border-b flex items-center gap-2",
+        mobile ? "p-3" : "p-4 gap-4"
+      )}>
+        <h2 className={cn(
+          "font-bold",
+          mobile ? "text-base min-w-24" : "text-xl min-w-32"
+        )}>{formattedTitle}</h2>
 
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={handlePrev}>
+          <Button variant="ghost" size="icon" onClick={handlePrev} className={mobile ? "h-8 w-8" : ""}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={goToday}>
+          <Button variant="ghost" size="sm" onClick={goToday} className={mobile ? "text-xs px-2" : ""}>
             {t('calendar.today')}
           </Button>
-          <Button variant="ghost" size="icon" onClick={handleNext}>
+          <Button variant="ghost" size="icon" onClick={handleNext} className={mobile ? "h-8 w-8" : ""}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
         <div className="flex-1" />
 
-        {/* 月/周切换 */}
-        <div className="flex border rounded-lg overflow-hidden">
-          <button
-            onClick={() => setViewMode('month')}
-            className={cn(
-              "px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors",
-              viewMode === 'month' ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-            )}
-          >
-            <CalendarDays className="h-4 w-4" />
-            {t('calendar.month')}
-          </button>
-          <button
-            onClick={() => setViewMode('week')}
-            className={cn(
-              "px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors",
-              viewMode === 'week' ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-            )}
-          >
-            <CalendarRange className="h-4 w-4" />
-            {t('calendar.week')}
-          </button>
-        </div>
+        {/* 月/周切换 - 移动端简化 */}
+        {!mobile && (
+          <div className="flex border rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode('month')}
+              className={cn(
+                "px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors",
+                viewMode === 'month' ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+              )}
+            >
+              <CalendarDays className="h-4 w-4" />
+              {t('calendar.month')}
+            </button>
+            <button
+              onClick={() => setViewMode('week')}
+              className={cn(
+                "px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors",
+                viewMode === 'week' ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+              )}
+            >
+              <CalendarRange className="h-4 w-4" />
+              {t('calendar.week')}
+            </button>
+          </div>
+        )}
       </header>
 
-      {/* 主体 */}
+      {/* 主体 - 移动端隐藏 UnscheduledPanel */}
       <div className="flex-1 flex overflow-hidden">
         <CalendarGrid
           grid={grid}
@@ -115,10 +125,12 @@ export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
           onToggle={onToggle}
           direction={direction}
         />
-        <UnscheduledPanel
-          tasks={unscheduledTasks}
-          onToggle={onToggle}
-        />
+        {!mobile && (
+          <UnscheduledPanel
+            tasks={unscheduledTasks}
+            onToggle={onToggle}
+          />
+        )}
       </div>
     </div>
   )

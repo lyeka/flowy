@@ -1,14 +1,17 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd, @/components/gtd/*, @/components/ui/sonner, @/lib/tauri, react-i18next
+ * [INPUT]: 依赖 @/stores/gtd, @/components/gtd/*, @/components/ui/sonner, @/lib/platform, react-i18next
  * [OUTPUT]: 导出 App 根组件
- * [POS]: 应用入口，组装 GTD 布局，支持列表/日历视图切换，集成桌面端功能
+ * [POS]: 应用入口，组装 GTD 布局，支持列表/日历视图切换，集成跨平台功能（桌面端+移动端），管理抽屉和快速捕获状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Keyboard } from '@capacitor/keyboard'
+import { StatusBar, Style } from '@capacitor/status-bar'
 import { useGTD, GTD_LIST_META, GTD_LISTS } from '@/stores/gtd'
 import { Sidebar } from '@/components/gtd/Sidebar'
+import { Drawer } from '@/components/gtd/Drawer'
 import { QuickCapture } from '@/components/gtd/QuickCapture'
 import { TaskList } from '@/components/gtd/TaskList'
 import { CalendarView } from '@/components/gtd/CalendarView'
@@ -17,11 +20,13 @@ import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { AnimatePresence, motion } from 'framer-motion'
-import { exportData, importData, showNotification, isTauri } from '@/lib/tauri'
+import { exportData, importData, showNotification, isMobile } from '@/lib/platform'
+import { hapticsSuccess, hapticsWarning, hapticsLight } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
 function App() {
   const { t } = useTranslation()
+  const mobile = isMobile()
   const {
     tasks,
     filteredTasks,
@@ -38,6 +43,8 @@ function App() {
 
   const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false) // 移动端抽屉状态
+  const [quickCaptureOpen, setQuickCaptureOpen] = useState(false) // 移动端快速捕获模态框状态
   const [selectedTaskId, setSelectedTaskId] = useState(null)
   const [notesPanelWidth, setNotesPanelWidth] = useState(() => Math.floor(window.innerWidth / 2)) // 笔记面板宽度，默认为页面一半
   const [isResizing, setIsResizing] = useState(false)
@@ -54,7 +61,12 @@ function App() {
   const handleAdd = (title) => {
     const targetList = activeList === GTD_LISTS.DONE ? GTD_LISTS.INBOX : activeList
     addTask(title, targetList)
+    hapticsLight()
     toast.success(t('toast.taskAdded'))
+    // 移动端：添加任务后关闭快速捕获模态框
+    if (mobile && quickCaptureOpen) {
+      setQuickCaptureOpen(false)
+    }
   }
 
   const handleAddWithDate = (title, date) => {
@@ -62,12 +74,14 @@ function App() {
     if (task && date) {
       updateTask(task.id, { dueDate: date.getTime() })
     }
+    hapticsLight()
     toast.success(t('toast.taskAddedWithDate'))
   }
 
   const handleDelete = (id) => {
     if (id === selectedTaskId) setSelectedTaskId(null)
     deleteTask(id)
+    hapticsWarning()
     toast.success(t('toast.taskDeleted'))
   }
 
@@ -96,12 +110,13 @@ function App() {
     }
   }
 
-  // 任务完成时显示桌面通知
+  // 任务完成时显示通知和触觉反馈
   const handleToggleComplete = (id) => {
     const task = tasks.find(t => t.id === id)
     toggleComplete(id)
 
-    if (task && !task.completed && isTauri()) {
+    if (task && !task.completed) {
+      hapticsSuccess()
       showNotification(t('toast.taskCompleted', { title: '' }), t('toast.taskCompleted', { title: task.title }))
     }
   }
@@ -178,6 +193,48 @@ function App() {
     return () => window.removeEventListener('resize', handleResize)
   }, [showNotesPanel, immersivePhase])
 
+  // 移动端键盘处理
+  useEffect(() => {
+    if (!mobile) return
+
+    const keyboardWillShow = Keyboard.addListener('keyboardWillShow', (info) => {
+      // 键盘即将显示，可以调整布局
+      console.log('Keyboard will show:', info.keyboardHeight)
+    })
+
+    const keyboardWillHide = Keyboard.addListener('keyboardWillHide', () => {
+      // 键盘即将隐藏
+      console.log('Keyboard will hide')
+    })
+
+    return () => {
+      keyboardWillShow.remove()
+      keyboardWillHide.remove()
+    }
+  }, [mobile])
+
+  // 移动端状态栏配置
+  useEffect(() => {
+    if (!mobile) return
+
+    const setupStatusBar = async () => {
+      try {
+        // 设置状态栏样式（深色文字，适配浅色背景）
+        await StatusBar.setStyle({ style: Style.Light })
+
+        // 设置状态栏背景色（与应用背景一致）
+        await StatusBar.setBackgroundColor({ color: '#ffffff' })
+
+        // 显示状态栏
+        await StatusBar.show()
+      } catch (error) {
+        console.warn('StatusBar not available:', error)
+      }
+    }
+
+    setupStatusBar()
+  }, [mobile])
+
   const meta = GTD_LIST_META[activeList]
   const handleCloseNotes = () => {
     if (immersivePhase === 'dock') {
@@ -229,18 +286,23 @@ function App() {
   const fromRect = dockRect || immersiveRect
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar
-        activeList={activeList}
-        onSelect={setActiveList}
-        counts={counts}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        onExport={handleExport}
-        onImport={handleImport}
-        settingsOpen={settingsOpen}
-        onSettingsOpenChange={setSettingsOpen}
-      />
+    <div className={cn(
+      "flex bg-background",
+      mobile ? "flex-col h-screen" : "flex-row h-screen"
+    )}>
+      {!mobile && (
+        <Sidebar
+          activeList={activeList}
+          onSelect={setActiveList}
+          counts={counts}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onExport={handleExport}
+          onImport={handleImport}
+          settingsOpen={settingsOpen}
+          onSettingsOpenChange={setSettingsOpen}
+        />
+      )}
       {viewMode === 'calendar' ? (
         <CalendarView
           tasks={tasks}
@@ -252,6 +314,7 @@ function App() {
         <main
           className={cn(
             "flex-1 flex flex-col transition-all duration-[350ms] ease-out",
+            mobile && "pb-16", // 移动端底部导航栏高度
             immersiveActive && showNotesPanel && "opacity-0 pointer-events-none"
           )}
           onClick={() => {
@@ -260,16 +323,28 @@ function App() {
             }
           }}
         >
-          <header className="p-6 h-[88px] flex flex-col justify-center">
-            <h2 className="text-2xl font-bold">{t(`gtd.${meta.key}`)}</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+          <header className={cn(
+            "flex flex-col justify-center",
+            mobile ? "p-3 h-14" : "p-6 h-[88px]"
+          )}>
+            <h2 className={cn(
+              "font-bold",
+              mobile ? "text-lg" : "text-2xl"
+            )}>{t(`gtd.${meta.key}`)}</h2>
+            <p className={cn(
+              "text-muted-foreground mt-1",
+              mobile ? "text-[13px]" : "text-sm"
+            )}>
               {t('tasks.taskCount', { count: counts[activeList] })}
             </p>
           </header>
-          <div className="p-6">
+          <div className={cn(mobile ? "px-3 pb-2" : "p-6")}>
             <QuickCapture onAdd={handleAdd} />
           </div>
-          <ScrollArea className="flex-1 px-6 pb-6">
+          <ScrollArea className={cn(
+            "flex-1",
+            mobile ? "px-3 pb-3" : "px-6 pb-6"
+          )}>
             <TaskList
               tasks={filteredTasks}
               activeList={activeList}
@@ -378,7 +453,65 @@ function App() {
           </motion.div>
         </motion.div>
       )}
-      <Toaster position="bottom-right" />
+
+      {/* 移动端底部导航 */}
+      {mobile && (
+        <>
+          <Sidebar
+            activeList={activeList}
+            onSelect={setActiveList}
+            counts={counts}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onExport={handleExport}
+            onImport={handleImport}
+            settingsOpen={settingsOpen}
+            onSettingsOpenChange={setSettingsOpen}
+            onDrawerOpen={() => setDrawerOpen(true)}
+            onQuickCaptureOpen={() => setQuickCaptureOpen(true)}
+          />
+
+          {/* 移动端抽屉 */}
+          <Drawer
+            open={drawerOpen}
+            onOpenChange={setDrawerOpen}
+            activeList={activeList}
+            onSelect={setActiveList}
+            counts={counts}
+            onSettingsOpen={() => setSettingsOpen(true)}
+          />
+
+          {/* 移动端快速捕获模态框 */}
+          <AnimatePresence>
+            {quickCaptureOpen && (
+              <>
+                {/* 背景遮罩 */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setQuickCaptureOpen(false)}
+                  className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+                />
+
+                {/* 输入框 */}
+                <motion.div
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '100%' }}
+                  transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                  className="fixed left-0 right-0 bottom-0 z-50 bg-background border-t border-border rounded-t-2xl p-6 pb-8 safe-area-inset-bottom"
+                >
+                  <QuickCapture onAdd={handleAdd} autoFocus />
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </>
+      )}
+
+      <Toaster position={mobile ? "top-center" : "bottom-right"} />
     </div>
   )
 }

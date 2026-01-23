@@ -15,4 +15,6 @@ export default defineConfig({
     strictPort: true,
   },
   clearScreen: false,
+  // Capacitor 需要相对路径
+  base: './',
 })
