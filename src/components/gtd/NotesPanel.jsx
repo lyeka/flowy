@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 framer-motion, lucide-react, @/lib/motion, @/lib/platform, react hooks, react-i18next
  * [OUTPUT]: 导出 NotesPanel 组件
- * [POS]: 任务副文本编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验，信件风格，移动端全屏模式
+ * [POS]: 任务/日记编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验，信件风格，移动端全屏模式，支持 type='task'|'journal' 双模式
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -15,19 +15,36 @@ import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 export function NotesPanel({
-  task,
+  // 新接口：支持 task 和 journal 双模式
+  type = 'task',  // 'task' | 'journal'
+  data,           // task 或 journal 对象
+  task,           // 向后兼容：如果传入 task，则自动识别为 type='task'
+
   onUpdate,
   onClose,
   style,
   immersive = false,
+  mode = 'dock',  // 新增：'dock' | 'immersive'，替代 immersive boolean
   onToggleImmersive,
   className,
-  motionPreset = 'dock'
+  motionPreset
 }) {
   const { t, i18n } = useTranslation()
   const mobile = isMobile()
   const textareaRef = useRef(null)
   const [lineCount, setLineCount] = useState(0)
+
+  // 向后兼容：如果传入 task，则使用 task
+  const actualType = task ? 'task' : type
+  const actualData = task || data
+
+  // 根据 type 提取字段
+  const title = actualData?.title || ''
+  const content = actualType === 'journal' ? (actualData?.content || '') : (actualData?.notes || '')
+  const dateTimestamp = actualType === 'journal' ? actualData?.date : actualData?.dueDate
+
+  // 根据 mode 决定是否沉浸式
+  const isImmersive = mode === 'immersive' || immersive
 
   const formatDate = (timestamp) => {
     if (!timestamp) return ''
@@ -38,7 +55,8 @@ export function NotesPanel({
   }
 
   const handleNotesChange = (e) => {
-    onUpdate(task.id, { notes: e.target.value })
+    const field = actualType === 'journal' ? 'content' : 'notes'
+    onUpdate(actualData.id, { [field]: e.target.value })
   }
 
   useEffect(() => {
@@ -53,7 +71,7 @@ export function NotesPanel({
       const lines = Math.ceil(nextHeight / lineHeight)
       setLineCount(lines)
     }
-  }, [task.notes, immersive])
+  }, [content, isImmersive])
 
   // 键盘快捷键支持
   useEffect(() => {
@@ -66,15 +84,16 @@ export function NotesPanel({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
-  const dateStr = formatDate(task.dueDate)
-  const notesText = task.notes || ''
+  const dateStr = formatDate(dateTimestamp)
+  const notesText = content
   const isZh = i18n.language?.startsWith('zh')
   const wordCount = (notesText.match(/\b[\p{L}\p{N}']+\b/gu) || []).length
   const charCount = notesText.length
   const count = isZh ? charCount : wordCount
   const minutes = count > 0 ? Math.ceil(count / (isZh ? 300 : 200)) : 0
 
-  const motionConfig = motionPreset === 'immersive'
+  const actualMotionPreset = motionPreset || (isImmersive ? 'immersive' : 'dock')
+  const motionConfig = actualMotionPreset === 'immersive'
     ? {
         initial: { opacity: 0 },
         animate: { opacity: 1 },
@@ -96,7 +115,7 @@ export function NotesPanel({
       transition={motionConfig.transition}
       className={cn(
         "bg-card flex flex-col relative overflow-hidden notes-panel",
-        immersive ? "rounded-2xl border border-border/60 shadow-2xl" : "border-l",
+        isImmersive ? "rounded-2xl border border-border/60 shadow-2xl" : "border-l",
         className
       )}
       style={style}
@@ -118,11 +137,11 @@ export function NotesPanel({
           variant="ghost"
           size="icon"
           onClick={onToggleImmersive}
-          title={immersive ? t('tasks.exitImmersive') : t('tasks.enterImmersive')}
-          aria-label={immersive ? t('tasks.exitImmersive') : t('tasks.enterImmersive')}
+          title={isImmersive ? t('tasks.exitImmersive') : t('tasks.enterImmersive')}
+          aria-label={isImmersive ? t('tasks.exitImmersive') : t('tasks.enterImmersive')}
           className="absolute top-6 right-16 h-8 w-8 z-10 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
         >
-          {immersive ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          {isImmersive ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
         </Button>
       )}
 
@@ -133,13 +152,13 @@ export function NotesPanel({
       )}>
         {/* 标题 - 移动端减小字号 */}
         <motion.input
-          value={task.title}
-          onChange={(e) => onUpdate(task.id, { title: e.target.value })}
+          value={title}
+          onChange={(e) => onUpdate(actualData.id, { title: e.target.value })}
           className={cn(
             "font-semibold bg-transparent border-0 border-b border-transparent hover:border-border/50 focus:border-primary outline-none w-full transition-colors",
             mobile ? "text-2xl" : "text-3xl"
           )}
-          placeholder={t('tasks.notes')}
+          placeholder={actualType === 'journal' ? t('journal.defaultTitle') : t('tasks.notes')}
           spellCheck={false}
           whileFocus={{ scale: 1.01 }}
           transition={{ duration: 0.2 }}
@@ -177,9 +196,9 @@ export function NotesPanel({
           {/* 文本输入 - 优化 placeholder */}
           <textarea
             ref={textareaRef}
-            value={task.notes || ''}
+            value={content}
             onChange={handleNotesChange}
-            placeholder={t('tasks.notesPlaceholder')}
+            placeholder={actualType === 'journal' ? t('journal.preview') : t('tasks.notesPlaceholder')}
             className="relative w-full resize-none overflow-hidden bg-transparent border-0 outline-none text-base leading-[1.8] placeholder:text-muted-foreground/50 dark:placeholder:text-muted-foreground/40"
             spellCheck={false}
           />

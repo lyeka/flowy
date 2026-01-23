@@ -15,7 +15,7 @@ import { ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from 'lucide-r
 import { isMobile } from '@/lib/platform'
 import { cn } from '@/lib/utils'
 
-export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
+export function CalendarView({ tasks, journalsByDate, onUpdateTask, onToggle, onAddTask, onJournalClick }) {
   const { t, i18n } = useTranslation()
   const mobile = isMobile()
   const {
@@ -118,11 +118,13 @@ export function CalendarView({ tasks, onUpdateTask, onToggle, onAddTask }) {
         <CalendarGrid
           grid={grid}
           tasksByDate={tasksByDate}
+          journalsByDate={journalsByDate}
           isToday={isToday}
           toDateKey={toDateKey}
           onDrop={handleDrop}
           onAddTask={handleAddTask}
           onToggle={onToggle}
+          onJournalClick={onJournalClick}
           direction={direction}
         />
         {!mobile && (

@@ -9,12 +9,12 @@ import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { GTD_LIST_META, GTD_LISTS } from '@/stores/gtd'
-import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, Settings, X } from 'lucide-react'
+import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, Settings, X, PenLine, BookOpen } from 'lucide-react'
 import { hapticsLight } from '@/lib/haptics'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
-export function Drawer({ open, onOpenChange, activeList, onSelect, counts, onSettingsOpen }) {
+export function Drawer({ open, onOpenChange, activeList, onSelect, counts, journalView, onJournalViewChange, onSettingsOpen }) {
   const { t } = useTranslation()
 
   return (
@@ -90,6 +90,50 @@ export function Drawer({ open, onOpenChange, activeList, onSelect, counts, onSet
                     </motion.button>
                   )
                 })}
+              </div>
+
+              {/* 日记分组 */}
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <div className="text-xs text-muted-foreground px-4 mb-2 font-medium">
+                  {t('journal.title')}
+                </div>
+                <div className="space-y-1">
+                  {/* 此刻 */}
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => {
+                      hapticsLight()
+                      onJournalViewChange('now')
+                      onOpenChange(false)
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-4 py-4 rounded-lg text-sm transition-colors",
+                      "hover:bg-sidebar-accent",
+                      journalView === 'now' && "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                    )}
+                  >
+                    <PenLine className="h-5 w-5" />
+                    <span className="flex-1 text-left">{t('journal.now')}</span>
+                  </motion.button>
+
+                  {/* 过往 */}
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => {
+                      hapticsLight()
+                      onJournalViewChange('past')
+                      onOpenChange(false)
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-4 py-4 rounded-lg text-sm transition-colors",
+                      "hover:bg-sidebar-accent",
+                      journalView === 'past' && "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                    )}
+                  >
+                    <BookOpen className="h-5 w-5" />
+                    <span className="flex-1 text-left">{t('journal.past')}</span>
+                  </motion.button>
+                </div>
               </div>
             </div>
 

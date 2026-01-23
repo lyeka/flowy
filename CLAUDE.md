@@ -5,11 +5,11 @@ Tauri 2.0 (桌面端) + Capacitor 8.0 (移动端) + Vite 7 + React 19 + Tailwind
 src/
 ├── components/
 │   ├── ui/          - shadcn 组件库
-│   └── gtd/         - GTD 业务组件 (11文件: QuickCapture, Sidebar, Settings, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel)
-├── stores/          - 状态管理 (2文件: gtd.js, calendar.js)
+│   └── gtd/         - GTD 业务组件 (17文件: QuickCapture, Sidebar, Settings, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip)
+├── stores/          - 状态管理 (3文件: gtd.js, calendar.js, journal.js)
 ├── lib/             - 工具函数 (5文件: utils.js, motion.js, platform.js, tauri.js(废弃), i18n.js)
 ├── locales/         - 国际化翻译文件 (2文件: zh-CN.json, en-US.json)
-├── App.jsx          - 应用入口，支持列表/日历视图切换，集成跨平台功能
+├── App.jsx          - 应用入口，支持列表/日历/日记视图切换，集成跨平台功能
 ├── main.jsx         - React 挂载点，初始化 i18n
 └── index.css        - 全局样式 + CSS 变量
 
@@ -46,6 +46,16 @@ package.json        - 包含 tauri:dev/tauri:build (桌面端) 和 cap:android/c
 - 拖拽任务设置日期
 - 无日期任务面板
 - 点击日期快速添加任务
+- 日记显示：日历格子内显示当天日记（虚线边框区分）
+
+## 日记功能
+
+- **此刻**：自动打开今日日记编辑，全屏 NotesPanel
+- **过往**：历史日记列表，点击编辑
+- **一天一记**：每天只能有一篇日记，通过 ID 格式 `journal-YYYY-MM-DD` 确保
+- **日历集成**：日记在日历格子内显示，虚线边框与任务区分
+- **数据分离**：日记与任务数据独立存储，不混淆语义
+- **默认标题**：`HH:mm · 小记`（如 "14:32 · 小记"）
 
 ## 跨平台特性
 

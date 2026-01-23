@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/platform 跨平�� API，依赖 react-i18next
  * [OUTPUT]: 导出 Sidebar 组件
- * [POS]: GTD 侧边栏导航，响应式设计（桌面端侧边栏，移动端底部导航），支持视图切换和列表导航
+ * [POS]: GTD 侧边栏导航，响应式设计（桌面端侧边栏，移动端底部导航），支持视图切换和列表导航，日记分组与标题同组展示
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { GTD_LISTS, GTD_LIST_META } from '@/stores/gtd'
-import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, ChevronDown, Settings, Plus, Menu } from 'lucide-react'
+import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, ChevronDown, Settings, Plus, Menu, BookText, PenLine, BookOpen } from 'lucide-react'
 import { snappy } from '@/lib/motion'
 import { isMobile } from '@/lib/platform'
 import { hapticsLight } from '@/lib/haptics'
@@ -18,9 +18,10 @@ import { Settings as SettingsDialog } from './Settings'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
-export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, onExport, onImport, settingsOpen, onSettingsOpenChange, onDrawerOpen, onQuickCaptureOpen, className }) {
+export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, journalView, onJournalViewChange, onExport, onImport, settingsOpen, onSettingsOpenChange, onDrawerOpen, onQuickCaptureOpen, className }) {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(false)
+  const [journalExpanded, setJournalExpanded] = useState(true)
   const mobile = isMobile()
 
   // 移动端：底部导航栏（简化版：列表、FAB、日历）
@@ -39,11 +40,16 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
             whileTap={{ scale: 0.9 }}
             onClick={() => {
               hapticsLight()
+              if (journalView) {
+                onJournalViewChange(null)
+                onViewModeChange('list')
+                return
+              }
               if (viewMode !== 'list') {
                 onViewModeChange('list')
-              } else {
-                onDrawerOpen()
+                return
               }
+              onDrawerOpen()
             }}
             className={cn(
               "relative flex items-center justify-center w-14 h-14 rounded-lg",
@@ -81,6 +87,9 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
             whileTap={{ scale: 0.9 }}
             onClick={() => {
               hapticsLight()
+              if (journalView) {
+                onJournalViewChange(null)
+              }
               onViewModeChange('calendar')
             }}
             className={cn(
@@ -140,6 +149,9 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           whileTap={{ scale: 0.96 }}
           transition={snappy}
           onClick={() => {
+            if (journalView) {
+              onJournalViewChange(null)
+            }
             onViewModeChange('list')
           }}
           title={collapsed ? t('views.list') : undefined}
@@ -158,6 +170,9 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           whileTap={{ scale: 0.96 }}
           transition={snappy}
           onClick={() => {
+            if (journalView) {
+              onJournalViewChange(null)
+            }
             onViewModeChange('calendar')
           }}
           title={collapsed ? t('views.calendar') : undefined}
@@ -171,11 +186,88 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           <CalendarDays className="h-[18px] w-[18px]" />
           {!collapsed && t('views.calendar')}
         </motion.button>
+
+        {/* 日记 - 一级标题 */}
+        <motion.button
+          whileHover={{ y: -2, scale: 1.02 }}
+          whileTap={{ scale: 0.96 }}
+          transition={snappy}
+          onClick={() => {
+            // 点击日记时，如果已经在日记视图，则切换展开状态；否则打开"此刻"
+            if (journalView) {
+              setJournalExpanded(!journalExpanded)
+            } else {
+              onJournalViewChange('now')
+              setJournalExpanded(true)
+            }
+          }}
+          title={collapsed ? t('journal.title') : undefined}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+            "hover:bg-sidebar-accent/50",
+            journalView ? "text-foreground font-medium" : "text-muted-foreground",
+            collapsed && "justify-center"
+          )}
+        >
+          <BookText className="h-[18px] w-[18px]" />
+          {!collapsed && <span className="flex-1 text-left">{t('journal.title')}</span>}
+        </motion.button>
+
+        {/* 日记子菜单分组 - 二级标题 */}
+        <AnimatePresence>
+          {journalView && journalExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col gap-1 overflow-hidden border-t border-sidebar-primary/60 pt-2"
+            >
+              {/* 此刻 */}
+              <motion.button
+                whileHover={{ y: -2, scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                transition={snappy}
+                onClick={() => onJournalViewChange('now')}
+                title={collapsed ? t('journal.now') : undefined}
+                className={cn(
+                  "flex items-center gap-3 py-2 rounded-lg text-sm transition-colors",
+                  "px-3",
+                  "hover:bg-sidebar-accent",
+                  journalView === 'now' && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                  collapsed && "justify-center"
+                )}
+              >
+                <PenLine className={cn(collapsed ? "h-5 w-5" : "h-[18px] w-[18px]")} />
+                {!collapsed && <span className="flex-1 text-left">{t('journal.now')}</span>}
+              </motion.button>
+
+              {/* 过往 */}
+              <motion.button
+                whileHover={{ y: -2, scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                transition={snappy}
+                onClick={() => onJournalViewChange('past')}
+                title={collapsed ? t('journal.past') : undefined}
+                className={cn(
+                  "flex items-center gap-3 py-2 rounded-lg text-sm transition-colors",
+                  "px-3",
+                  "hover:bg-sidebar-accent",
+                  journalView === 'past' && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                  collapsed && "justify-center"
+                )}
+              >
+                <BookOpen className={cn(collapsed ? "h-5 w-5" : "h-[18px] w-[18px]")} />
+                {!collapsed && <span className="flex-1 text-left">{t('journal.past')}</span>}
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* GTD 列表分组 */}
       <AnimatePresence>
-        {viewMode === 'list' && (
+        {viewMode === 'list' && !journalView && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}

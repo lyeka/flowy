@@ -13,11 +13,13 @@ import { gentle } from '@/lib/motion'
 export function CalendarGrid({
   grid,
   tasksByDate,
+  journalsByDate,
   isToday,
   toDateKey,
   onDrop,
   onAddTask,
   onToggle,
+  onJournalClick,
   direction
 }) {
   const { t } = useTranslation()
@@ -55,10 +57,12 @@ export function CalendarGrid({
                   key={cell.key}
                   cell={cell}
                   tasks={tasksByDate.get(cell.key) || []}
+                  journal={journalsByDate?.get(cell.key)}
                   isToday={isToday(cell.date)}
                   onDrop={onDrop}
                   onAddTask={onAddTask}
                   onToggle={onToggle}
+                  onJournalClick={onJournalClick}
                 />
               ))}
             </div>

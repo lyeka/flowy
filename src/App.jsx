@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd, @/components/gtd/*, @/components/ui/sonner, @/lib/platform, react-i18next
+ * [INPUT]: 依赖 @/stores/gtd, @/stores/journal, @/components/gtd/*, @/components/ui/sonner, @/lib/platform, react-i18next
  * [OUTPUT]: 导出 App 根组件
- * [POS]: 应用入口，组装 GTD 布局，支持列表/日历视图切换，集成跨平台功能（桌面端+移动端），管理抽屉和快速捕获状态
+ * [POS]: 应用入口，组装 GTD 布局，支持列表/日历/日记视图切换，集成跨平台功能（桌面端+移动端），管理抽屉和快速捕获状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -10,12 +10,15 @@ import { useTranslation } from 'react-i18next'
 import { Keyboard } from '@capacitor/keyboard'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import { useGTD, GTD_LIST_META, GTD_LISTS } from '@/stores/gtd'
+import { useJournal } from '@/stores/journal'
 import { Sidebar } from '@/components/gtd/Sidebar'
 import { Drawer } from '@/components/gtd/Drawer'
 import { QuickCapture } from '@/components/gtd/QuickCapture'
 import { TaskList } from '@/components/gtd/TaskList'
 import { CalendarView } from '@/components/gtd/CalendarView'
 import { NotesPanel } from '@/components/gtd/NotesPanel'
+import { JournalNowView } from '@/components/gtd/JournalNowView'
+import { JournalPastView } from '@/components/gtd/JournalPastView'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -41,7 +44,10 @@ function App() {
     loadTasks
   } = useGTD()
 
+  const { journalsByDate } = useJournal()
+
   const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
+  const [journalView, setJournalView] = useState(null) // 'now' | 'past' | null
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false) // 移动端抽屉状态
   const [quickCaptureOpen, setQuickCaptureOpen] = useState(false) // 移动端快速捕获模态框状态
@@ -236,6 +242,22 @@ function App() {
   }, [mobile])
 
   const meta = GTD_LIST_META[activeList]
+
+  // 日记视图切换处理
+  const handleJournalViewChange = (view) => {
+    setJournalView(view)
+    // 切换到日记视图时，清除任务选择
+    if (view) {
+      setSelectedTaskId(null)
+    }
+  }
+
+  // 日记点击处理（从日历视图）
+  const handleJournalClick = (journal) => {
+    setJournalView('past')
+    // TODO: 在 JournalPastView 中打开对应的日记
+  }
+
   const handleCloseNotes = () => {
     if (immersivePhase === 'dock') {
       if (dockPanelRef.current) {
@@ -297,18 +319,27 @@ function App() {
           counts={counts}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          journalView={journalView}
+          onJournalViewChange={handleJournalViewChange}
           onExport={handleExport}
           onImport={handleImport}
           settingsOpen={settingsOpen}
           onSettingsOpenChange={setSettingsOpen}
         />
       )}
-      {viewMode === 'calendar' ? (
+      {/* 视图渲染优先级：journalView > viewMode */}
+      {journalView === 'now' ? (
+        <JournalNowView onClose={() => setJournalView(null)} />
+      ) : journalView === 'past' ? (
+        <JournalPastView />
+      ) : viewMode === 'calendar' ? (
         <CalendarView
           tasks={tasks}
+          journalsByDate={journalsByDate}
           onUpdateTask={updateTask}
           onToggle={handleToggleComplete}
           onAddTask={handleAddWithDate}
+          onJournalClick={handleJournalClick}
         />
       ) : (
         <main
@@ -463,6 +494,8 @@ function App() {
             counts={counts}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
+            journalView={journalView}
+            onJournalViewChange={handleJournalViewChange}
             onExport={handleExport}
             onImport={handleImport}
             settingsOpen={settingsOpen}
@@ -478,6 +511,8 @@ function App() {
             activeList={activeList}
             onSelect={setActiveList}
             counts={counts}
+            journalView={journalView}
+            onJournalViewChange={handleJournalViewChange}
             onSettingsOpen={() => setSettingsOpen(true)}
           />
 

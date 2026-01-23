@@ -85,5 +85,16 @@
     "exportFailed": "导出失败",
     "importSuccess": "数据导入成功",
     "importFailed": "导入失败"
+  },
+  "journal": {
+    "title": "日记",
+    "now": "此刻",
+    "past": "过往",
+    "defaultTitle": "小记",
+    "emptyPast": "尚无记录",
+    "emptyPastDesc": "开始记录生活的点滴",
+    "journalCount": "{{count}} 篇日记",
+    "preview": "预览",
+    "todayJournal": "今日日记"
   }
 }

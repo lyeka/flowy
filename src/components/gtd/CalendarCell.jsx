@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 framer-motion，依赖 CalendarTaskChip, @/lib/platform
+ * [INPUT]: 依赖 framer-motion，依赖 CalendarTaskChip, JournalChip, @/lib/platform
  * [OUTPUT]: 导出 CalendarCell 组件
- * [POS]: 日历单日格子，显示日期和任务列表，支持拖放，移动端优化尺寸
+ * [POS]: 日历单日格子，显示日期、日记和任务列表，支持拖放，移动端优化尺寸
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -10,11 +10,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { isMobile } from '@/lib/platform'
 import { CalendarTaskChip } from './CalendarTaskChip'
+import { JournalChip } from './JournalChip'
 import { Plus } from 'lucide-react'
 
 const MAX_VISIBLE = 3
 
-export function CalendarCell({ cell, tasks = [], isToday, onDrop, onAddTask, onToggle }) {
+export function CalendarCell({ cell, tasks = [], journal, isToday, onDrop, onAddTask, onToggle, onJournalClick }) {
   const mobile = isMobile()
   const [isDragOver, setIsDragOver] = useState(false)
   const visibleTasks = tasks.slice(0, mobile ? 2 : MAX_VISIBLE)
@@ -73,8 +74,17 @@ export function CalendarCell({ cell, tasks = [], isToday, onDrop, onAddTask, onT
         )}
       </div>
 
-      {/* 任务列表 */}
+      {/* 任务和日记列表 */}
       <div className="flex-1 flex flex-col gap-0.5 overflow-hidden">
+        {/* 日记 chip（如果存在） */}
+        {journal && (
+          <JournalChip
+            journal={journal}
+            onClick={() => onJournalClick?.(journal)}
+          />
+        )}
+
+        {/* 任务 chips */}
         <AnimatePresence mode="popLayout">
           {visibleTasks.map(task => (
             <CalendarTaskChip

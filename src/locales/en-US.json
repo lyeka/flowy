@@ -85,5 +85,16 @@
     "exportFailed": "Export failed",
     "importSuccess": "Data imported successfully",
     "importFailed": "Import failed"
+  },
+  "journal": {
+    "title": "Journal",
+    "now": "Now",
+    "past": "Past",
+    "defaultTitle": "Note",
+    "emptyPast": "No entries yet",
+    "emptyPastDesc": "Start recording moments of your life",
+    "journalCount": "{{count}} entries",
+    "preview": "Preview",
+    "todayJournal": "Today's Journal"
   }
 }
