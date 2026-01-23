@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 framer-motion, lucide-react, @/lib/motion, @/lib/platform, react hooks, react-i18next
  * [OUTPUT]: 导出 NotesPanel 组件
- * [POS]: 任务/日记编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验，信件风格，移动端全屏模式，支持 type='task'|'journal' 双模式
+ * [POS]: 任务/日记编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验，信件风格，移动端全屏模式，支持 type='task'|'journal' 双模式，字数统计支持中英混排
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -87,9 +87,11 @@ export function NotesPanel({
   const dateStr = formatDate(dateTimestamp)
   const notesText = content
   const isZh = i18n.language?.startsWith('zh')
-  const wordCount = (notesText.match(/\b[\p{L}\p{N}']+\b/gu) || []).length
-  const charCount = notesText.length
-  const count = isZh ? charCount : wordCount
+  const cjkPattern = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu
+  const cjkCount = (notesText.match(cjkPattern) || []).length
+  const nonCjkText = notesText.replace(cjkPattern, ' ')
+  const wordCount = (nonCjkText.match(/\b[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)?\b/gu) || []).length
+  const count = cjkCount + wordCount
   const minutes = count > 0 ? Math.ceil(count / (isZh ? 300 : 200)) : 0
 
   const actualMotionPreset = motionPreset || (isImmersive ? 'immersive' : 'dock')
