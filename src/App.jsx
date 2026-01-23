@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd, @/components/gtd/*, @/components/ui/sonner, @/lib/tauri, react-i18next
+ * [INPUT]: 依赖 @/stores/gtd, @/components/gtd/*, @/components/ui/sonner, @/lib/platform, react-i18next
  * [OUTPUT]: 导出 App 根组件
- * [POS]: 应用入口，组装 GTD 布局，支持列表/日历视图切换，集成桌面端功能
+ * [POS]: 应用入口，组装 GTD 布局，支持列表/日历视图切换，集成跨平台功能（桌面端+移动端）
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -17,11 +17,12 @@ import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { AnimatePresence, motion } from 'framer-motion'
-import { exportData, importData, showNotification, isTauri } from '@/lib/tauri'
+import { exportData, importData, showNotification, isMobile } from '@/lib/platform'
 import { cn } from '@/lib/utils'
 
 function App() {
   const { t } = useTranslation()
+  const mobile = isMobile()
   const {
     tasks,
     filteredTasks,
@@ -101,7 +102,7 @@ function App() {
     const task = tasks.find(t => t.id === id)
     toggleComplete(id)
 
-    if (task && !task.completed && isTauri()) {
+    if (task && !task.completed) {
       showNotification(t('toast.taskCompleted', { title: '' }), t('toast.taskCompleted', { title: task.title }))
     }
   }
@@ -229,18 +230,23 @@ function App() {
   const fromRect = dockRect || immersiveRect
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar
-        activeList={activeList}
-        onSelect={setActiveList}
-        counts={counts}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        onExport={handleExport}
-        onImport={handleImport}
-        settingsOpen={settingsOpen}
-        onSettingsOpenChange={setSettingsOpen}
-      />
+    <div className={cn(
+      "flex bg-background",
+      mobile ? "flex-col h-screen" : "flex-row h-screen"
+    )}>
+      {!mobile && (
+        <Sidebar
+          activeList={activeList}
+          onSelect={setActiveList}
+          counts={counts}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onExport={handleExport}
+          onImport={handleImport}
+          settingsOpen={settingsOpen}
+          onSettingsOpenChange={setSettingsOpen}
+        />
+      )}
       {viewMode === 'calendar' ? (
         <CalendarView
           tasks={tasks}
@@ -252,6 +258,7 @@ function App() {
         <main
           className={cn(
             "flex-1 flex flex-col transition-all duration-[350ms] ease-out",
+            mobile && "pb-16", // 移动端底部导航栏高度
             immersiveActive && showNotesPanel && "opacity-0 pointer-events-none"
           )}
           onClick={() => {
@@ -260,16 +267,25 @@ function App() {
             }
           }}
         >
-          <header className="p-6 h-[88px] flex flex-col justify-center">
-            <h2 className="text-2xl font-bold">{t(`gtd.${meta.key}`)}</h2>
+          <header className={cn(
+            "flex flex-col justify-center",
+            mobile ? "p-4 h-[72px]" : "p-6 h-[88px]"
+          )}>
+            <h2 className={cn(
+              "font-bold",
+              mobile ? "text-xl" : "text-2xl"
+            )}>{t(`gtd.${meta.key}`)}</h2>
             <p className="text-sm text-muted-foreground mt-1">
               {t('tasks.taskCount', { count: counts[activeList] })}
             </p>
           </header>
-          <div className="p-6">
+          <div className={cn(mobile ? "px-4 pb-3" : "p-6")}>
             <QuickCapture onAdd={handleAdd} />
           </div>
-          <ScrollArea className="flex-1 px-6 pb-6">
+          <ScrollArea className={cn(
+            "flex-1",
+            mobile ? "px-4 pb-4" : "px-6 pb-6"
+          )}>
             <TaskList
               tasks={filteredTasks}
               activeList={activeList}
@@ -378,7 +394,23 @@ function App() {
           </motion.div>
         </motion.div>
       )}
-      <Toaster position="bottom-right" />
+
+      {/* 移动端底部导航 */}
+      {mobile && (
+        <Sidebar
+          activeList={activeList}
+          onSelect={setActiveList}
+          counts={counts}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onExport={handleExport}
+          onImport={handleImport}
+          settingsOpen={settingsOpen}
+          onSettingsOpenChange={setSettingsOpen}
+        />
+      )}
+
+      <Toaster position={mobile ? "top-center" : "bottom-right"} />
     </div>
   )
 }
