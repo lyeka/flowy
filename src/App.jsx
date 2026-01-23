@@ -44,7 +44,7 @@ function App() {
     loadTasks
   } = useGTD()
 
-  const { journalsByDate } = useJournal()
+  const { journalsByDate, getOrCreateJournalByDate, updateJournal: updateJournalEntry, getJournalById } = useJournal()
 
   const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
   const [journalView, setJournalView] = useState(null) // 'now' | 'past' | null
@@ -60,9 +60,12 @@ function App() {
   const dockPanelRef = useRef(null)
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
   const selectedTask = tasks.find(t => t.id === selectedTaskId)
-  const showNotesPanel = viewMode === 'list' && selectedTaskId && selectedTask
+  const showDockPanel = viewMode === 'list' && selectedTaskId && selectedTask
+  const showImmersivePanel = selectedTaskId && selectedTask && immersivePhase !== 'dock'
   const isImmersive = immersivePhase !== 'dock'
   const immersiveActive = immersivePhase === 'immersive'
+  const [calendarJournalId, setCalendarJournalId] = useState(null)
+  const calendarJournal = calendarJournalId ? getJournalById(calendarJournalId) : null
 
   const handleAdd = (title) => {
     const targetList = activeList === GTD_LISTS.DONE ? GTD_LISTS.INBOX : activeList
@@ -75,13 +78,26 @@ function App() {
     }
   }
 
-  const handleAddWithDate = (title, date) => {
-    const task = addTask(title)
-    if (task && date) {
-      updateTask(task.id, { dueDate: date.getTime() })
+  const handleCalendarAddEntry = (date, type) => {
+    if (!date) return
+    if (type === 'journal') {
+      const journal = getOrCreateJournalByDate(date)
+      if (journal) {
+        setSelectedTaskId(null)
+        setCalendarJournalId(journal.id)
+      }
+      return
     }
-    hapticsLight()
-    toast.success(t('toast.taskAddedWithDate'))
+    if (type === 'task') {
+      const task = addTask(t('tasks.defaultTitle'))
+      if (task) {
+        updateTask(task.id, { dueDate: date.getTime() })
+        setCalendarJournalId(null)
+        setSelectedTaskId(task.id)
+        setDockRect(null)
+        setImmersivePhase('immersive')
+      }
+    }
   }
 
   const handleDelete = (id) => {
@@ -161,19 +177,23 @@ function App() {
   }, [isResizing, handleMouseMove, handleMouseUp])
 
   useEffect(() => {
-    if (!selectedTaskId || viewMode !== 'list') {
+    if (!selectedTaskId) {
       setImmersivePhase('dock')
+      return
     }
-  }, [selectedTaskId, viewMode])
+    if (viewMode !== 'list' && immersivePhase === 'dock') {
+      setSelectedTaskId(null)
+    }
+  }, [selectedTaskId, viewMode, immersivePhase])
 
   useEffect(() => {
-    if (!showNotesPanel && dockClosing) {
+    if (!showDockPanel && dockClosing) {
       setDockClosing(false)
     }
-  }, [showNotesPanel, dockClosing])
+  }, [showDockPanel, dockClosing])
 
   useLayoutEffect(() => {
-    if (!showNotesPanel || immersivePhase !== 'dock' || !dockPanelRef.current) return
+    if (!showDockPanel || immersivePhase !== 'dock' || !dockPanelRef.current) return
     const rect = dockPanelRef.current.getBoundingClientRect()
     setDockRect({
       top: rect.top,
@@ -181,12 +201,12 @@ function App() {
       width: rect.width,
       height: rect.height
     })
-  }, [showNotesPanel, immersivePhase, notesPanelWidth])
+  }, [showDockPanel, immersivePhase, notesPanelWidth])
 
   useEffect(() => {
     const handleResize = () => {
       setViewport({ width: window.innerWidth, height: window.innerHeight })
-      if (!showNotesPanel || immersivePhase !== 'dock' || !dockPanelRef.current) return
+      if (!showDockPanel || immersivePhase !== 'dock' || !dockPanelRef.current) return
       const rect = dockPanelRef.current.getBoundingClientRect()
       setDockRect({
         top: rect.top,
@@ -197,7 +217,7 @@ function App() {
     }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [showNotesPanel, immersivePhase])
+  }, [showDockPanel, immersivePhase])
 
   // 移动端键盘处理
   useEffect(() => {
@@ -338,7 +358,7 @@ function App() {
           journalsByDate={journalsByDate}
           onUpdateTask={updateTask}
           onToggle={handleToggleComplete}
-          onAddTask={handleAddWithDate}
+          onAddEntry={handleCalendarAddEntry}
           onJournalClick={handleJournalClick}
         />
       ) : (
@@ -346,7 +366,7 @@ function App() {
           className={cn(
             "flex-1 flex flex-col transition-all duration-[350ms] ease-out",
             mobile && "pb-16", // 移动端底部导航栏高度
-            immersiveActive && showNotesPanel && "opacity-0 pointer-events-none"
+            immersiveActive && showDockPanel && "opacity-0 pointer-events-none"
           )}
           onClick={() => {
             if (immersivePhase === 'dock' && selectedTaskId) {
@@ -389,7 +409,7 @@ function App() {
         </main>
       )}
       <AnimatePresence mode="sync" initial={false}>
-        {showNotesPanel && (
+        {showDockPanel && (
           <motion.div
             key="notes-dock"
             animate={{
@@ -444,7 +464,7 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
-      {showNotesPanel && isImmersive && (
+      {showImmersivePanel && isImmersive && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: immersivePhase === 'immersive' ? 1 : 0 }}
@@ -484,6 +504,36 @@ function App() {
           </motion.div>
         </motion.div>
       )}
+      <AnimatePresence>
+        {calendarJournal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-background/40 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="absolute inset-6 md:inset-12"
+            >
+              <NotesPanel
+                type="journal"
+                data={calendarJournal}
+                onUpdate={(id, updates) => {
+                  updateJournalEntry(id, updates)
+                }}
+                onClose={() => setCalendarJournalId(null)}
+                mode="immersive"
+                className="h-full w-full"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 移动端底部导航 */}
       {mobile && (

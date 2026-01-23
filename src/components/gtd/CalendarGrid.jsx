@@ -17,7 +17,7 @@ export function CalendarGrid({
   isToday,
   toDateKey,
   onDrop,
-  onAddTask,
+  onAddEntry,
   onToggle,
   onJournalClick,
   direction
@@ -60,7 +60,7 @@ export function CalendarGrid({
                   journal={journalsByDate?.get(cell.key)}
                   isToday={isToday(cell.date)}
                   onDrop={onDrop}
-                  onAddTask={onAddTask}
+                  onAddEntry={onAddEntry}
                   onToggle={onToggle}
                   onJournalClick={onJournalClick}
                 />

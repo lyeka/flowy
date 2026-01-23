@@ -60,10 +60,13 @@
     "month": "月视图",
     "week": "周视图",
     "unscheduled": "无日期任务",
-    "clearDate": "清除日期"
+    "clearDate": "清除日期",
+    "createTask": "新建任务",
+    "createJournal": "新建日记"
   },
   "tasks": {
     "addPlaceholder": "添加新任务...",
+    "defaultTitle": "新任务",
     "moveTo": "移动到",
     "delete": "删除",
     "setDate": "设置日期",
@@ -95,6 +98,8 @@
     "emptyPastDesc": "开始记录生活的点滴",
     "journalCount": "{{count}} 篇日记",
     "preview": "预览",
-    "todayJournal": "今日日记"
+    "todayJournal": "今日日记",
+    "createByDate": "按日期创建",
+    "selectDateToCreate": "选择日期创建日记"
   }
 }

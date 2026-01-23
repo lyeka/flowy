@@ -1,7 +1,7 @@
 /**
  * [INPUT]: React useState/useEffect/useMemo, date-fns, localStorage API
  * [OUTPUT]: useJournal hook, 日记 CRUD 操作
- * [POS]: 日记状态管理中心，与 gtd.js 平行，管理独立的日记数据，写入实时同步到 localStorage
+ * [POS]: 日记状态管理中心，与 gtd.js 平行，管理独立的日记数据，支持指定日期创建并实时同步
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -24,13 +24,13 @@ const generateJournalId = (date) => {
 }
 
 // 生成默认标题: YYYY.MM.DD
-const generateDefaultTitle = () => {
-  return format(new Date(), 'yyyy.MM.dd')
+const generateDefaultTitle = (date = new Date()) => {
+  return format(date, 'yyyy.MM.dd')
 }
 
-// 获取当天 00:00 时间戳
-const getTodayTimestamp = () => {
-  return startOfDay(new Date()).getTime()
+// 获取指定日期 00:00 时间戳
+const getDateTimestamp = (date) => {
+  return startOfDay(date).getTime()
 }
 
 // ============================================================================
@@ -76,11 +76,12 @@ export const useJournal = () => {
     return [...journals].sort((a, b) => b.date - a.date)
   }, [journals])
 
-  // 获取或创建今日日记
-  const getTodayJournal = () => {
-    const today = new Date()
-    const todayId = generateJournalId(today)
-    const existing = journals.find(j => j.id === todayId)
+  // 获取或创建指定日期日记
+  const getOrCreateJournalByDate = (date) => {
+    if (!date) return null
+    const dateObj = date instanceof Date ? date : new Date(date)
+    const journalId = generateJournalId(dateObj)
+    const existing = journals.find(j => j.id === journalId)
 
     if (existing) {
       return existing
@@ -88,9 +89,9 @@ export const useJournal = () => {
 
     // 创建新日记
     const newJournal = {
-      id: todayId,
-      date: getTodayTimestamp(),
-      title: generateDefaultTitle(),
+      id: journalId,
+      date: getDateTimestamp(dateObj),
+      title: generateDefaultTitle(dateObj),
       content: '',
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -103,6 +104,9 @@ export const useJournal = () => {
     })
     return newJournal
   }
+
+  // 获取或创建今日日记
+  const getTodayJournal = () => getOrCreateJournalByDate(new Date())
 
   // 更新日记
   const updateJournal = (id, updates) => {
@@ -142,6 +146,7 @@ export const useJournal = () => {
     journalsByDate,
     pastJournals,
     getTodayJournal,
+    getOrCreateJournalByDate,
     updateJournal,
     getJournalByDate,
     getJournalById,

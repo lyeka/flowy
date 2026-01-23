@@ -1,7 +1,7 @@
 /**
  * [INPUT]: useJournal (stores/journal), JournalItem (components/gtd), NotesPanel (components/gtd), ScrollArea (components/ui), useTranslation (react-i18next)
  * [OUTPUT]: JournalPastView 组件
- * [POS]: "过往"视图，历史日记列表采用任务列表式排版 + 侧边 NotesPanel 编辑
+ * [POS]: "过往"视图，历史日记列表采用任务列表式排版 + 支持指定日期创建并沉浸式编辑
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -12,13 +12,19 @@ import { JournalItem } from './JournalItem'
 import { NotesPanel } from './NotesPanel'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useTranslation } from 'react-i18next'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, CalendarDays, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Calendar as CalendarComponent } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { isMobile } from '@/lib/platform'
 
 export function JournalPastView() {
   const { t } = useTranslation()
-  const { pastJournals, updateJournal } = useJournal()
+  const { pastJournals, updateJournal, getOrCreateJournalByDate } = useJournal()
   const [selectedJournal, setSelectedJournal] = useState(null)
   const [immersiveOpen, setImmersiveOpen] = useState(false)
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
+  const mobile = isMobile()
 
   const handleSelectJournal = (journal) => {
     setSelectedJournal(journal)
@@ -28,6 +34,15 @@ export function JournalPastView() {
   const handleClosePanel = () => {
     setSelectedJournal(null)
     setImmersiveOpen(false)
+  }
+
+  const handleCreateByDate = (date) => {
+    if (!date) return
+    const journal = getOrCreateJournalByDate(date)
+    if (!journal) return
+    setSelectedJournal(journal)
+    setImmersiveOpen(true)
+    setDatePickerOpen(false)
   }
 
   return (
@@ -43,8 +58,33 @@ export function JournalPastView() {
                 {t('journal.past')} · {t('journal.title')}
               </h2>
             </div>
-            <div className="text-sm text-muted-foreground">
-              {t('journal.journalCount', { count: pastJournals.length })}
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-muted-foreground">
+                {t('journal.journalCount', { count: pastJournals.length })}
+              </div>
+              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size={mobile ? "sm" : "default"}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {t('journal.createByDate')}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="p-3 w-auto">
+                  <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+                    <CalendarDays className="h-4 w-4" />
+                    {t('journal.selectDateToCreate')}
+                  </div>
+                  <CalendarComponent
+                    mode="single"
+                    onSelect={handleCreateByDate}
+                    className="rounded-md border"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>

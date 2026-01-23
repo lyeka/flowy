@@ -15,7 +15,7 @@ import { ChevronLeft, ChevronRight, CalendarDays, CalendarRange } from 'lucide-r
 import { isMobile } from '@/lib/platform'
 import { cn } from '@/lib/utils'
 
-export function CalendarView({ tasks, journalsByDate, onUpdateTask, onToggle, onAddTask, onJournalClick }) {
+export function CalendarView({ tasks, journalsByDate, onUpdateTask, onToggle, onAddEntry, onJournalClick }) {
   const { t, i18n } = useTranslation()
   const mobile = isMobile()
   const {
@@ -48,11 +48,8 @@ export function CalendarView({ tasks, journalsByDate, onUpdateTask, onToggle, on
     onUpdateTask(taskId, { dueDate: date.getTime() })
   }
 
-  const handleAddTask = (date) => {
-    const title = prompt(t('tasks.addPlaceholder'))
-    if (title?.trim()) {
-      onAddTask(title, date)
-    }
+  const handleAddEntry = (date, type) => {
+    onAddEntry?.(date, type)
   }
 
   const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
@@ -122,7 +119,7 @@ export function CalendarView({ tasks, journalsByDate, onUpdateTask, onToggle, on
           isToday={isToday}
           toDateKey={toDateKey}
           onDrop={handleDrop}
-          onAddTask={handleAddTask}
+          onAddEntry={handleAddEntry}
           onToggle={onToggle}
           onJournalClick={onJournalClick}
           direction={direction}

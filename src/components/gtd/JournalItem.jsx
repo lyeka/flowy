@@ -36,7 +36,7 @@ export function JournalItem({ journal, onClick, className }) {
       className={cn(
         'group w-full rounded-lg text-left',
         'flex items-center gap-3',
-        mobile ? 'p-4 border-b border-border' : 'p-3 border bg-card hover:shadow-sm transition-shadow',
+        mobile ? 'p-4 border-b border-border' : 'p-3 border bg-card hover:bg-secondary hover:shadow-sm transition-colors transition-shadow',
         className
       )}
     >

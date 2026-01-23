@@ -165,28 +165,6 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           <List className="h-[18px] w-[18px]" />
           {!collapsed && <span className="flex-1 text-left">{t('views.list')}</span>}
         </motion.button>
-        <motion.button
-          whileHover={{ y: -2, scale: 1.02 }}
-          whileTap={{ scale: 0.96 }}
-          transition={snappy}
-          onClick={() => {
-            if (journalView) {
-              onJournalViewChange(null)
-            }
-            onViewModeChange('calendar')
-          }}
-          title={collapsed ? t('views.calendar') : undefined}
-          className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-            "hover:bg-sidebar-accent/50",
-            viewMode === 'calendar' ? "text-foreground font-medium" : "text-muted-foreground",
-            collapsed && "justify-center"
-          )}
-        >
-          <CalendarDays className="h-[18px] w-[18px]" />
-          {!collapsed && t('views.calendar')}
-        </motion.button>
-
         {/* 日记 - 一级标题 */}
         <motion.button
           whileHover={{ y: -2, scale: 1.02 }}
@@ -213,56 +191,27 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           {!collapsed && <span className="flex-1 text-left">{t('journal.title')}</span>}
         </motion.button>
 
-        {/* 日记子菜单分组 - 二级标题 */}
-        <AnimatePresence>
-          {journalView && journalExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex flex-col gap-1 overflow-hidden border-t border-sidebar-primary/60 pt-2"
-            >
-              {/* 此刻 */}
-              <motion.button
-                whileHover={{ y: -2, scale: 1.02 }}
-                whileTap={{ scale: 0.96 }}
-                transition={snappy}
-                onClick={() => onJournalViewChange('now')}
-                title={collapsed ? t('journal.now') : undefined}
-                className={cn(
-                  "flex items-center gap-3 py-2 rounded-lg text-sm transition-colors",
-                  "px-3",
-                  "hover:bg-sidebar-accent",
-                  journalView === 'now' && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-                  collapsed && "justify-center"
-                )}
-              >
-                <PenLine className={cn(collapsed ? "h-5 w-5" : "h-[18px] w-[18px]")} />
-                {!collapsed && <span className="flex-1 text-left">{t('journal.now')}</span>}
-              </motion.button>
-
-              {/* 过往 */}
-              <motion.button
-                whileHover={{ y: -2, scale: 1.02 }}
-                whileTap={{ scale: 0.96 }}
-                transition={snappy}
-                onClick={() => onJournalViewChange('past')}
-                title={collapsed ? t('journal.past') : undefined}
-                className={cn(
-                  "flex items-center gap-3 py-2 rounded-lg text-sm transition-colors",
-                  "px-3",
-                  "hover:bg-sidebar-accent",
-                  journalView === 'past' && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-                  collapsed && "justify-center"
-                )}
-              >
-                <BookOpen className={cn(collapsed ? "h-5 w-5" : "h-[18px] w-[18px]")} />
-                {!collapsed && <span className="flex-1 text-left">{t('journal.past')}</span>}
-              </motion.button>
-            </motion.div>
+        <motion.button
+          whileHover={{ y: -2, scale: 1.02 }}
+          whileTap={{ scale: 0.96 }}
+          transition={snappy}
+          onClick={() => {
+            if (journalView) {
+              onJournalViewChange(null)
+            }
+            onViewModeChange('calendar')
+          }}
+          title={collapsed ? t('views.calendar') : undefined}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+            "hover:bg-sidebar-accent/50",
+            viewMode === 'calendar' ? "text-foreground font-medium" : "text-muted-foreground",
+            collapsed && "justify-center"
           )}
-        </AnimatePresence>
+        >
+          <CalendarDays className="h-[18px] w-[18px]" />
+          {!collapsed && t('views.calendar')}
+        </motion.button>
       </div>
 
       {/* GTD 列表分组 */}
@@ -308,6 +257,57 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
                 </motion.button>
               )
             })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 日记子菜单分组 - 二级标题 */}
+      <AnimatePresence>
+        {journalView && journalExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col gap-1 overflow-hidden border-t border-sidebar-primary/60 pt-2"
+          >
+            {/* 此刻 */}
+            <motion.button
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
+              transition={snappy}
+              onClick={() => onJournalViewChange('now')}
+              title={collapsed ? t('journal.now') : undefined}
+              className={cn(
+                "flex items-center gap-3 py-2 rounded-lg text-sm transition-colors",
+                "px-3",
+                "hover:bg-sidebar-accent",
+                journalView === 'now' && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                collapsed && "justify-center"
+              )}
+            >
+              <PenLine className={cn(collapsed ? "h-5 w-5" : "h-[18px] w-[18px]")} />
+              {!collapsed && <span className="flex-1 text-left">{t('journal.now')}</span>}
+            </motion.button>
+
+            {/* 过往 */}
+            <motion.button
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
+              transition={snappy}
+              onClick={() => onJournalViewChange('past')}
+              title={collapsed ? t('journal.past') : undefined}
+              className={cn(
+                "flex items-center gap-3 py-2 rounded-lg text-sm transition-colors",
+                "px-3",
+                "hover:bg-sidebar-accent",
+                journalView === 'past' && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                collapsed && "justify-center"
+              )}
+            >
+              <BookOpen className={cn(collapsed ? "h-5 w-5" : "h-[18px] w-[18px]")} />
+              {!collapsed && <span className="flex-1 text-left">{t('journal.past')}</span>}
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>

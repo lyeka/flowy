@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 framer-motion，依赖 CalendarTaskChip, JournalChip, @/lib/platform
+ * [INPUT]: 依赖 framer-motion，依赖 CalendarTaskChip, JournalChip，依赖 @/components/ui/popover, @/components/ui/button, react-i18next, @/lib/platform
  * [OUTPUT]: 导出 CalendarCell 组件
  * [POS]: 日历单日格子，显示日期、日记和任务列表，支持拖放，移动端优化尺寸
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -7,17 +7,22 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { isMobile } from '@/lib/platform'
 import { CalendarTaskChip } from './CalendarTaskChip'
 import { JournalChip } from './JournalChip'
-import { Plus } from 'lucide-react'
+import { Plus, BookText, CheckSquare } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
 
 const MAX_VISIBLE = 3
 
-export function CalendarCell({ cell, tasks = [], journal, isToday, onDrop, onAddTask, onToggle, onJournalClick }) {
+export function CalendarCell({ cell, tasks = [], journal, isToday, onDrop, onAddEntry, onToggle, onJournalClick }) {
+  const { t } = useTranslation()
   const mobile = isMobile()
   const [isDragOver, setIsDragOver] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
   const visibleTasks = tasks.slice(0, mobile ? 2 : MAX_VISIBLE)
   const moreCount = tasks.length - (mobile ? 2 : MAX_VISIBLE)
 
@@ -36,8 +41,9 @@ export function CalendarCell({ cell, tasks = [], journal, isToday, onDrop, onAdd
     if (taskId) onDrop(taskId, cell.date)
   }
 
-  const handleClick = () => {
-    onAddTask(cell.date)
+  const handlePick = (type) => {
+    onAddEntry?.(cell.date, type)
+    setPickerOpen(false)
   }
 
   return (
@@ -64,14 +70,40 @@ export function CalendarCell({ cell, tasks = [], journal, isToday, onDrop, onAdd
         >
           {cell.date.getDate()}
         </span>
-        {!mobile && (
-          <button
-            onClick={handleClick}
-            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-muted rounded transition-opacity"
-          >
-            <Plus className="h-3 w-3 text-muted-foreground" />
-          </button>
-        )}
+        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "p-1 hover:bg-muted rounded transition-opacity",
+                mobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              )}
+            >
+              <Plus className={cn(mobile ? "h-4 w-4" : "h-3 w-3", "text-muted-foreground")} />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-40 p-2">
+            <div className="flex flex-col gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start gap-2"
+                onClick={() => handlePick('journal')}
+              >
+                <BookText className="h-4 w-4 text-primary" />
+                {t('calendar.createJournal')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start gap-2"
+                onClick={() => handlePick('task')}
+              >
+                <CheckSquare className="h-4 w-4 text-primary" />
+                {t('calendar.createTask')}
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* 任务和日记列表 */}

@@ -60,10 +60,13 @@
     "month": "Month",
     "week": "Week",
     "unscheduled": "Unscheduled",
-    "clearDate": "Clear Date"
+    "clearDate": "Clear Date",
+    "createTask": "New task",
+    "createJournal": "New journal"
   },
   "tasks": {
     "addPlaceholder": "Add new task...",
+    "defaultTitle": "New task",
     "moveTo": "Move to",
     "delete": "Delete",
     "setDate": "Set Date",
@@ -95,6 +98,8 @@
     "emptyPastDesc": "Start recording moments of your life",
     "journalCount": "{{count}} entries",
     "preview": "Preview",
-    "todayJournal": "Today's Journal"
+    "todayJournal": "Today's Journal",
+    "createByDate": "New entry",
+    "selectDateToCreate": "Pick a date to create"
   }
 }
