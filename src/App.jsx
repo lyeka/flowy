@@ -7,6 +7,8 @@
 
 import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Keyboard } from '@capacitor/keyboard'
+import { StatusBar, Style } from '@capacitor/status-bar'
 import { useGTD, GTD_LIST_META, GTD_LISTS } from '@/stores/gtd'
 import { Sidebar } from '@/components/gtd/Sidebar'
 import { QuickCapture } from '@/components/gtd/QuickCapture'
@@ -18,6 +20,7 @@ import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { AnimatePresence, motion } from 'framer-motion'
 import { exportData, importData, showNotification, isMobile } from '@/lib/platform'
+import { hapticsSuccess, hapticsWarning, hapticsLight } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
 function App() {
@@ -55,6 +58,7 @@ function App() {
   const handleAdd = (title) => {
     const targetList = activeList === GTD_LISTS.DONE ? GTD_LISTS.INBOX : activeList
     addTask(title, targetList)
+    hapticsLight()
     toast.success(t('toast.taskAdded'))
   }
 
@@ -63,12 +67,14 @@ function App() {
     if (task && date) {
       updateTask(task.id, { dueDate: date.getTime() })
     }
+    hapticsLight()
     toast.success(t('toast.taskAddedWithDate'))
   }
 
   const handleDelete = (id) => {
     if (id === selectedTaskId) setSelectedTaskId(null)
     deleteTask(id)
+    hapticsWarning()
     toast.success(t('toast.taskDeleted'))
   }
 
@@ -97,12 +103,13 @@ function App() {
     }
   }
 
-  // 任务完成时显示桌面通知
+  // 任务完成时显示通知和触觉反馈
   const handleToggleComplete = (id) => {
     const task = tasks.find(t => t.id === id)
     toggleComplete(id)
 
     if (task && !task.completed) {
+      hapticsSuccess()
       showNotification(t('toast.taskCompleted', { title: '' }), t('toast.taskCompleted', { title: task.title }))
     }
   }
@@ -178,6 +185,48 @@ function App() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [showNotesPanel, immersivePhase])
+
+  // 移动端键盘处理
+  useEffect(() => {
+    if (!mobile) return
+
+    const keyboardWillShow = Keyboard.addListener('keyboardWillShow', (info) => {
+      // 键盘即将显示，可以调整布局
+      console.log('Keyboard will show:', info.keyboardHeight)
+    })
+
+    const keyboardWillHide = Keyboard.addListener('keyboardWillHide', () => {
+      // 键盘即将隐藏
+      console.log('Keyboard will hide')
+    })
+
+    return () => {
+      keyboardWillShow.remove()
+      keyboardWillHide.remove()
+    }
+  }, [mobile])
+
+  // 移动端状态栏配置
+  useEffect(() => {
+    if (!mobile) return
+
+    const setupStatusBar = async () => {
+      try {
+        // 设置状态栏样式（深色文字，适配浅色背景）
+        await StatusBar.setStyle({ style: Style.Light })
+
+        // 设置状态栏背景色（与应用背景一致）
+        await StatusBar.setBackgroundColor({ color: '#ffffff' })
+
+        // 显示状态栏
+        await StatusBar.show()
+      } catch (error) {
+        console.warn('StatusBar not available:', error)
+      }
+    }
+
+    setupStatusBar()
+  }, [mobile])
 
   const meta = GTD_LIST_META[activeList]
   const handleCloseNotes = () => {

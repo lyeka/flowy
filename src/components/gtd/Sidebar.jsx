@@ -13,6 +13,7 @@ import { GTD_LISTS, GTD_LIST_META } from '@/stores/gtd'
 import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, ChevronDown, Settings } from 'lucide-react'
 import { snappy } from '@/lib/motion'
 import { isMobile } from '@/lib/platform'
+import { hapticsLight } from '@/lib/haptics'
 import { Settings as SettingsDialog } from './Settings'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
@@ -36,7 +37,10 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           {/* 视图切换 */}
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => onViewModeChange(viewMode === 'list' ? 'calendar' : 'list')}
+            onClick={() => {
+              hapticsLight()
+              onViewModeChange(viewMode === 'list' ? 'calendar' : 'list')
+            }}
             className={cn(
               "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg min-w-[60px]",
               "text-muted-foreground hover:text-foreground transition-colors"
@@ -62,6 +66,7 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
                 key={listId}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => {
+                  hapticsLight()
                   onSelect(listId)
                   if (viewMode === 'calendar') onViewModeChange('list')
                 }}
@@ -85,7 +90,10 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           {/* 设置 */}
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => onSettingsOpenChange(true)}
+            onClick={() => {
+              hapticsLight()
+              onSettingsOpenChange(true)
+            }}
             className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg min-w-[60px] text-muted-foreground hover:text-foreground transition-colors"
           >
             <Settings className="h-5 w-5" />
