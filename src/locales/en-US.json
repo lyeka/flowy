@@ -101,7 +101,6 @@
     "todayJournal": "Today's Journal",
     "createByDate": "New entry",
     "selectDateToCreate": "Pick a date to create",
-    "deleteConfirmTitle": "Delete this entry?",
     "deleteConfirmDesc": "This action cannot be undone.",
     "deleteConfirmPrefix": "Delete",
     "deleteConfirmSuffix": "?"

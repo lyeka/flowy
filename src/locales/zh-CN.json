@@ -101,7 +101,6 @@
     "todayJournal": "今日日记",
     "createByDate": "按日期创建",
     "selectDateToCreate": "选择日期创建日记",
-    "deleteConfirmTitle": "删除这篇日记？",
     "deleteConfirmDesc": "删除后无法恢复。",
     "deleteConfirmPrefix": "删除",
     "deleteConfirmSuffix": "？"
