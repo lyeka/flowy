@@ -17,14 +17,23 @@ import { Button } from '@/components/ui/button'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { isMobile } from '@/lib/platform'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
 
 export function JournalPastView() {
   const { t } = useTranslation()
-  const { pastJournals, updateJournal, getOrCreateJournalByDate } = useJournal()
+  const { pastJournals, updateJournal, getOrCreateJournalByDate, deleteJournal } = useJournal()
   const [selectedJournal, setSelectedJournal] = useState(null)
   const [immersiveOpen, setImmersiveOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const mobile = isMobile()
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   const handleSelectJournal = (journal) => {
     setSelectedJournal(journal)
@@ -34,6 +43,23 @@ export function JournalPastView() {
   const handleClosePanel = () => {
     setSelectedJournal(null)
     setImmersiveOpen(false)
+  }
+
+  const handleDeleteJournal = (id) => {
+    if (selectedJournal?.id === id) {
+      handleClosePanel()
+    }
+    deleteJournal(id)
+  }
+
+  const handleRequestDelete = (journal) => {
+    setDeleteTarget(journal)
+  }
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return
+    handleDeleteJournal(deleteTarget.id)
+    setDeleteTarget(null)
   }
 
   const handleCreateByDate = (date) => {
@@ -111,6 +137,7 @@ export function JournalPastView() {
                     key={journal.id}
                     journal={journal}
                     onClick={handleSelectJournal}
+                    onRequestDelete={handleRequestDelete}
                   />
                 ))}
               </div>
@@ -168,6 +195,29 @@ export function JournalPastView() {
           </AnimatePresence>
         </>
       )}
+
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex flex-wrap items-center gap-2">
+              {t('journal.deleteConfirmPrefix')}
+              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-md text-sm">
+                {(deleteTarget?.title || '').trim() || t('journal.defaultTitle')}
+              </span>
+              {t('journal.deleteConfirmSuffix')}
+            </DialogTitle>
+            <DialogDescription>{t('journal.deleteConfirmDesc')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              {t('common.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

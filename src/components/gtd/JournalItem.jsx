@@ -1,7 +1,7 @@
 /**
  * [INPUT]: lucide-react (Calendar), date-fns (format), cn (lib/utils), useTranslation (react-i18next)
  * [OUTPUT]: JournalItem 组件
- * [POS]: 过往日记列表项，布局与任务列表一致，显示日期 + 标题 + 预览 + 字数
+ * [POS]: 过往日记列表项，布局与任务列表一致，显示日期 + 标题 + 预览 + 字数，支持删除
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -10,9 +10,17 @@ import { zhCN } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { isMobile } from '@/lib/platform'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { MoreHorizontal, Trash2 } from 'lucide-react'
 
-export function JournalItem({ journal, onClick, className }) {
-  const { i18n } = useTranslation()
+export function JournalItem({ journal, onClick, onRequestDelete, className }) {
+  const { i18n, t } = useTranslation()
   const isZh = i18n.language === 'zh-CN'
   const mobile = isMobile()
 
@@ -72,9 +80,38 @@ export function JournalItem({ journal, onClick, className }) {
         )}
       </div>
 
-      {/* 右侧：字数 */}
-      <div className="text-xs text-muted-foreground whitespace-nowrap">
-        {wordCount} 字
+      {/* 右侧：字数 + 操作 */}
+      <div className="flex items-center gap-2">
+        <div className="text-xs text-muted-foreground whitespace-nowrap">
+          {wordCount} 字
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => e.stopPropagation()}
+              className={cn(
+                "h-7 w-7",
+                mobile ? "opacity-100" : "opacity-0 group-hover:opacity-100 transition-opacity"
+              )}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation()
+                onRequestDelete?.(journal)
+              }}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {t('tasks.delete')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </button>
   )
