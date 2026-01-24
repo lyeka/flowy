@@ -1,22 +1,23 @@
 /**
  * [INPUT]: useJournal (stores/journal), JournalItem (components/gtd), NotesPanel (components/gtd), ScrollArea (components/ui), useTranslation (react-i18next)
  * [OUTPUT]: JournalPastView 组件
- * [POS]: "过往"视图，历史日记列表采用任务列表式排版 + 支持指定日期创建并沉浸式编辑
+ * [POS]: "过往"视图，历史日记支持列表与弧线画布两种模式，支持指定日期创建并沉浸式编辑
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useJournal } from '@/stores/journal'
 import { JournalItem } from './JournalItem'
 import { NotesPanel } from './NotesPanel'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, CalendarDays, Plus } from 'lucide-react'
+import { BookOpen, CalendarDays, Plus, Waves } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { isMobile } from '@/lib/platform'
+import { cn } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -25,15 +26,18 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import { format } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
 
 export function JournalPastView() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { pastJournals, updateJournal, getOrCreateJournalByDate, deleteJournal } = useJournal()
   const [selectedJournal, setSelectedJournal] = useState(null)
   const [immersiveOpen, setImmersiveOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const mobile = isMobile()
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [layoutMode, setLayoutMode] = useState('list') // 'list' | 'canvas'
 
   const handleSelectJournal = (journal) => {
     setSelectedJournal(journal)
@@ -62,6 +66,21 @@ export function JournalPastView() {
     setDeleteTarget(null)
   }
 
+  useEffect(() => {
+    if (layoutMode === 'canvas') {
+      handleClosePanel()
+    }
+  }, [layoutMode])
+
+  const isZh = i18n.language?.startsWith('zh')
+  const formatCanvasDate = (timestamp) => {
+    if (!timestamp) return ''
+    const locale = isZh ? zhCN : undefined
+    return isZh
+      ? format(timestamp, 'yyyy年M月d日 · EEEE', { locale })
+      : format(timestamp, 'MMM d, yyyy · EEE', { locale })
+  }
+
   const handleCreateByDate = (date) => {
     if (!date) return
     const journal = getOrCreateJournalByDate(date)
@@ -72,9 +91,9 @@ export function JournalPastView() {
   }
 
   return (
-    <div className="flex-1 flex h-full">
+    <div className="flex-1 flex h-full min-h-0">
       {/* 左侧：日记列表 */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Header */}
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center justify-between">
@@ -88,6 +107,20 @@ export function JournalPastView() {
               <div className="text-sm text-muted-foreground">
                 {t('journal.journalCount', { count: pastJournals.length })}
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLayoutMode(prev => (prev === 'canvas' ? 'list' : 'canvas'))}
+                title={layoutMode === 'canvas' ? t('journal.listMode') : t('journal.canvasMode')}
+                aria-label={layoutMode === 'canvas' ? t('journal.listMode') : t('journal.canvasMode')}
+                aria-pressed={layoutMode === 'canvas'}
+                className={cn(
+                  mobile ? 'h-8 w-8' : 'h-8 w-8',
+                  layoutMode === 'canvas' ? 'text-foreground' : 'text-muted-foreground'
+                )}
+              >
+                <Waves className="h-4 w-4" />
+              </Button>
               <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -116,7 +149,7 @@ export function JournalPastView() {
         </div>
 
         {/* 列表 */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="p-6">
             {pastJournals.length === 0 ? (
               // 空状态
@@ -128,6 +161,24 @@ export function JournalPastView() {
                 <div className="text-sm text-muted-foreground/60 mt-1">
                   {t('journal.emptyPastDesc')}
                 </div>
+              </div>
+            ) : layoutMode === 'canvas' ? (
+              <div className="flex flex-col gap-12">
+                {pastJournals.map(journal => (
+                  <section key={journal.id} className="group">
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <span>{formatCanvasDate(journal.date)}</span>
+                    </div>
+                    <div className="mt-3 text-xl font-semibold text-foreground">
+                      {(journal.title || '').trim() || t('journal.defaultTitle')}
+                    </div>
+                    {journal.content && (
+                      <div className="mt-4 whitespace-pre-wrap text-base leading-[1.9] text-foreground/90">
+                        {journal.content}
+                      </div>
+                    )}
+                  </section>
+                ))}
               </div>
             ) : (
               // 日记列表

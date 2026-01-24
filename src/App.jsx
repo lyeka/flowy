@@ -329,7 +329,7 @@ function App() {
 
   return (
     <div className={cn(
-      "flex bg-background",
+      "flex bg-background overflow-hidden",
       mobile ? "flex-col h-screen" : "flex-row h-screen"
     )}>
       {!mobile && (

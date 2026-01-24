@@ -101,6 +101,8 @@
     "todayJournal": "Today's Journal",
     "createByDate": "New entry",
     "selectDateToCreate": "Pick a date to create",
+    "listMode": "List",
+    "canvasMode": "Timeflow",
     "deleteConfirmDesc": "This action cannot be undone.",
     "deleteConfirmPrefix": "Delete",
     "deleteConfirmSuffix": "?"

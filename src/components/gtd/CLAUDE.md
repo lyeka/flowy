@@ -17,7 +17,7 @@ CalendarTaskChip.jsx: 日历内任务小卡片，可拖拽，实线边框
 UnscheduledPanel.jsx: 无日期任务面板，可折叠，支持拖拽到日历
 NotesPanel.jsx: 任务/日记编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验，移动端减少留白（px-6 py-8），支持 type='task'|'journal' 双模式
 JournalNowView.jsx: "此刻"视图，自动打开今日日记编辑，全屏 NotesPanel
-JournalPastView.jsx: "过往"视图，历史日记列表 + 侧边 NotesPanel 编辑
+JournalPastView.jsx: "过往"视图，历史日记支持列表/弧线画布（连续浏览） + 侧边 NotesPanel 编辑
 JournalItem.jsx: 过往日记列表项，显示日期 + 标题 + 预览 + 字数
 JournalChip.jsx: 日历内日记小卡片，虚线边框，不可拖拽，BookText 图标
 
