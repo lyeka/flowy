@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 framer-motion, lucide-react, @/lib/motion, @/lib/platform, react hooks, react-i18next
+ * [INPUT]: 依赖 framer-motion, lucide-react, @/lib/motion, @/lib/platform, react hooks, react-i18next, AIPromptCard, useAI, useGTD, useJournal
  * [OUTPUT]: 导出 NotesPanel 组件
- * [POS]: 任务/日记编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验，信件风格，移动端全屏模式，支持 type='task'|'journal' 双模式，字数统计支持中英混排
+ * [POS]: 任务/日记编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验，信件风格，移动端全屏模式，支持 type='task'|'journal' 双模式，字数统计支持中英混排，集成 AI 问题卡片
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -13,6 +13,10 @@ import { gentle } from '@/lib/motion'
 import { isMobile } from '@/lib/platform'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { AIPromptCard } from './AIPromptCard'
+import { useAI } from '@/stores/ai'
+import { useGTD } from '@/stores/gtd'
+import { useJournal } from '@/stores/journal'
 
 export function NotesPanel({
   // 新接口：支持 task 和 journal 双模式
@@ -33,6 +37,9 @@ export function NotesPanel({
   const mobile = isMobile()
   const textareaRef = useRef(null)
   const [lineCount, setLineCount] = useState(0)
+  const { config, generatePrompts, generating } = useAI()
+  const { tasks } = useGTD()
+  const { journals } = useJournal()
 
   // 向后兼容：如果传入 task，则使用 task
   const actualType = task ? 'task' : type
@@ -42,9 +49,73 @@ export function NotesPanel({
   const title = actualData?.title || ''
   const content = actualType === 'journal' ? (actualData?.content || '') : (actualData?.notes || '')
   const dateTimestamp = actualType === 'journal' ? actualData?.date : actualData?.dueDate
+  const aiPrompts = actualType === 'journal' ? (actualData?.aiPrompts || []) : []
 
   // 根据 mode 决定是否沉浸式
   const isImmersive = mode === 'immersive' || immersive
+
+  // AI 问题处理
+  const handlePromptSelect = (prompt) => {
+    // 插入问题到光标位置
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const newContent =
+      content.substring(0, start) +
+      prompt.text + '\n\n' +
+      content.substring(end)
+
+    const field = actualType === 'journal' ? 'content' : 'notes'
+    onUpdate(actualData.id, { [field]: newContent })
+
+    // 标记为已插入
+    const updatedPrompts = aiPrompts.map(p =>
+      p.id === prompt.id ? { ...p, inserted: true } : p
+    )
+    onUpdate(actualData.id, { aiPrompts: updatedPrompts })
+
+    // 设置光标位置到插入文本之后
+    setTimeout(() => {
+      const newPosition = start + prompt.text.length + 2
+      textarea.setSelectionRange(newPosition, newPosition)
+      textarea.focus()
+    }, 0)
+  }
+
+  const handlePromptDismiss = (promptId) => {
+    const updatedPrompts = aiPrompts.map(p =>
+      p.id === promptId ? { ...p, dismissed: true } : p
+    )
+    onUpdate(actualData.id, { aiPrompts: updatedPrompts })
+  }
+
+  const handlePromptRefresh = async () => {
+    if (actualType !== 'journal') return
+
+    // 获取最近的日记（用于历史上下文）
+    const recentJournals = journals
+      .filter(j => j.id !== actualData.id)
+      .sort((a, b) => b.date - a.date)
+      .slice(0, 3)
+
+    // 生成新问题
+    const prompts = await generatePrompts(actualData, tasks, recentJournals)
+
+    if (prompts.length > 0) {
+      onUpdate(actualData.id, {
+        aiPrompts: prompts,
+        aiContext: {
+          tasksTotal: tasks.length,
+          tasksCompleted: tasks.filter(t => t.completed).length,
+          generatedAt: Date.now(),
+          provider: config.provider,
+          model: config.model
+        }
+      })
+    }
+  }
 
   const formatDate = (timestamp) => {
     if (!timestamp) return ''
@@ -173,6 +244,18 @@ export function NotesPanel({
             mobile ? "mt-3" : "mt-4"
           )}>
             {dateStr}
+          </div>
+        )}
+
+        {/* AI 问题卡片 - 仅在日记模式下显示（包括加载状态） */}
+        {actualType === 'journal' && (config.enabled && config.apiKey) && (aiPrompts.length > 0 || generating) && (
+          <div className={cn(mobile ? "mt-4" : "mt-6")}>
+            <AIPromptCard
+              prompts={aiPrompts}
+              onSelect={handlePromptSelect}
+              onDismiss={handlePromptDismiss}
+              onRefresh={handlePromptRefresh}
+            />
           </div>
         )}
 

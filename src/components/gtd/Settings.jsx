@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 @/components/ui/dialog, @/components/ui/select，依赖 lucide-react 图标，依赖 framer-motion，依赖 react-i18next，依赖 next-themes
+ * [INPUT]: 依赖 @/components/ui/dialog, @/components/ui/select，依赖 lucide-react 图标，依赖 framer-motion，依赖 react-i18next，依赖 next-themes，依赖 AISettings 组件
  * [OUTPUT]: 导出 Settings 组件
- * [POS]: 设置对话框，主题切换 + 语言切换 + 数据导入/导出入口，被 Sidebar 调用
+ * [POS]: 设置对话框，主题切换 + 语言切换 + AI 配置 + 数据导入/导出入口，被 Sidebar 调用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -12,6 +12,7 @@ import { Download, Upload } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { snappy } from '@/lib/motion'
+import { AISettings } from './AISettings'
 
 export function Settings({ open, onOpenChange, onExport, onImport }) {
   const { t, i18n } = useTranslation()
@@ -53,6 +54,12 @@ export function Settings({ open, onOpenChange, onExport, onImport }) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* 分隔线 */}
+          <div className="border-t" />
+
+          {/* AI 设置 */}
+          <AISettings />
 
           {/* 分隔线 */}
           <div className="border-t" />

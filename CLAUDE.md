@@ -5,9 +5,10 @@ Tauri 2.0 (桌面端) + Capacitor 8.0 (移动端) + Vite 7 + React 19 + Tailwind
 src/
 ├── components/
 │   ├── ui/          - shadcn 组件库
-│   └── gtd/         - GTD 业务组件 (17文件: QuickCapture, Sidebar, Settings, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip)
-├── stores/          - 状态管理 (3文件: gtd.js, calendar.js, journal.js)
+│   └── gtd/         - GTD 业务组件 (19文件: QuickCapture, Sidebar, Settings, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip, AIPromptCard, AISettings)
+├── stores/          - 状态管理 (4文件: gtd.js, calendar.js, journal.js, ai.js)
 ├── lib/             - 工具函数 (5文件: utils.js, motion.js, platform.js, tauri.js(废弃), i18n.js)
+│   └── ai/          - AI 功能模块 (3文件: crypto.js, prompts.js, openai.js)
 ├── locales/         - 国际化翻译文件 (2文件: zh-CN.json, en-US.json)
 ├── App.jsx          - 应用入口，支持列表/日历/日记视图切换，集成跨平台功能
 ├── main.jsx         - React 挂载点，初始化 i18n
@@ -56,6 +57,17 @@ package.json        - 包含 tauri:dev/tauri:build (桌面端) 和 cap:android/c
 - **日历集成**：日记在日历格子内显示，虚线边框与任务区分
 - **数据分离**：日记与任务数据独立存储，不混淆语义
 - **默认标题**：`HH:mm · 小记`（如 "14:32 · 小记"）
+- **AI 助手**：根据用户指导方向、任务情况和历史日记，智能生成个性化引导问题
+
+## AI 功能
+
+- **智能问题生成**：根据用户指导方向、任务完成情况和历史日记，动态生成个性化引导问题
+- **用户指导方向**：用户输入指导性提示词（如"我想探讨人生的哲理和意义"），AI 据此生成问题
+- **上下文感知**：结合今日任务、最近日记、时间上下文（周几、早中晚）生成问题
+- **优雅交互**：问题卡片轻量非侵入，点击插入、悬停删除、支持刷新
+- **隐私优先**：用户自己配置 OpenAI API Key，加密存储在本地
+- **完全可选**：默认关闭，用户完全控制
+- **优雅降级**：API 失败时使用通用开放式问题
 
 ## 跨平台特性
 
