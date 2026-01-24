@@ -209,6 +209,7 @@ export function JournalPastView() {
               setSelectedJournal(prev => ({ ...prev, ...updates }))
             }}
             onClose={handleClosePanel}
+            onDelete={handleRequestDelete}
             mode="dock"
             onToggleImmersive={() => setImmersiveOpen(true)}
           />
@@ -236,6 +237,7 @@ export function JournalPastView() {
                       setSelectedJournal(prev => ({ ...prev, ...updates }))
                     }}
                     onClose={handleClosePanel}
+                    onDelete={handleRequestDelete}
                     mode="immersive"
                     onToggleImmersive={() => setImmersiveOpen(false)}
                     className="h-full w-full"

@@ -28,7 +28,7 @@ import {
 
 export function AISettings() {
   const { t } = useTranslation()
-  const { config, updateConfig, getDecryptedApiKey, generatePrompts } = useAI()
+  const { config, updateConfig, getDecryptedApiKey, generatePrompts, generateTitle } = useAI()
   const { tasks } = useGTD()
   const [apiKeyInput, setApiKeyInput] = useState('')
   const [isLoadingKey, setIsLoadingKey] = useState(true)
@@ -37,6 +37,7 @@ export function AISettings() {
   const [testing, setTesting] = useState(false)
   const [testDialogOpen, setTestDialogOpen] = useState(false)
   const [testPrompts, setTestPrompts] = useState([])
+  const [testTitle, setTestTitle] = useState(null)
   const [testError, setTestError] = useState(null)
 
   // 加载解密后的 API Key
@@ -97,6 +98,7 @@ export function AISettings() {
   const handleTest = async () => {
     setTesting(true)
     setTestError(null)
+    setTestTitle(null)
 
     try {
       // 构建测试上下文
@@ -110,19 +112,23 @@ export function AISettings() {
       // 使用真实任务数据（如果启用了任务上下文）
       const mockTasks = config.includeTaskContext ? tasks.slice(0, 5) : []
 
-      // 调用 AI 生成（复用现有逻辑）
-      const prompts = await generatePrompts(mockJournal, mockTasks, [])
+      // 并行生成问题和标题
+      const [prompts, title] = await Promise.all([
+        generatePrompts(mockJournal, mockTasks, []),
+        config.autoGenerateTitle ? generateTitle(mockJournal, mockTasks, []) : Promise.resolve(null)
+      ])
 
       // 检查是否是降级问题（fallback）
       if (prompts.length > 0 && prompts[0].source === 'fallback') {
         throw new Error('API 调用失败，返回了降级问题')
       }
 
-      if (prompts.length === 0) {
-        throw new Error('未生成任何问题')
+      if (prompts.length === 0 && !title) {
+        throw new Error('未生成任何内容')
       }
 
       setTestPrompts(prompts)
+      setTestTitle(title)
       setTestDialogOpen(true)
     } catch (error) {
       console.error('Test failed:', error)
@@ -321,18 +327,30 @@ export function AISettings() {
                 </div>
               </div>
 
-              {/* 生成的问题预览 */}
-              <div className="space-y-2">
-                <Label>{t('ai.generatedQuestions')}</Label>
-                {testPrompts.map((prompt, index) => (
-                  <div
-                    key={index}
-                    className="rounded-md bg-muted/50 px-3 py-2 text-sm"
-                  >
-                    {prompt.text}
+              {/* 生成的标题预览 */}
+              {testTitle && (
+                <div className="space-y-2">
+                  <Label>{t('ai.generatedTitle')}</Label>
+                  <div className="rounded-md bg-primary/10 text-primary px-3 py-2 text-sm font-medium">
+                    {testTitle}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+
+              {/* 生成的问题预览 */}
+              {testPrompts.length > 0 && (
+                <div className="space-y-2">
+                  <Label>{t('ai.generatedQuestions')}</Label>
+                  {testPrompts.map((prompt, index) => (
+                    <div
+                      key={index}
+                      className="rounded-md bg-muted/50 px-3 py-2 text-sm"
+                    >
+                      {prompt.text}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

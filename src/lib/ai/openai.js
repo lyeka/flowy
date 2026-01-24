@@ -162,7 +162,7 @@ export async function generateTitle(context, config) {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        temperature: 0.7,
+        temperature: 0.9,  // 提高随机性，让标题更有创意和变化
         max_tokens: 50
       })
     })

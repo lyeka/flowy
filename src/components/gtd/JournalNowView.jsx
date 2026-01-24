@@ -10,13 +10,25 @@ import { useJournal } from '@/stores/journal'
 import { useAI } from '@/stores/ai'
 import { useGTD } from '@/stores/gtd'
 import { NotesPanel } from './NotesPanel'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { useTranslation } from 'react-i18next'
 
 export function JournalNowView({ onClose }) {
-  const { getTodayJournal, updateJournal, journals } = useJournal()
+  const { t } = useTranslation()
+  const { getTodayJournal, updateJournal, journals, deleteJournal } = useJournal()
   const { config, generatePrompts, generateTitle } = useAI()
   const { tasks } = useGTD()
   const [todayJournal, setTodayJournal] = useState(null)
   const [streamingPrompts, setStreamingPrompts] = useState([])
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   useEffect(() => {
     // 获取或创建今日日记
@@ -37,7 +49,7 @@ export function JournalNowView({ onClose }) {
       config.autoGenerateTitle &&
       config.apiKey &&
       !journal.content &&
-      journal.title.includes('·') // 默认标题格式包含 "·"
+      /^\d{4}\.\d{2}\.\d{2}$/.test(journal.title) // 检查是否是默认标题格式（yyyy.MM.dd）
 
     if (shouldGeneratePrompts || shouldGenerateTitle) {
       // 延迟 500ms 避免闪烁
@@ -104,33 +116,71 @@ export function JournalNowView({ onClose }) {
     return null
   }
 
+  const handleRequestDelete = (journal) => {
+    setDeleteTarget(journal)
+  }
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return
+    deleteJournal(deleteTarget.id)
+    setDeleteTarget(null)
+    onClose?.()
+  }
+
   return (
-    <div
-      className="flex-1 h-full"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose?.()
-        }
-      }}
-    >
-      <div className="h-full" onClick={(e) => e.stopPropagation()}>
-        <NotesPanel
-          type="journal"
-          data={{
-            ...todayJournal,
-            // 如果正在流式生成，使用流式问题；否则使用已保存的问题
-            aiPrompts: streamingPrompts.length > 0 ? streamingPrompts : todayJournal.aiPrompts
-          }}
-          onUpdate={(id, updates) => {
-            updateJournal(id, updates)
-            // 更新本地状态以反映变化
-            setTodayJournal(prev => ({ ...prev, ...updates }))
-          }}
-          onClose={onClose}
-          mode="immersive"
-          className="h-full w-full rounded-none border-0 shadow-none bg-background"
-        />
+    <>
+      <div
+        className="flex-1 h-full"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose?.()
+          }
+        }}
+      >
+        <div className="h-full" onClick={(e) => e.stopPropagation()}>
+          <NotesPanel
+            type="journal"
+            data={{
+              ...todayJournal,
+              // 如果正在流式生成，使用流式问题；否则使用已保存的问题
+              aiPrompts: streamingPrompts.length > 0 ? streamingPrompts : todayJournal.aiPrompts
+            }}
+            onUpdate={(id, updates) => {
+              updateJournal(id, updates)
+              // 更新本地状态以反映变化
+              setTodayJournal(prev => ({ ...prev, ...updates }))
+            }}
+            onClose={onClose}
+            onDelete={handleRequestDelete}
+            mode="immersive"
+            className="h-full w-full rounded-none border-0 shadow-none bg-background"
+          />
+        </div>
       </div>
-    </div>
+
+      {/* 删除确认 Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex flex-wrap items-center gap-2">
+              {t('journal.deleteConfirmPrefix')}
+              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-md text-sm">
+                {(deleteTarget?.title || '').trim() || t('journal.defaultTitle')}
+              </span>
+              {t('journal.deleteConfirmSuffix')}
+            </DialogTitle>
+            <DialogDescription>{t('journal.deleteConfirmDesc')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              {t('common.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

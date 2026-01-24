@@ -7,7 +7,7 @@
 
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { X, Maximize2, Minimize2 } from 'lucide-react'
+import { X, Maximize2, Minimize2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { gentle } from '@/lib/motion'
 import { isMobile } from '@/lib/platform'
@@ -26,6 +26,7 @@ export function NotesPanel({
 
   onUpdate,
   onClose,
+  onDelete,       // 新增：删除回调（可选）
   style,
   immersive = false,
   mode = 'dock',  // 新增：'dock' | 'immersive'，替代 immersive boolean
@@ -215,6 +216,22 @@ export function NotesPanel({
           className="absolute top-6 right-16 h-8 w-8 z-10 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
         >
           {isImmersive ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+        </Button>
+      )}
+      {/* 删除按钮 - 如果提供了 onDelete 回调则显示 */}
+      {onDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onDelete(actualData)}
+          title={t('tasks.delete')}
+          aria-label={t('tasks.delete')}
+          className={cn(
+            "absolute z-10 text-muted-foreground/40 hover:text-destructive transition-colors",
+            mobile ? "top-3 left-3 h-9 w-9" : (onToggleImmersive ? "top-6 right-26 h-8 w-8" : "top-6 right-16 h-8 w-8")
+          )}
+        >
+          <Trash2 className="h-4 w-4" />
         </Button>
       )}
 
