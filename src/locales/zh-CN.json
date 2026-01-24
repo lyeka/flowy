@@ -103,10 +103,14 @@
     "createByDate": "按日期创建",
     "selectDateToCreate": "选择日期创建日记",
     "listMode": "列表",
-    "canvasMode": "时光",
+    "canvasMode": "时光流",
     "deleteConfirmDesc": "删除后无法恢复。",
     "deleteConfirmPrefix": "删除",
-    "deleteConfirmSuffix": "？"
+    "deleteConfirmSuffix": "？",
+    "reset": "重置",
+    "resetConfirmPrefix": "重置",
+    "resetConfirmSuffix": "？",
+    "resetConfirmDesc": "将清空内容并重新生成标题和问题。"
   },
   "ai": {
     "title": "AI 助手",

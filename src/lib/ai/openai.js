@@ -37,7 +37,7 @@ export async function generatePrompts(context, config, onProgress = null) {
     const baseURL = config.baseURL || 'https://api.openai.com/v1'
     const endpoint = `${baseURL}/chat/completions`
 
-    // 调用 OpenAI 兼容 API（流式模式）
+    // 调用 OpenAI 兼容 API（非流式模式，避免渲染闪烁）
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -52,7 +52,7 @@ export async function generatePrompts(context, config, onProgress = null) {
         ],
         temperature: 0.8,
         max_tokens: 500,
-        stream: true  // 启用流式输出
+        stream: false  // 禁用流式输出，等待完整响应
       })
     })
 
@@ -62,60 +62,17 @@ export async function generatePrompts(context, config, onProgress = null) {
       return getFallbackPrompts()
     }
 
-    // 处理流式响应
-    const reader = response.body.getReader()
-    const decoder = new TextDecoder()
-    let buffer = ''
-    let fullContent = ''
-    let lastPromptCount = 0
+    // 解析完整响应
+    const data = await response.json()
+    const content = data.choices[0]?.message?.content
 
-    while (true) {
-      const { done, value } = await reader.read()
-
-      if (done) break
-
-      // 解码数据块
-      buffer += decoder.decode(value, { stream: true })
-
-      // 按行分割
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || '' // 保留最后一个不完整的行
-
-      for (const line of lines) {
-        const trimmed = line.trim()
-        if (!trimmed || trimmed === 'data: [DONE]') continue
-
-        if (trimmed.startsWith('data: ')) {
-          try {
-            const json = JSON.parse(trimmed.slice(6))
-            const delta = json.choices[0]?.delta?.content
-
-            if (delta) {
-              fullContent += delta
-
-              // 如果提供了进度回调，尝试解析当前内容
-              if (onProgress) {
-                try {
-                  const prompts = parseAIResponse(fullContent)
-                  // 只有当问题数量增加时才触发回调（避免重复触发）
-                  if (prompts.length > lastPromptCount) {
-                    lastPromptCount = prompts.length
-                    onProgress(prompts)
-                  }
-                } catch (e) {
-                  // 解析失败，继续累积内容
-                }
-              }
-            }
-          } catch (e) {
-            console.error('Failed to parse SSE line:', e)
-          }
-        }
-      }
+    if (!content) {
+      console.error('No content in response')
+      return getFallbackPrompts()
     }
 
-    // 解析最终响应
-    const prompts = parseAIResponse(fullContent)
+    // 解析问题
+    const prompts = parseAIResponse(content)
 
     if (prompts.length === 0) {
       return getFallbackPrompts()

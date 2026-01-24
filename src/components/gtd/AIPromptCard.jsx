@@ -15,7 +15,7 @@ import { useAI } from '@/stores/ai'
 // AI Prompt Card Component
 // ============================================================
 
-export function AIPromptCard({ prompts = [], onSelect, onDismiss, onRefresh }) {
+export function AIPromptCard({ prompts = [], onSelect, onDismiss }) {
   const { t } = useTranslation()
   const { generating } = useAI()
   const [hoveredId, setHoveredId] = useState(null)
@@ -36,18 +36,10 @@ export function AIPromptCard({ prompts = [], onSelect, onDismiss, onRefresh }) {
       className="mb-4 rounded-lg border border-border/50 bg-muted/30 p-3"
     >
       {/* 卡片头部 */}
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2">
         <div className="text-sm font-medium text-foreground/80">
           <span>{t('ai.todayGuide')}</span>
         </div>
-        <button
-          onClick={onRefresh}
-          disabled={generating}
-          className="rounded p-1 hover:bg-muted transition-colors disabled:opacity-50"
-          title={t('ai.refresh')}
-        >
-          <RefreshCw className={`h-4 w-4 ${generating ? 'animate-spin' : ''}`} />
-        </button>
       </div>
 
       {/* 问题列表 */}

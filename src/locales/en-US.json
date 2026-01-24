@@ -106,7 +106,11 @@
     "canvasMode": "Timeflow",
     "deleteConfirmDesc": "This action cannot be undone.",
     "deleteConfirmPrefix": "Delete",
-    "deleteConfirmSuffix": "?"
+    "deleteConfirmSuffix": "?",
+    "reset": "Reset",
+    "resetConfirmPrefix": "Reset",
+    "resetConfirmSuffix": "?",
+    "resetConfirmDesc": "This will clear the content and regenerate title and questions."
   },
   "ai": {
     "title": "AI Assistant",

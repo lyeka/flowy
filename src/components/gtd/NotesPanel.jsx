@@ -7,7 +7,7 @@
 
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { X, Maximize2, Minimize2, Trash2 } from 'lucide-react'
+import { X, Maximize2, Minimize2, Trash2, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { gentle } from '@/lib/motion'
 import { isMobile } from '@/lib/platform'
@@ -27,6 +27,7 @@ export function NotesPanel({
   onUpdate,
   onClose,
   onDelete,       // 新增：删除回调（可选）
+  deleteMode = 'delete',  // 'delete' | 'reset' - 删除模式
   style,
   immersive = false,
   mode = 'dock',  // 新增：'dock' | 'immersive'，替代 immersive boolean
@@ -90,32 +91,6 @@ export function NotesPanel({
       p.id === promptId ? { ...p, dismissed: true } : p
     )
     onUpdate(actualData.id, { aiPrompts: updatedPrompts })
-  }
-
-  const handlePromptRefresh = async () => {
-    if (actualType !== 'journal') return
-
-    // 获取最近的日记（用于历史上下文）
-    const recentJournals = journals
-      .filter(j => j.id !== actualData.id)
-      .sort((a, b) => b.date - a.date)
-      .slice(0, 3)
-
-    // 生成新问题
-    const prompts = await generatePrompts(actualData, tasks, recentJournals)
-
-    if (prompts.length > 0) {
-      onUpdate(actualData.id, {
-        aiPrompts: prompts,
-        aiContext: {
-          tasksTotal: tasks.length,
-          tasksCompleted: tasks.filter(t => t.completed).length,
-          generatedAt: Date.now(),
-          provider: config.provider,
-          model: config.model
-        }
-      })
-    }
   }
 
   const formatDate = (timestamp) => {
@@ -218,20 +193,25 @@ export function NotesPanel({
           {isImmersive ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
         </Button>
       )}
-      {/* 删除按钮 - 如果提供了 onDelete 回调则显示 */}
+      {/* 删除/重置按钮 - 如果提供了 onDelete 回调则显示 */}
       {onDelete && (
         <Button
           variant="ghost"
           size="icon"
           onClick={() => onDelete(actualData)}
-          title={t('tasks.delete')}
-          aria-label={t('tasks.delete')}
+          title={deleteMode === 'reset' ? t('journal.reset') : t('tasks.delete')}
+          aria-label={deleteMode === 'reset' ? t('journal.reset') : t('tasks.delete')}
           className={cn(
-            "absolute z-10 text-muted-foreground/40 hover:text-destructive transition-colors",
+            "absolute z-10 text-muted-foreground/40 transition-colors",
+            deleteMode === 'reset' ? "hover:text-primary" : "hover:text-destructive",
             mobile ? "top-3 left-3 h-9 w-9" : (onToggleImmersive ? "top-6 right-26 h-8 w-8" : "top-6 right-16 h-8 w-8")
           )}
         >
-          <Trash2 className="h-4 w-4" />
+          {deleteMode === 'reset' ? (
+            <RotateCcw className="h-4 w-4" />
+          ) : (
+            <Trash2 className="h-4 w-4" />
+          )}
         </Button>
       )}
 
@@ -271,7 +251,6 @@ export function NotesPanel({
               prompts={aiPrompts}
               onSelect={handlePromptSelect}
               onDismiss={handlePromptDismiss}
-              onRefresh={handlePromptRefresh}
             />
           </div>
         )}

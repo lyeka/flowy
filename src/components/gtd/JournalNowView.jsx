@@ -27,7 +27,6 @@ export function JournalNowView({ onClose }) {
   const { config, generatePrompts, generateTitle } = useAI()
   const { tasks } = useGTD()
   const [todayJournal, setTodayJournal] = useState(null)
-  const [streamingPrompts, setStreamingPrompts] = useState([])
   const [deleteTarget, setDeleteTarget] = useState(null)
 
   useEffect(() => {
@@ -63,15 +62,7 @@ export function JournalNowView({ onClose }) {
         // 并行生成问题和标题
         const [prompts, title] = await Promise.all([
           shouldGeneratePrompts
-            ? generatePrompts(
-                journal,
-                tasks,
-                recentJournals,
-                (partialPrompts) => {
-                  // 流式更新：逐步显示问题
-                  setStreamingPrompts(partialPrompts)
-                }
-              )
+            ? generatePrompts(journal, tasks, recentJournals)
             : Promise.resolve([]),
           shouldGenerateTitle
             ? generateTitle(journal, tasks, recentJournals)
@@ -104,9 +95,6 @@ export function JournalNowView({ onClose }) {
             ...prev,
             ...updates
           }))
-
-          // 清空流式状态
-          setStreamingPrompts([])
         }
       }, 500)
     }
@@ -120,11 +108,69 @@ export function JournalNowView({ onClose }) {
     setDeleteTarget(journal)
   }
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return
+
+    // 删除当前日记
     deleteJournal(deleteTarget.id)
     setDeleteTarget(null)
-    onClose?.()
+
+    // 重新创建今天的日记（空白）
+    const newJournal = getTodayJournal()
+    setTodayJournal(newJournal)
+
+    // 如果启用了 AI，自动生成标题和问题
+    if (config.enabled && config.apiKey) {
+      const shouldGeneratePrompts = config.autoGenerate
+      const shouldGenerateTitle = config.autoGenerateTitle
+
+      if (shouldGeneratePrompts || shouldGenerateTitle) {
+        // 延迟 500ms 避免闪烁
+        setTimeout(async () => {
+          // 获取最近的日记（用于历史上下文）
+          const recentJournals = journals
+            .filter(j => j.id !== newJournal.id)
+            .sort((a, b) => b.date - a.date)
+            .slice(0, 3)
+
+          // 并行生成问题和标题
+          const [prompts, title] = await Promise.all([
+            shouldGeneratePrompts
+              ? generatePrompts(newJournal, tasks, recentJournals)
+              : Promise.resolve([]),
+            shouldGenerateTitle
+              ? generateTitle(newJournal, tasks, recentJournals)
+              : Promise.resolve(null)
+          ])
+
+          // 更新日记
+          const updates = {}
+
+          if (prompts.length > 0) {
+            updates.aiPrompts = prompts
+            updates.aiContext = {
+              tasksTotal: tasks.length,
+              tasksCompleted: tasks.filter(t => t.completed).length,
+              generatedAt: Date.now(),
+              provider: config.provider,
+              model: config.model
+            }
+          }
+
+          if (title) {
+            updates.title = title
+          }
+
+          if (Object.keys(updates).length > 0) {
+            updateJournal(newJournal.id, updates)
+            setTodayJournal(prev => ({
+              ...prev,
+              ...updates
+            }))
+          }
+        }, 500)
+      }
+    }
   }
 
   return (
@@ -140,11 +186,7 @@ export function JournalNowView({ onClose }) {
         <div className="h-full" onClick={(e) => e.stopPropagation()}>
           <NotesPanel
             type="journal"
-            data={{
-              ...todayJournal,
-              // 如果正在流式生成，使用流式问题；否则使用已保存的问题
-              aiPrompts: streamingPrompts.length > 0 ? streamingPrompts : todayJournal.aiPrompts
-            }}
+            data={todayJournal}
             onUpdate={(id, updates) => {
               updateJournal(id, updates)
               // 更新本地状态以反映变化
@@ -152,30 +194,31 @@ export function JournalNowView({ onClose }) {
             }}
             onClose={onClose}
             onDelete={handleRequestDelete}
+            deleteMode="reset"
             mode="immersive"
             className="h-full w-full rounded-none border-0 shadow-none bg-background"
           />
         </div>
       </div>
 
-      {/* 删除确认 Dialog */}
+      {/* 重置确认 Dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex flex-wrap items-center gap-2">
-              {t('journal.deleteConfirmPrefix')}
+              {t('journal.resetConfirmPrefix')}
               <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-md text-sm">
                 {(deleteTarget?.title || '').trim() || t('journal.defaultTitle')}
               </span>
-              {t('journal.deleteConfirmSuffix')}
+              {t('journal.resetConfirmSuffix')}
             </DialogTitle>
-            <DialogDescription>{t('journal.deleteConfirmDesc')}</DialogDescription>
+            <DialogDescription>{t('journal.resetConfirmDesc')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>
               {t('common.cancel')}
             </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete}>
+            <Button variant="default" onClick={handleConfirmDelete}>
               {t('common.confirm')}
             </Button>
           </DialogFooter>
