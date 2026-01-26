@@ -1,11 +1,12 @@
 /**
- * [INPUT]: 依赖 React useState/useEffect，依赖 localStorage API
- * [OUTPUT]: 导出 useGTD hook，提供任务 CRUD 和状态管理
+ * [INPUT]: React useState/useEffect/useCallback/useMemo/useRef, format/task.js
+ * [OUTPUT]: useGTD hook，提供任务 CRUD 和状态管理，支持文件系统持久化
  * [POS]: stores 层核心状态模块，被所有 GTD 组件消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { serializeTasks, deserializeTasks } from '@/lib/format'
 
 /* ========================================
    常量定义
@@ -27,7 +28,19 @@ export const GTD_LIST_META = {
   [GTD_LISTS.DONE]: { key: 'done', icon: 'CheckCircle', color: 'text-muted-foreground' }
 }
 
+// localStorage 降级 key
 const STORAGE_KEY = 'gtd-tasks'
+
+// 文件路径
+const TASK_PATHS = {
+  [GTD_LISTS.INBOX]: 'tasks/inbox.json',
+  [GTD_LISTS.TODAY]: 'tasks/today.json',
+  [GTD_LISTS.NEXT]: 'tasks/next.json',
+  [GTD_LISTS.SOMEDAY]: 'tasks/someday.json'
+}
+
+// 防抖延迟
+const DEBOUNCE_DELAY = 500
 
 /* ========================================
    工具函数
@@ -66,7 +79,8 @@ const getDefaultTasks = () => {
   ]
 }
 
-const loadTasks = () => {
+// localStorage 读取（降级方案）
+const loadTasksFromStorage = () => {
   try {
     const data = localStorage.getItem(STORAGE_KEY)
     if (data === null) return getDefaultTasks()
@@ -77,7 +91,8 @@ const loadTasks = () => {
   }
 }
 
-const saveTasks = (tasks) => {
+// localStorage 保存（降级方案）
+const saveTasksToStorage = (tasks) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
 }
 
@@ -132,14 +147,172 @@ const getDoneSortTime = (task) => task.completedAt ?? task.dueDate ?? task.creat
    GTD Hook
    ======================================== */
 
-export function useGTD() {
-  const [tasks, setTasks] = useState(loadTasks)
+/**
+ * GTD 状态管理 Hook
+ * @param {Object} [options] - 配置选项
+ * @param {Object} [options.fileSystem] - 文件系统适配器（可选，无则降级到 localStorage）
+ */
+export function useGTD(options = {}) {
+  const { fileSystem } = options
+  const [tasks, setTasks] = useState([])
   const [activeList, setActiveList] = useState(GTD_LISTS.INBOX)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // 持久化
+  // 防抖写入相关
+  const debounceTimerRef = useRef(null)
+  const pendingWriteRef = useRef(null)
+
+  // 从文件系统加载任务
+  const loadFromFS = useCallback(async () => {
+    if (!fileSystem) return null
+
+    const allTasks = []
+
+    for (const [list, path] of Object.entries(TASK_PATHS)) {
+      try {
+        if (await fileSystem.exists(path)) {
+          const content = await fileSystem.read(path)
+          const listTasks = deserializeTasks(content)
+          // 标记任务所属列表
+          listTasks.forEach(t => { t.list = list })
+          allTasks.push(...listTasks)
+        }
+      } catch (err) {
+        console.error(`Failed to load ${path}:`, err)
+      }
+    }
+
+    // 加载已完成任务（当月）
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const donePath = `tasks/done/${year}-${month}.json`
+
+    try {
+      if (await fileSystem.exists(donePath)) {
+        const content = await fileSystem.read(donePath)
+        const doneTasks = deserializeTasks(content)
+        doneTasks.forEach(t => { t.list = GTD_LISTS.DONE; t.completed = true })
+        allTasks.push(...doneTasks)
+      }
+    } catch (err) {
+      console.error(`Failed to load ${donePath}:`, err)
+    }
+
+    return allTasks.length > 0 ? allTasks : null
+  }, [fileSystem])
+
+  // 保存到文件系统（防抖）
+  const saveToFS = useCallback(async (tasksToSave) => {
+    if (!fileSystem) {
+      saveTasksToStorage(tasksToSave)
+      return
+    }
+
+    // 按列表分组
+    const grouped = {
+      [GTD_LISTS.INBOX]: [],
+      [GTD_LISTS.TODAY]: [],
+      [GTD_LISTS.NEXT]: [],
+      [GTD_LISTS.SOMEDAY]: [],
+      [GTD_LISTS.DONE]: []
+    }
+
+    for (const task of tasksToSave) {
+      if (task.completed) {
+        grouped[GTD_LISTS.DONE].push(task)
+      } else if (isToday(task.dueDate)) {
+        grouped[GTD_LISTS.TODAY].push(task)
+      } else if (isFuture(task.dueDate)) {
+        grouped[GTD_LISTS.NEXT].push(task)
+      } else {
+        grouped[GTD_LISTS.SOMEDAY].push(task)
+      }
+    }
+
+    // 写入各列表文件
+    for (const [list, path] of Object.entries(TASK_PATHS)) {
+      try {
+        const content = serializeTasks(grouped[list])
+        await fileSystem.write(path, content)
+      } catch (err) {
+        console.error(`Failed to save ${path}:`, err)
+      }
+    }
+
+    // 写入已完成任务（按月归档）
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const donePath = `tasks/done/${year}-${month}.json`
+
+    try {
+      await fileSystem.ensureDir('tasks/done')
+      const content = serializeTasks(grouped[GTD_LISTS.DONE])
+      await fileSystem.write(donePath, content)
+    } catch (err) {
+      console.error(`Failed to save ${donePath}:`, err)
+    }
+
+    // 同时保存到 localStorage 作为备份
+    saveTasksToStorage(tasksToSave)
+  }, [fileSystem])
+
+  // 防抖保存
+  const debouncedSave = useCallback((tasksToSave) => {
+    pendingWriteRef.current = tasksToSave
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      if (pendingWriteRef.current) {
+        saveToFS(pendingWriteRef.current)
+        pendingWriteRef.current = null
+      }
+    }, DEBOUNCE_DELAY)
+  }, [saveToFS])
+
+  // 初始化加载
   useEffect(() => {
-    saveTasks(tasks)
-  }, [tasks])
+    let mounted = true
+
+    const init = async () => {
+      setIsLoading(true)
+
+      // 尝试从文件系统加载
+      const fsTasks = await loadFromFS()
+
+      if (!mounted) return
+
+      if (fsTasks) {
+        setTasks(fsTasks)
+      } else {
+        // 降级到 localStorage
+        setTasks(loadTasksFromStorage())
+      }
+
+      setIsLoading(false)
+    }
+
+    init()
+
+    return () => {
+      mounted = false
+      // 清理防抖定时器
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [loadFromFS])
+
+  // 任务变化时保存
+  useEffect(() => {
+    if (!isLoading && tasks.length > 0) {
+      debouncedSave(tasks)
+    }
+  }, [tasks, isLoading, debouncedSave])
 
   // 添加任务
   const addTask = useCallback((title, list = GTD_LISTS.INBOX) => {
@@ -217,6 +390,18 @@ export function useGTD() {
     }
   }, [])
 
+  // 立即刷新保存（用于同步前）
+  const flush = useCallback(async () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = null
+    }
+    if (pendingWriteRef.current) {
+      await saveToFS(pendingWriteRef.current)
+      pendingWriteRef.current = null
+    }
+  }, [saveToFS])
+
   // 按列表筛选
   const filteredTasks = useMemo(() => {
     const listTasks = tasks.filter(t => isTaskInList(t, activeList))
@@ -245,11 +430,13 @@ export function useGTD() {
     activeList,
     setActiveList,
     counts,
+    isLoading,
     addTask,
     updateTask,
     deleteTask,
     toggleComplete,
     moveTask,
-    loadTasks: loadTasksFromData
+    loadTasks: loadTasksFromData,
+    flush
   }
 }

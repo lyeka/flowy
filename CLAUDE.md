@@ -5,10 +5,14 @@ Tauri 2.0 (桌面端) + Capacitor 8.0 (移动端) + Vite 7 + React 19 + Tailwind
 src/
 ├── components/
 │   ├── ui/          - shadcn 组件库
-│   └── gtd/         - GTD 业务组件 (19文件: QuickCapture, Sidebar, Settings, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip, AIPromptCard, AISettings)
+│   └── gtd/         - GTD 业务组件 (22文件: QuickCapture, Sidebar, Settings, SyncSettings, ConflictDialog, FolderPicker, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip, AIPromptCard, AISettings)
 ├── stores/          - 状态管理 (4文件: gtd.js, calendar.js, journal.js, ai.js)
+├── hooks/           - React Hooks (2文件: useFileSystem.js, useSync.js)
 ├── lib/             - 工具函数 (5文件: utils.js, motion.js, platform.js, tauri.js(废弃), i18n.js)
-│   └── ai/          - AI 功能模块 (3文件: crypto.js, prompts.js, openai.js)
+│   ├── ai/          - AI 功能模块 (3文件: crypto.js, prompts.js, openai.js)
+│   ├── fs/          - 文件系统抽象层 (5文件: adapter.js, tauri.js, capacitor.js, web.js, index.js)
+│   ├── format/      - 数据格式处理 (3文件: task.js, journal.js, index.js)
+│   └── sync/        - 云同步功能 (3文件: conflict.js, webdav.js, index.js)
 ├── locales/         - 国际化翻译文件 (2文件: zh-CN.json, en-US.json)
 ├── App.jsx          - 应用入口，支持列表/日历/日记视图切换，集成跨平台功能
 ├── main.jsx         - React 挂载点，初始化 i18n
@@ -86,6 +90,24 @@ package.json        - 包含 tauri:dev/tauri:build (桌面端) 和 cap:android/c
 - 触觉反馈: 任务操作时的震动反馈
 - 响应式布局: 适配小屏幕设备
 - 离线可用: 完全本地化，无需网络
+
+## 云同步
+
+- **文件优先**：所有数据存储为本地文件（JSON/Markdown），用户可用任何工具打开、编辑、备份
+- **WebDAV 同步**：支持坚果云等 WebDAV 服务，实现多设备同步
+- **iCloud 同步**：苹果生态可通过 iCloud Drive 自动同步
+- **冲突处理**：智能合并 + 手动选择，支持保留两个版本
+- **文件结构**：
+  ```
+  ~/GTD/
+  ├── .gtd/           # 应用配置
+  ├── tasks/          # 任务数据 (JSON)
+  │   ├── inbox.json
+  │   ├── today.json
+  │   └── done/       # 按月归档
+  └── journals/       # 日记数据 (Markdown)
+      └── 2026/01/
+  ```
 
 ## 国际化
 

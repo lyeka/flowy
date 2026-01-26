@@ -7,7 +7,10 @@ QuickCapture.jsx: 快速收集输入框，顶部任务添加入口
 Sidebar.jsx: 侧边栏导航，GTD 五大列表切换 + 列表/日历视图切换 + 日记分组（此刻/过往）+ 设置入口，移动端简化为 3 按钮底部导航（Menu、FAB、日历）
 Drawer.jsx: 移动端左侧滑抽屉，显示 GTD 五大列表 + 日记分组 + 设置入口，替代底部导航的列表切换功能
 ActionSheet.jsx: 移动端底部操作表，显示任务操作选项（设置日期、移动到列表、删除），替代桌面端的下拉菜单
-Settings.jsx: 设置对话框，主题切换 + 语言切换 + AI 配置 + 数据导入/导出入口
+Settings.jsx: 设置对话框，主题切换 + 语言切换 + AI 配置 + 云同步配置 + 数据导入/导出入口
+SyncSettings.jsx: 云同步设置对话框，WebDAV 配置 + 连接测试 + 同步状态显示
+ConflictDialog.jsx: 同步冲突解决对话框，展示冲突详情 + 策略选择（合并/本地/远程/保留两者）
+FolderPicker.jsx: 数据目录选择器，预设路径 + 自定义路径（仅桌面端）
 TaskItem.jsx: 单任务项，支持完成/移动/删除/日期设置，移动端支持滑动手势（右滑完成、左滑删除）和长按菜单，行高 64px，Checkbox 24px
 TaskList.jsx: 任务列表容器，处理空状态和序列动画
 CalendarView.jsx: 日历视图容器，组装 Header + Grid + UnscheduledPanel，移动端简化 Header，隐藏 UnscheduledPanel，支持日记显示

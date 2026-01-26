@@ -39,10 +39,13 @@ export function JournalItem({ journal, onClick, onRequestDelete, className }) {
   const preview = journal.content.slice(0, 100)
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onClick?.(journal)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(journal) }}
       className={cn(
-        'group w-full rounded-lg text-left',
+        'group w-full rounded-lg text-left cursor-pointer',
         'flex items-center gap-3',
         mobile ? 'p-4 border-b border-border' : 'p-3 border bg-card hover:bg-secondary hover:shadow-sm transition-colors transition-shadow',
         className
@@ -113,6 +116,6 @@ export function JournalItem({ journal, onClick, onRequestDelete, className }) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </button>
+    </div>
   )
 }

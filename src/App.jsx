@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd, @/stores/journal, @/components/gtd/*, @/components/ui/sonner, @/lib/platform, react-i18next
+ * [INPUT]: 依赖 @/stores/gtd, @/stores/journal, @/hooks/useFileSystem, @/hooks/useSync, @/components/gtd/*, @/components/ui/sonner, @/lib/platform, react-i18next
  * [OUTPUT]: 导出 App 根组件
- * [POS]: 应用入口，组装 GTD 布局，支持列表/日历/日记视图切换，集成跨平台功能（桌面端+移动端），管理抽屉和快速捕获状态
+ * [POS]: 应用入口，组装 GTD 布局，支持列表/日历/日记视图切换，集成跨平台功能（桌面端+移动端），管理抽屉和快速捕获状态，集成文件系统和云同步
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -11,6 +11,8 @@ import { Keyboard } from '@capacitor/keyboard'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import { useGTD, GTD_LIST_META, GTD_LISTS } from '@/stores/gtd'
 import { useJournal } from '@/stores/journal'
+import { useFileSystem } from '@/hooks/useFileSystem'
+import { useSync } from '@/hooks/useSync'
 import { Sidebar } from '@/components/gtd/Sidebar'
 import { Drawer } from '@/components/gtd/Drawer'
 import { QuickCapture } from '@/components/gtd/QuickCapture'
@@ -19,6 +21,7 @@ import { CalendarView } from '@/components/gtd/CalendarView'
 import { NotesPanel } from '@/components/gtd/NotesPanel'
 import { JournalNowView } from '@/components/gtd/JournalNowView'
 import { JournalPastView } from '@/components/gtd/JournalPastView'
+import { ConflictDialog } from '@/components/gtd/ConflictDialog'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -30,21 +33,37 @@ import { cn } from '@/lib/utils'
 function App() {
   const { t } = useTranslation()
   const mobile = isMobile()
+
+  // 文件系统和同步
+  const fileSystem = useFileSystem()
+  const sync = useSync(fileSystem)
+
+  // 调试日志
+  console.log('[App] fileSystem.isReady:', fileSystem.isReady, 'fileSystem.fs:', fileSystem.fs ? 'exists' : 'null')
+
+  // 将文件系统传递给 stores
   const {
     tasks,
     filteredTasks,
     activeList,
     setActiveList,
     counts,
+    isLoading: tasksLoading,
     addTask,
     updateTask,
     toggleComplete,
     moveTask,
     deleteTask,
     loadTasks
-  } = useGTD()
+  } = useGTD({ fileSystem: fileSystem.isReady ? fileSystem.fs : null })
 
-  const { journalsByDate, getOrCreateJournalByDate, updateJournal: updateJournalEntry, getJournalById } = useJournal()
+  const {
+    journalsByDate,
+    isLoading: journalsLoading,
+    getOrCreateJournalByDate,
+    updateJournal: updateJournalEntry,
+    getJournalById
+  } = useJournal({ fileSystem: fileSystem.isReady ? fileSystem.fs : null })
 
   const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
   const [journalView, setJournalView] = useState(null) // 'now' | 'past' | null
@@ -345,6 +364,8 @@ function App() {
           onImport={handleImport}
           settingsOpen={settingsOpen}
           onSettingsOpenChange={setSettingsOpen}
+          sync={sync}
+          fileSystem={fileSystem}
         />
       )}
       {/* 视图渲染优先级：journalView > viewMode */}
@@ -552,6 +573,8 @@ function App() {
             onSettingsOpenChange={setSettingsOpen}
             onDrawerOpen={() => setDrawerOpen(true)}
             onQuickCaptureOpen={() => setQuickCaptureOpen(true)}
+            sync={sync}
+            fileSystem={fileSystem}
           />
 
           {/* 移动端抽屉 */}
@@ -595,6 +618,16 @@ function App() {
           </AnimatePresence>
         </>
       )}
+
+      {/* 同步冲突对话框 */}
+      <ConflictDialog
+        open={sync.status === 'conflict'}
+        onOpenChange={(open) => {
+          if (!open) sync.cancelConflictResolution()
+        }}
+        conflict={sync.conflicts[0]}
+        onResolve={(strategy) => sync.resolveConflicts(strategy)}
+      />
 
       <Toaster position={mobile ? "top-center" : "bottom-right"} />
     </div>

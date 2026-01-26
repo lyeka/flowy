@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/platform 跨平�� API，依赖 react-i18next
+ * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/platform 跨平台 API，依赖 react-i18next
  * [OUTPUT]: 导出 Sidebar 组件
  * [POS]: GTD 侧边栏导航，响应式设计（桌面端侧边栏，移动端底部导航），支持视图切换和列表导航，日记分组与标题同组展示
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -18,7 +18,7 @@ import { Settings as SettingsDialog } from './Settings'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
-export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, journalView, onJournalViewChange, onExport, onImport, settingsOpen, onSettingsOpenChange, onDrawerOpen, onQuickCaptureOpen, className }) {
+export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChange, journalView, onJournalViewChange, onExport, onImport, settingsOpen, onSettingsOpenChange, onDrawerOpen, onQuickCaptureOpen, sync, fileSystem, className }) {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(false)
   const [journalExpanded, setJournalExpanded] = useState(true)
@@ -113,6 +113,8 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
           onOpenChange={onSettingsOpenChange}
           onExport={onExport}
           onImport={onImport}
+          sync={sync}
+          fileSystem={fileSystem}
         />
       </>
     )
@@ -334,6 +336,7 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
             onOpenChange={onSettingsOpenChange}
             onExport={onExport}
             onImport={onImport}
+            sync={sync}
           />
         </div>
     </aside>
