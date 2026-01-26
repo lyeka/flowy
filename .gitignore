@@ -38,3 +38,7 @@ logo-*.svg
 check-env.sh
 start-tauri.sh
 public/assets/
+
+
+# icon
+flowy-icon/
