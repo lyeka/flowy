@@ -14,7 +14,7 @@ import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, Chev
 import { snappy } from '@/lib/motion'
 import { isMobile } from '@/lib/platform'
 import { hapticsLight } from '@/lib/haptics'
-import { Settings as SettingsDialog } from './Settings'
+import { Settings as SettingsDialog } from './settings'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
@@ -337,6 +337,7 @@ export function Sidebar({ activeList, onSelect, counts, viewMode, onViewModeChan
             onExport={onExport}
             onImport={onImport}
             sync={sync}
+            fileSystem={fileSystem}
           />
         </div>
     </aside>

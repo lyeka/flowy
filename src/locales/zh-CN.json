@@ -8,7 +8,8 @@
     "import": "导入数据",
     "cancel": "取消",
     "confirm": "确认",
-    "close": "关闭"
+    "close": "关闭",
+    "back": "返回"
   },
   "themes": {
     "light": "浅色",
@@ -205,5 +206,43 @@
     "customHint": "支持 ~ 表示用户目录",
     "mobileHint": "移动端数据存储在应用文档目录，可通过 iCloud 或文件应用访问",
     "select": "选择"
+  },
+  "settings": {
+    "appearance": "外观",
+    "data": "数据",
+    "ai": "AI 助手",
+    "about": "关于",
+    "storage": "存储"
+  },
+  "sync": {
+    "title": "云同步",
+    "webdav": "WebDAV 同步",
+    "description": "配置 WebDAV 服务器实现多设备同步",
+    "serverUrl": "服务器地址",
+    "serverUrlHint": "坚果云: https://dav.jianguoyun.com/dav/",
+    "username": "用户名",
+    "usernamePlaceholder": "输入用户名或邮箱",
+    "password": "密码",
+    "passwordPlaceholder": "输入密码或应用密码",
+    "passwordHint": "坚果云需使用应用密码",
+    "test": "测试连接",
+    "testSuccess": "连接成功",
+    "testFailed": "连接失败，请检查配置",
+    "save": "保存配置",
+    "disconnect": "断开连接",
+    "syncNow": "立即同步",
+    "syncing": "同步中...",
+    "connected": "已连接",
+    "notConfigured": "未配置",
+    "lastSync": "上次同步",
+    "never": "从未同步",
+    "preparing": "准备中..."
+  },
+  "about": {
+    "version": "版本",
+    "license": "开源协议",
+    "links": "链接",
+    "madeWith": "用",
+    "by": "制作"
   }
 }

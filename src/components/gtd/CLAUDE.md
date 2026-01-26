@@ -7,10 +7,7 @@ QuickCapture.jsx: 快速收集输入框，顶部任务添加入口
 Sidebar.jsx: 侧边栏导航，GTD 五大列表切换 + 列表/日历视图切换 + 日记分组（此刻/过往）+ 设置入口，移动端简化为 3 按钮底部导航（Menu、FAB、日历）
 Drawer.jsx: 移动端左侧滑抽屉，显示 GTD 五大列表 + 日记分组 + 设置入口，替代底部导航的列表切换功能
 ActionSheet.jsx: 移动端底部操作表，显示任务操作选项（设置日期、移动到列表、删除），替代桌面端的下拉菜单
-Settings.jsx: 设置对话框，主题切换 + 语言切换 + AI 配置 + 云同步配置 + 数据导入/导出入口
-SyncSettings.jsx: 云同步设置对话框，WebDAV 配置 + 连接测试 + 同步状态显示
 ConflictDialog.jsx: 同步冲突解决对话框，展示冲突详情 + 策略选择（合并/本地/远程/保留两者）
-FolderPicker.jsx: 数据目录选择器，预设路径 + 自定义路径（仅桌面端）
 TaskItem.jsx: 单任务项，支持完成/移动/删除/日期设置，移动端支持滑动手势（右滑完成、左滑删除）和长按菜单，行高 64px，Checkbox 24px
 TaskList.jsx: 任务列表容器，处理空状态和序列动画
 CalendarView.jsx: 日历视图容器，组装 Header + Grid + UnscheduledPanel，移动端简化 Header，隐藏 UnscheduledPanel，支持日记显示
@@ -24,6 +21,9 @@ JournalPastView.jsx: "过往"视图，历史日记支持列表/弧线画布（�
 JournalItem.jsx: 过往日记列表项，显示日期 + 标题 + 预览 + 字数
 JournalChip.jsx: 日历内日记小卡片，虚线边框，不可拖拽，BookText 图标
 AIPromptCard.jsx: AI 问题卡片，展示生成的引导问题（无 emoji），支持点击插入、悬停删除、刷新，淡入淡出动画，显示加载状态
-AISettings.jsx: AI 配置界面，API Key 输入（密码框）+ 模型选择 + 指导方向输入 + 自动生成开关 + 任务上下文开关 + 连接测试功能（测试按钮 + 结果 Dialog + 错误诊断）
+
+## 子目录
+
+settings/: 设置模块，左右分栏布局（桌面端）+ Sheet 全屏（移动端）
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

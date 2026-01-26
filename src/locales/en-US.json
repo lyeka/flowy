@@ -8,7 +8,8 @@
     "import": "Import Data",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "close": "Close"
+    "close": "Close",
+    "back": "Back"
   },
   "themes": {
     "light": "Light",
@@ -205,5 +206,43 @@
     "customHint": "Use ~ for home directory",
     "mobileHint": "Mobile data is stored in app documents, accessible via iCloud or Files app",
     "select": "Select"
+  },
+  "settings": {
+    "appearance": "Appearance",
+    "data": "Data",
+    "ai": "AI Assistant",
+    "about": "About",
+    "storage": "Storage"
+  },
+  "sync": {
+    "title": "Cloud Sync",
+    "webdav": "WebDAV Sync",
+    "description": "Configure WebDAV server for multi-device sync",
+    "serverUrl": "Server URL",
+    "serverUrlHint": "Nutstore: https://dav.jianguoyun.com/dav/",
+    "username": "Username",
+    "usernamePlaceholder": "Enter username or email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter password or app password",
+    "passwordHint": "Nutstore requires app password",
+    "test": "Test Connection",
+    "testSuccess": "Connection successful",
+    "testFailed": "Connection failed, please check configuration",
+    "save": "Save",
+    "disconnect": "Disconnect",
+    "syncNow": "Sync Now",
+    "syncing": "Syncing...",
+    "connected": "Connected",
+    "notConfigured": "Not configured",
+    "lastSync": "Last sync",
+    "never": "Never",
+    "preparing": "Preparing..."
+  },
+  "about": {
+    "version": "Version",
+    "license": "License",
+    "links": "Links",
+    "madeWith": "Made with",
+    "by": "by"
   }
 }
