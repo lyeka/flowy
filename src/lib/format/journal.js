@@ -39,7 +39,11 @@ export function serializeJournal(journal) {
     updatedAt: journal.updatedAt
   }
 
-  return matter.stringify(journal.content || '', frontmatter)
+  if (canUseGrayMatter()) {
+    return matter.stringify(journal.content || '', frontmatter)
+  }
+
+  return stringifyFrontmatter(frontmatter, journal.content || '')
 }
 
 /**
@@ -48,7 +52,9 @@ export function serializeJournal(journal) {
  * @returns {Journal} 日记对象
  */
 export function deserializeJournal(content) {
-  const { data, content: body } = matter(content)
+  const parsed = canUseGrayMatter() ? matter(content) : parseFrontmatter(content)
+  const data = parsed.data || {}
+  const body = parsed.content || ''
 
   return {
     id: data.id,
@@ -160,9 +166,84 @@ function formatDefaultTitle(date) {
  */
 export function getJournalUpdatedAt(content) {
   try {
-    const { data } = matter(content)
+    const parsed = canUseGrayMatter() ? matter(content) : parseFrontmatter(content)
+    const data = parsed.data || {}
     return data.updatedAt || 0
   } catch {
     return 0
   }
+}
+
+// ============================================================================
+// Browser-safe frontmatter helpers (avoid Buffer)
+// ============================================================================
+
+function canUseGrayMatter() {
+  return typeof Buffer !== 'undefined'
+}
+
+function stringifyFrontmatter(data, body) {
+  const lines = ['---']
+  for (const [key, value] of Object.entries(data)) {
+    lines.push(`${key}: ${stringifyYamlValue(value)}`)
+  }
+  lines.push('---')
+  if (body) {
+    lines.push(body)
+  }
+  return `${lines.join('\n')}\n`
+}
+
+function stringifyYamlValue(value) {
+  if (value === null || value === undefined) return '""'
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  return JSON.stringify(String(value))
+}
+
+function parseFrontmatter(input) {
+  if (!input.startsWith('---')) {
+    return { data: {}, content: input }
+  }
+
+  const endIndex = input.indexOf('\n---', 3)
+  if (endIndex === -1) {
+    return { data: {}, content: input }
+  }
+
+  const header = input.slice(3, endIndex).trim()
+  const body = input.slice(endIndex + 4).replace(/^\n/, '')
+  const data = {}
+
+  if (header) {
+    const lines = header.split('\n')
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#')) continue
+      const splitIndex = trimmed.indexOf(':')
+      if (splitIndex === -1) continue
+      const key = trimmed.slice(0, splitIndex).trim()
+      let rawValue = trimmed.slice(splitIndex + 1).trim()
+      if (!key) continue
+      data[key] = parseYamlValue(rawValue)
+    }
+  }
+
+  return { data, content: body }
+}
+
+function parseYamlValue(value) {
+  if (!value) return ''
+  if (value.startsWith('"') && value.endsWith('"')) {
+    try {
+      return JSON.parse(value)
+    } catch {
+      return value.slice(1, -1)
+    }
+  }
+  if (/^\d+$/.test(value)) {
+    return Number(value)
+  }
+  if (value === 'true') return true
+  if (value === 'false') return false
+  return value
 }

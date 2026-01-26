@@ -34,6 +34,27 @@ const TASK_PATHS = {
 const MIGRATION_KEY = 'gtd-fs-migrated'
 const OLD_TASKS_KEY = 'gtd-tasks'
 const OLD_JOURNALS_KEY = 'flowy-journal-storage'
+const BASE_PATH_KEY = 'gtd-base-path'
+
+const loadBasePath = () => {
+  try {
+    return localStorage.getItem(BASE_PATH_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+
+const saveBasePath = (basePath) => {
+  try {
+    if (basePath) {
+      localStorage.setItem(BASE_PATH_KEY, basePath)
+    } else {
+      localStorage.removeItem(BASE_PATH_KEY)
+    }
+  } catch {
+    // ignore storage errors
+  }
+}
 
 // ============================================================================
 // 文件系统 Hook
@@ -54,25 +75,44 @@ export function useFileSystem() {
 
     const init = async () => {
       try {
-        const fileSystem = await getFileSystem()
+        const storedBasePath = loadBasePath()
+        let fileSystem = await getFileSystem(storedBasePath || undefined)
         if (!mounted) return
 
-        setFs(fileSystem)
+        const ensureStructure = async (fs) => {
+          await fs.ensureDir('.gtd')
+          await fs.ensureDir('tasks')
+          await fs.ensureDir('tasks/done')
+          await fs.ensureDir('journals')
+        }
 
-        // 确保目录结构存在
-        await fileSystem.ensureDir('.gtd')
-        await fileSystem.ensureDir('tasks')
-        await fileSystem.ensureDir('tasks/done')
-        await fileSystem.ensureDir('journals')
+        // 确保目录结构存在（默认路径）
+        await ensureStructure(fileSystem)
 
         // 加载配置
-        let cfg = { basePath: '', lastSyncTime: 0 }
+        let cfg = { basePath: storedBasePath || '', lastSyncTime: 0 }
         if (await fileSystem.exists(CONFIG_PATH)) {
           const content = await fileSystem.read(CONFIG_PATH)
           cfg = JSON.parse(content)
-        } else {
-          await fileSystem.write(CONFIG_PATH, JSON.stringify(cfg, null, 2))
         }
+
+        const desiredBasePath = cfg.basePath || storedBasePath || ''
+
+        // 如果配置的 basePath 与当前不同，重新初始化文件系统
+        if (desiredBasePath && desiredBasePath !== fileSystem.basePath) {
+          const nextFS = await getFileSystem(desiredBasePath)
+          await ensureStructure(nextFS)
+          if (!await nextFS.exists(CONFIG_PATH)) {
+            await nextFS.write(CONFIG_PATH, JSON.stringify({ ...cfg, basePath: desiredBasePath }, null, 2))
+          }
+          fileSystem = nextFS
+          cfg = { ...cfg, basePath: desiredBasePath }
+        } else if (!await fileSystem.exists(CONFIG_PATH)) {
+          await fileSystem.write(CONFIG_PATH, JSON.stringify({ ...cfg, basePath: desiredBasePath }, null, 2))
+        }
+
+        saveBasePath(desiredBasePath)
+        setFs(fileSystem)
         setConfig(cfg)
 
         // 检查是否需要迁移
@@ -220,6 +260,9 @@ export function useFileSystem() {
     const newConfig = { ...config, ...updates }
     setConfig(newConfig)
     await fs.write(CONFIG_PATH, JSON.stringify(newConfig, null, 2))
+    if (Object.prototype.hasOwnProperty.call(updates, 'basePath')) {
+      saveBasePath(updates.basePath || '')
+    }
   }, [fs, config])
 
   // 刷新所有待写入内容

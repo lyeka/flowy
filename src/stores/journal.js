@@ -5,7 +5,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, createContext, useContext, createElement } from 'react'
 import { format, startOfDay } from 'date-fns'
 import {
   serializeJournal,
@@ -69,7 +69,9 @@ const saveJournalsToStorage = (journals) => {
  * @param {Object} [options] - 配置选项
  * @param {Object} [options.fileSystem] - 文件系统适配器（可选，无则降级到 localStorage）
  */
-export const useJournal = (options = {}) => {
+const JournalContext = createContext(null)
+
+const useJournalStore = (options = {}) => {
   const { fileSystem } = options
   const [journals, setJournals] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -78,9 +80,44 @@ export const useJournal = (options = {}) => {
   const debounceTimersRef = useRef(new Map())
   const pendingWritesRef = useRef(new Map())
   const fileSystemRef = useRef(fileSystem)
+  const hasMigratedRef = useRef(false)
 
   // 同步更新 fileSystem ref（不用 useEffect，直接赋值）
   fileSystemRef.current = fileSystem
+
+  const migrateLocalJournalsToFS = useCallback(async (journalsToMigrate) => {
+    const fs = fileSystemRef.current
+    if (!fs || hasMigratedRef.current) return
+    if (!Array.isArray(journalsToMigrate) || journalsToMigrate.length === 0) return
+
+    try {
+      if (!await fs.exists('journals')) {
+        await fs.ensureDir('journals')
+      }
+      const years = await fs.list('journals')
+      if (Array.isArray(years) && years.length > 0) {
+        hasMigratedRef.current = true
+        return
+      }
+    } catch (err) {
+      console.error('[Journal] Failed to check journals directory:', err)
+      return
+    }
+
+    for (const journal of journalsToMigrate) {
+      const path = getJournalPath(journal.date)
+      const content = serializeJournal(journal)
+      try {
+        const parts = path.split('/')
+        const dir = parts.slice(0, -1).join('/')
+        await fs.ensureDir(dir)
+        await fs.write(path, content)
+      } catch (err) {
+        console.error(`Failed to migrate journal ${path}:`, err)
+      }
+    }
+    hasMigratedRef.current = true
+  }, [])
 
   // 从文件系统加载日记
   const loadFromFS = useCallback(async () => {
@@ -217,7 +254,9 @@ export const useJournal = (options = {}) => {
         setJournals(fsJournals)
       } else {
         // 降级到 localStorage
-        setJournals(loadJournalsFromStorage())
+        const localJournals = loadJournalsFromStorage()
+        setJournals(localJournals)
+        migrateLocalJournalsToFS(localJournals)
       }
 
       setIsLoading(false)
@@ -232,7 +271,7 @@ export const useJournal = (options = {}) => {
         clearTimeout(timer)
       }
     }
-  }, [loadFromFS])
+  }, [loadFromFS, migrateLocalJournalsToFS])
 
   // 计算属性：按日期分组的日记 Map<string, Journal>
   const journalsByDate = useMemo(() => {
@@ -355,4 +394,20 @@ export const useJournal = (options = {}) => {
     deleteJournal,
     flush
   }
+}
+
+export function JournalProvider({ children, fileSystem }) {
+  const store = useJournalStore({ fileSystem })
+  return createElement(JournalContext.Provider, { value: store }, children)
+}
+
+/**
+ * 日记状态管理 Hook
+ * - 若存在 Provider，优先使用共享状态
+ * - 否则退回独立实例（兼容旧用法）
+ */
+export const useJournal = (options = {}) => {
+  const context = useContext(JournalContext)
+  if (context) return context
+  return useJournalStore(options)
 }

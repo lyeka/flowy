@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { Keyboard } from '@capacitor/keyboard'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import { useGTD, GTD_LIST_META, GTD_LISTS } from '@/stores/gtd'
-import { useJournal } from '@/stores/journal'
+import { JournalProvider, useJournal } from '@/stores/journal'
 import { useFileSystem } from '@/hooks/useFileSystem'
 import { useSync } from '@/hooks/useSync'
 import { Sidebar } from '@/components/gtd/Sidebar'
@@ -31,15 +31,23 @@ import { hapticsSuccess, hapticsWarning, hapticsLight } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
 function App() {
-  const { t } = useTranslation()
-  const mobile = isMobile()
-
   // 文件系统和同步
   const fileSystem = useFileSystem()
   const sync = useSync(fileSystem)
 
   // 调试日志
   console.log('[App] fileSystem.isReady:', fileSystem.isReady, 'fileSystem.fs:', fileSystem.fs ? 'exists' : 'null')
+
+  return (
+    <JournalProvider fileSystem={fileSystem.isReady ? fileSystem.fs : null}>
+      <AppContent fileSystem={fileSystem} sync={sync} />
+    </JournalProvider>
+  )
+}
+
+function AppContent({ fileSystem, sync }) {
+  const { t } = useTranslation()
+  const mobile = isMobile()
 
   // 将文件系统传递给 stores
   const {
@@ -63,7 +71,7 @@ function App() {
     getOrCreateJournalByDate,
     updateJournal: updateJournalEntry,
     getJournalById
-  } = useJournal({ fileSystem: fileSystem.isReady ? fileSystem.fs : null })
+  } = useJournal()
 
   const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
   const [journalView, setJournalView] = useState(null) // 'now' | 'past' | null
