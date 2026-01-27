@@ -10,7 +10,7 @@ SettingsContent.jsx: 右侧内容容器，AnimatePresence 动画切换，根据 
 ## 子目录
 
 components/: 基础组件（SettingItem 单行设置项、SettingGroup 设置分组）
-sections/: 内容区块（AppearanceSection 外观、EditorSection 编辑器、DataSection 数据、AISection AI、AboutSection 关于）
+sections/: 内容区块（AppearanceSection 外观、EditorSection 编辑器/预设/排版/样式、DataSection 数据、AISection AI、AboutSection 关于）
 
 ## 设计原则
 

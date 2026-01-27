@@ -18,7 +18,9 @@ export const editorPresets = {
     h2Size: 1.35,
     h3Size: 1.15,
     quoteBorderWidth: 2,
-    boldWeight: 600
+    boldWeight: 600,
+    lineHeight: 1.8,
+    fontSize: 1.0
   },
   minimal: {
     name: '极简',
@@ -27,16 +29,20 @@ export const editorPresets = {
     h2Size: 1.25,
     h3Size: 1.1,
     quoteBorderWidth: 1,
-    boldWeight: 500
+    boldWeight: 500,
+    lineHeight: 1.6,
+    fontSize: 0.95
   },
-  classic: {
-    name: '经典',
-    bullet: '*',
-    h1Size: 1.8,
-    h2Size: 1.5,
-    h3Size: 1.25,
-    quoteBorderWidth: 3,
-    boldWeight: 700
+  cozy: {
+    name: '舒适',
+    bullet: '•',
+    h1Size: 1.6,
+    h2Size: 1.35,
+    h3Size: 1.15,
+    quoteBorderWidth: 2,
+    boldWeight: 600,
+    lineHeight: 2.0,
+    fontSize: 1.05
   }
 }
 
@@ -73,7 +79,9 @@ export function useEditor() {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved) {
       try {
-        setConfig(JSON.parse(saved))
+        const savedConfig = JSON.parse(saved)
+        // 合并默认值，确保新字段在旧配置中存在
+        setConfig({ ...defaultConfig, ...savedConfig })
       } catch (e) {
         console.warn('[Editor] Failed to load config:', e)
       }
@@ -88,6 +96,8 @@ export function useEditor() {
     root.style.setProperty('--md-h3-size', `${cfg.h3Size}rem`)
     root.style.setProperty('--md-quote-border-width', `${cfg.quoteBorderWidth}px`)
     root.style.setProperty('--md-bold-weight', cfg.boldWeight)
+    root.style.setProperty('--md-line-height', cfg.lineHeight)
+    root.style.setProperty('--md-font-size', `${cfg.fontSize}rem`)
   }, [])
 
   // 配置变更时应用到 CSS
@@ -99,7 +109,11 @@ export function useEditor() {
   const applyPreset = useCallback((presetKey) => {
     const preset = editorPresets[presetKey]
     if (preset) {
-      setConfig(preset)
+      setConfig((prev) => {
+        const next = { ...preset }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+        return next
+      })
     }
   }, [])
 

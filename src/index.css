@@ -228,8 +228,6 @@
   }
   .notes-panel .cm-scroller {
     overflow: visible;
-    font-size: 1rem;
-    line-height: 1.8;
     padding: 0;
   }
   .notes-panel .cm-content {
@@ -237,6 +235,8 @@
     outline: none !important;
     border: none !important;
     box-shadow: none !important;
+    font-size: var(--md-font-size, 1rem);
+    line-height: var(--md-line-height, 1.8);
   }
   .notes-panel .cm-content:focus,
   .notes-panel .cm-content:focus-visible {

@@ -221,6 +221,8 @@
     "h1Size": "Heading 1",
     "h2Size": "Heading 2",
     "h3Size": "Heading 3",
+    "lineHeight": "Line Height",
+    "fontSize": "Font Size",
     "quoteBorder": "Quote Border",
     "boldWeight": "Bold Weight"
   },

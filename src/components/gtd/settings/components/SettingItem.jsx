@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 export function SettingItem({
   label,
   description,
+  subLabel,
   icon: Icon,
   children,
   className,
@@ -34,7 +35,12 @@ export function SettingItem({
       <div className="flex items-center gap-3 min-w-0">
         {Icon && <Icon className="h-4 w-4 text-muted-foreground shrink-0" />}
         <div className="min-w-0">
-          <div className="text-sm font-medium">{label}</div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{label}</span>
+            {subLabel && (
+              <span className="text-xs text-muted-foreground">{subLabel}</span>
+            )}
+          </div>
           {description && (
             <div className="text-xs text-muted-foreground truncate">
               {description}

@@ -221,6 +221,8 @@
     "h1Size": "一级标题",
     "h2Size": "二级标题",
     "h3Size": "三级标题",
+    "lineHeight": "行间距",
+    "fontSize": "正文字号",
     "quoteBorder": "引用边框",
     "boldWeight": "加粗字重"
   },

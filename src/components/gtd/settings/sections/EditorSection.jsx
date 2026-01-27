@@ -6,7 +6,7 @@
  */
 
 import { useTranslation } from 'react-i18next'
-import { Type, List, Minus } from 'lucide-react'
+import { Type, List, Minus, AlignLeft } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
 import { SettingItem, SettingGroup } from '../components'
@@ -62,7 +62,7 @@ export function EditorSection() {
 
       {/* 标题大小 */}
       <SettingGroup>
-        <SettingItem label={t('editor.h1Size')} subLabel={`${config.h1Size}rem`}>
+        <SettingItem label={t('editor.h1Size')} subLabel={`${config.h1Size.toFixed(2)}rem`}>
           <Slider
             value={[config.h1Size]}
             onValueChange={([v]) => updateConfig('h1Size', v)}
@@ -72,7 +72,7 @@ export function EditorSection() {
             className="w-32"
           />
         </SettingItem>
-        <SettingItem label={t('editor.h2Size')} subLabel={`${config.h2Size}rem`}>
+        <SettingItem label={t('editor.h2Size')} subLabel={`${config.h2Size.toFixed(2)}rem`}>
           <Slider
             value={[config.h2Size]}
             onValueChange={([v]) => updateConfig('h2Size', v)}
@@ -82,12 +82,36 @@ export function EditorSection() {
             className="w-32"
           />
         </SettingItem>
-        <SettingItem label={t('editor.h3Size')} subLabel={`${config.h3Size}rem`}>
+        <SettingItem label={t('editor.h3Size')} subLabel={`${config.h3Size.toFixed(2)}rem`}>
           <Slider
             value={[config.h3Size]}
             onValueChange={([v]) => updateConfig('h3Size', v)}
             min={1.0}
             max={1.4}
+            step={0.05}
+            className="w-32"
+          />
+        </SettingItem>
+      </SettingGroup>
+
+      {/* 排版 */}
+      <SettingGroup>
+        <SettingItem label={t('editor.lineHeight')} icon={AlignLeft} subLabel={config.lineHeight.toFixed(1)}>
+          <Slider
+            value={[config.lineHeight]}
+            onValueChange={([v]) => updateConfig('lineHeight', v)}
+            min={1.5}
+            max={2.2}
+            step={0.1}
+            className="w-32"
+          />
+        </SettingItem>
+        <SettingItem label={t('editor.fontSize')} subLabel={`${config.fontSize.toFixed(2)}rem`}>
+          <Slider
+            value={[config.fontSize]}
+            onValueChange={([v]) => updateConfig('fontSize', v)}
+            min={0.9}
+            max={1.2}
             step={0.05}
             className="w-32"
           />
