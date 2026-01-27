@@ -5805,6 +5805,54 @@
           "markdownDescription": "Denies the unregister_all command without any pre-configured scope."
         },
         {
+          "description": "Enables the impact_feedback command without any pre-configured scope.",
+          "type": "string",
+          "const": "haptics:allow-impact-feedback",
+          "markdownDescription": "Enables the impact_feedback command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the notification_feedback command without any pre-configured scope.",
+          "type": "string",
+          "const": "haptics:allow-notification-feedback",
+          "markdownDescription": "Enables the notification_feedback command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the selection_feedback command without any pre-configured scope.",
+          "type": "string",
+          "const": "haptics:allow-selection-feedback",
+          "markdownDescription": "Enables the selection_feedback command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the vibrate command without any pre-configured scope.",
+          "type": "string",
+          "const": "haptics:allow-vibrate",
+          "markdownDescription": "Enables the vibrate command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the impact_feedback command without any pre-configured scope.",
+          "type": "string",
+          "const": "haptics:deny-impact-feedback",
+          "markdownDescription": "Denies the impact_feedback command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the notification_feedback command without any pre-configured scope.",
+          "type": "string",
+          "const": "haptics:deny-notification-feedback",
+          "markdownDescription": "Denies the notification_feedback command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the selection_feedback command without any pre-configured scope.",
+          "type": "string",
+          "const": "haptics:deny-selection-feedback",
+          "markdownDescription": "Denies the selection_feedback command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the vibrate command without any pre-configured scope.",
+          "type": "string",
+          "const": "haptics:deny-vibrate",
+          "markdownDescription": "Denies the vibrate command without any pre-configured scope."
+        },
+        {
           "description": "This permission set configures which\nnotification features are by default exposed.\n\n#### Granted Permissions\n\nIt allows all notification related features.\n\n\n#### This default permission set includes:\n\n- `allow-is-permission-granted`\n- `allow-request-permission`\n- `allow-notify`\n- `allow-register-action-types`\n- `allow-register-listener`\n- `allow-cancel`\n- `allow-get-pending`\n- `allow-remove-active`\n- `allow-get-active`\n- `allow-check-permissions`\n- `allow-show`\n- `allow-batch`\n- `allow-list-channels`\n- `allow-delete-channel`\n- `allow-create-channel`\n- `allow-permission-state`",
           "type": "string",
           "const": "notification:default",

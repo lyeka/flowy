@@ -1,4 +1,4 @@
-// [INPUT]: Tauri 核心库、插件(notification, global-shortcut, dialog, fs)
+// [INPUT]: Tauri 核心库、插件(notification, global-shortcut, dialog, fs, haptics)
 // [OUTPUT]: 桌面应用主进程、全局快捷键、通知、文件操作命令、开发菜单
 // [POS]: Tauri 应用入口,负责初始化桌面端能力并暴露给前端
 // [PROTOCOL]: 变更时更新此头部,然后检查 CLAUDE.md
@@ -82,7 +82,8 @@ fn main() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_fs::init());
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_haptics::init());
 
     #[cfg(debug_assertions)]
     let builder = builder

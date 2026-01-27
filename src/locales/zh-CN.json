@@ -209,10 +209,20 @@
   },
   "settings": {
     "appearance": "外观",
+    "editor": "编辑器",
     "data": "数据",
     "ai": "AI 助手",
     "about": "关于",
     "storage": "存储"
+  },
+  "editor": {
+    "preset": "预设主题",
+    "bullet": "列表符号",
+    "h1Size": "一级标题",
+    "h2Size": "二级标题",
+    "h3Size": "三级标题",
+    "quoteBorder": "引用边框",
+    "boldWeight": "加粗字重"
   },
   "sync": {
     "title": "云同步",

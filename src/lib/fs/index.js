@@ -1,11 +1,11 @@
 /**
- * [INPUT]: platform.js, TauriFS, CapacitorFS, WebFS
+ * [INPUT]: platform.js, TauriFS, WebFS
  * [OUTPUT]: getFileSystem 工厂函数，FileSystemAdapter 类型导出
  * [POS]: fs/ 模块统一入口，根据平台自动选择文件系统实现
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { getPlatform } from '../platform'
+import { isMobile, isTauri } from '../platform'
 
 // ============================================================================
 // 默认配置
@@ -24,16 +24,10 @@ const MOBILE_BASE_PATH = 'GTD'
  * @returns {Promise<import('./adapter').FileSystemAdapter>}
  */
 export async function getFileSystem(basePath) {
-  const platform = getPlatform()
-
-  if (platform === 'tauri') {
+  if (isTauri()) {
     const { TauriFS } = await import('./tauri')
-    return new TauriFS(basePath || DEFAULT_BASE_PATH)
-  }
-
-  if (platform === 'ios' || platform === 'android') {
-    const { CapacitorFS } = await import('./capacitor')
-    return new CapacitorFS(basePath || MOBILE_BASE_PATH)
+    const resolvedBasePath = basePath || (isMobile() ? MOBILE_BASE_PATH : DEFAULT_BASE_PATH)
+    return new TauriFS(resolvedBasePath)
   }
 
   // Web 端降级
@@ -46,9 +40,7 @@ export async function getFileSystem(basePath) {
  * @returns {string}
  */
 export function getDefaultBasePath() {
-  const platform = getPlatform()
-  if (platform === 'tauri') return DEFAULT_BASE_PATH
-  if (platform === 'ios' || platform === 'android') return MOBILE_BASE_PATH
+  if (isTauri()) return isMobile() ? MOBILE_BASE_PATH : DEFAULT_BASE_PATH
   return ''
 }
 
@@ -57,8 +49,7 @@ export function getDefaultBasePath() {
  * @returns {boolean}
  */
 export function supportsRealFileSystem() {
-  const platform = getPlatform()
-  return platform === 'tauri' || platform === 'ios' || platform === 'android'
+  return isTauri()
 }
 
 // 导出适配器类型

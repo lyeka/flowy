@@ -7,7 +7,7 @@
 
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { Palette, Database, Bot, Info } from 'lucide-react'
+import { Palette, Database, Bot, Info, Type } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { snappy } from '@/lib/motion'
 
@@ -17,6 +17,7 @@ import { snappy } from '@/lib/motion'
 
 export const SETTINGS_SECTIONS = [
   { id: 'appearance', icon: Palette, labelKey: 'settings.appearance' },
+  { id: 'editor', icon: Type, labelKey: 'settings.editor' },
   { id: 'data', icon: Database, labelKey: 'settings.data' },
   { id: 'ai', icon: Bot, labelKey: 'settings.ai' },
   { id: 'about', icon: Info, labelKey: 'settings.about' }

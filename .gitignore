@@ -30,7 +30,6 @@ src-tauri/Cargo.lock
 # 临时文件和文档
 .env
 .claude/
-*.md
 !README.md
 !CLAUDE.md
 logo-*.png

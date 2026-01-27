@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 framer-motion, lucide-react, @/lib/motion, @/lib/platform, react hooks, react-i18next, AIPromptCard, useAI, useGTD, useJournal
+ * [INPUT]: 依赖 framer-motion, lucide-react, @/lib/motion, @/lib/platform, @/lib/editor/*, react hooks, react-i18next, AIPromptCard, MarkdownToolbar, useAI
  * [OUTPUT]: 导出 NotesPanel 组件
  * [POS]: 任务/日记编辑面板，右侧滑入，衬线字体 + 宽行距，优雅写作体验，信件风格，移动端全屏模式，支持 type='task'|'journal' 双模式，字数统计支持中英混排，集成 AI 问题卡片
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,12 +11,23 @@ import { X, Maximize2, Minimize2, Trash2, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { gentle } from '@/lib/motion'
 import { isMobile } from '@/lib/platform'
-import { useEffect, useRef, useState } from 'react'
+import { startTransition, useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { AIPromptCard } from './AIPromptCard'
 import { useAI } from '@/stores/ai'
-import { useGTD } from '@/stores/gtd'
-import { useJournal } from '@/stores/journal'
+import { createMarkdownEditor, insertTextAtSelection } from '@/lib/editor/codemirror'
+
+const cjkPattern = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu
+
+const computeStats = (text, isZh) => {
+  const safeText = text || ''
+  const cjkCount = (safeText.match(cjkPattern) || []).length
+  const nonCjkText = safeText.replace(cjkPattern, ' ')
+  const wordCount = (nonCjkText.match(/\b[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)?\b/gu) || []).length
+  const count = cjkCount + wordCount
+  const minutes = count > 0 ? Math.ceil(count / (isZh ? 300 : 200)) : 0
+  return { count, minutes }
+}
 
 export function NotesPanel({
   // 新接口：支持 task 和 journal 双模式
@@ -35,14 +46,6 @@ export function NotesPanel({
   className,
   motionPreset
 }) {
-  const { t, i18n } = useTranslation()
-  const mobile = isMobile()
-  const textareaRef = useRef(null)
-  const [lineCount, setLineCount] = useState(0)
-  const { config, generatePrompts, generating } = useAI()
-  const { tasks } = useGTD()
-  const { journals } = useJournal()
-
   // 向后兼容：如果传入 task，则使用 task
   const actualType = task ? 'task' : type
   const actualData = task || data
@@ -53,37 +56,39 @@ export function NotesPanel({
   const dateTimestamp = actualType === 'journal' ? actualData?.date : actualData?.dueDate
   const aiPrompts = actualType === 'journal' ? (actualData?.aiPrompts || []) : []
 
+  const { t, i18n } = useTranslation()
+  const mobile = isMobile()
+  const editorContainerRef = useRef(null)
+  const editorViewRef = useRef(null)
+  const editorApiRef = useRef(null)
+  const editorChangeRef = useRef(null)
+  const isZh = i18n.language?.startsWith('zh')
+  const [stats, setStats] = useState(() => computeStats(content, isZh))
+  const saveTimerRef = useRef(null)
+  const statsTimerRef = useRef(null)
+  const latestValueRef = useRef(content)
+  const lastSavedRef = useRef(content)
+  const isFocusedRef = useRef(false)
+  const onUpdateRef = useRef(onUpdate)
+  const dataIdRef = useRef(actualData?.id)
+  const typeRef = useRef(actualType)
+  const { config, generating } = useAI()
+
   // 根据 mode 决定是否沉浸式
   const isImmersive = mode === 'immersive' || immersive
 
   // AI 问题处理
   const handlePromptSelect = (prompt) => {
     // 插入问题到光标位置
-    const textarea = textareaRef.current
-    if (!textarea) return
-
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const newContent =
-      content.substring(0, start) +
-      prompt.text + '\n\n' +
-      content.substring(end)
-
-    const field = actualType === 'journal' ? 'content' : 'notes'
-    onUpdate(actualData.id, { [field]: newContent })
+    const view = editorViewRef.current
+    if (!view) return
+    insertTextAtSelection(view, `${prompt.text}\n\n`)
 
     // 标记为已插入
     const updatedPrompts = aiPrompts.map(p =>
       p.id === prompt.id ? { ...p, inserted: true } : p
     )
     onUpdate(actualData.id, { aiPrompts: updatedPrompts })
-
-    // 设置光标位置到插入文本之后
-    setTimeout(() => {
-      const newPosition = start + prompt.text.length + 2
-      textarea.setSelectionRange(newPosition, newPosition)
-      textarea.focus()
-    }, 0)
   }
 
   const handlePromptDismiss = (promptId) => {
@@ -101,24 +106,125 @@ export function NotesPanel({
     return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} · ${weekday}`
   }
 
-  const handleNotesChange = (e) => {
-    const field = actualType === 'journal' ? 'content' : 'notes'
-    onUpdate(actualData.id, { [field]: e.target.value })
-  }
+  const placeholderText = actualType === 'journal' ? t('journal.preview') : t('tasks.notesPlaceholder')
+
+  const flushSave = useCallback(() => {
+    const id = dataIdRef.current
+    if (!id) return
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = null
+    }
+    const nextValue = latestValueRef.current
+    if (nextValue === lastSavedRef.current) return
+    const field = typeRef.current === 'journal' ? 'content' : 'notes'
+    startTransition(() => {
+      if (onUpdateRef.current) {
+        onUpdateRef.current(id, { [field]: nextValue })
+      }
+    })
+    lastSavedRef.current = nextValue
+  }, [])
+
+  const scheduleSave = useCallback((nextValue) => {
+    latestValueRef.current = nextValue
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current)
+    }
+    saveTimerRef.current = setTimeout(() => {
+      flushSave()
+    }, 1000)
+  }, [flushSave])
+
+  const scheduleStats = useCallback((nextValue) => {
+    if (statsTimerRef.current) {
+      clearTimeout(statsTimerRef.current)
+    }
+    statsTimerRef.current = setTimeout(() => {
+      setStats(computeStats(nextValue, isZh))
+    }, 200)
+  }, [isZh])
 
   useEffect(() => {
-    if (textareaRef.current) {
-      const textarea = textareaRef.current
-      const container = textarea.parentElement
-      const minHeight = container ? container.clientHeight : 0
-      textarea.style.height = 'auto'
-      const nextHeight = Math.max(textarea.scrollHeight, minHeight)
-      textarea.style.height = `${nextHeight}px`
-      const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight)
-      const lines = Math.ceil(nextHeight / lineHeight)
-      setLineCount(lines)
+    return () => {
+      if (statsTimerRef.current) {
+        clearTimeout(statsTimerRef.current)
+        statsTimerRef.current = null
+      }
     }
-  }, [content, isImmersive])
+  }, [])
+
+  useEffect(() => {
+    editorChangeRef.current = (nextValue) => {
+      latestValueRef.current = nextValue
+      scheduleSave(nextValue)
+      scheduleStats(nextValue)
+    }
+  }, [scheduleSave, scheduleStats])
+
+  // ============================================================
+  // 数据同步：笔记切换时重置，内容更新时同步（用户未聚焦时）
+  // ============================================================
+  useEffect(() => {
+    // 笔记切换时重置焦点标记
+    if (dataIdRef.current !== actualData?.id) {
+      isFocusedRef.current = false
+    }
+
+    // 更新 refs
+    dataIdRef.current = actualData?.id
+    typeRef.current = actualType
+    onUpdateRef.current = onUpdate
+
+    // 同步数据到编辑器（如果用户未聚焦）
+    if (!isFocusedRef.current) {
+      latestValueRef.current = content
+      lastSavedRef.current = content
+      setStats(computeStats(content, isZh))
+      if (editorApiRef.current) {
+        editorApiRef.current.setValue(content)
+      }
+    }
+  }, [actualData?.id, content, actualType, onUpdate, isZh])
+
+  useEffect(() => {
+    return () => {
+      flushSave()
+    }
+  }, [flushSave])
+
+  useEffect(() => {
+    if (!editorContainerRef.current || editorApiRef.current) return
+    const api = createMarkdownEditor({
+      parent: editorContainerRef.current,
+      value: content,
+      onChangeRef: editorChangeRef,
+      placeholderText
+    })
+    editorApiRef.current = api
+    editorViewRef.current = api.view
+    const handleFocus = () => {
+      isFocusedRef.current = true
+    }
+    const handleBlur = () => {
+      isFocusedRef.current = false
+      flushSave()
+    }
+    api.view.dom.addEventListener('focus', handleFocus, true)
+    api.view.dom.addEventListener('blur', handleBlur, true)
+    return () => {
+      api.view.dom.removeEventListener('focus', handleFocus, true)
+      api.view.dom.removeEventListener('blur', handleBlur, true)
+      api.destroy()
+      editorApiRef.current = null
+      editorViewRef.current = null
+    }
+  }, [flushSave, placeholderText])
+
+  useEffect(() => {
+    if (!editorApiRef.current) return
+    editorApiRef.current.setPlaceholder(placeholderText)
+  }, [placeholderText])
 
   // 键盘快捷键支持
   useEffect(() => {
@@ -132,14 +238,8 @@ export function NotesPanel({
   }, [onClose])
 
   const dateStr = formatDate(dateTimestamp)
-  const notesText = content
-  const isZh = i18n.language?.startsWith('zh')
-  const cjkPattern = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu
-  const cjkCount = (notesText.match(cjkPattern) || []).length
-  const nonCjkText = notesText.replace(cjkPattern, ' ')
-  const wordCount = (nonCjkText.match(/\b[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)?\b/gu) || []).length
-  const count = cjkCount + wordCount
-  const minutes = count > 0 ? Math.ceil(count / (isZh ? 300 : 200)) : 0
+  const count = stats.count
+  const minutes = stats.minutes
 
   const actualMotionPreset = motionPreset || (isImmersive ? 'immersive' : 'dock')
   const motionConfig = actualMotionPreset === 'immersive'
@@ -256,33 +356,14 @@ export function NotesPanel({
         )}
 
         {/* 正文区域 - 移动端减小间距 */}
-        <div className={cn(
-          "flex-1 relative",
-          mobile ? "mt-8" : "mt-12"
-        )}>
-          {/* 横线层 - 降低透明度，淡入动画 */}
-          <div className="absolute inset-0 pointer-events-none">
-            {Array.from({ length: lineCount }).map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: i * 0.02, duration: 0.3 }}
-                className="border-b border-border/30 dark:border-border/20"
-                style={{ height: '1.8em' }}
-              />
-            ))}
-          </div>
-
-          {/* 文本输入 - 优化 placeholder */}
-          <textarea
-            ref={textareaRef}
-            value={content}
-            onChange={handleNotesChange}
-            placeholder={actualType === 'journal' ? t('journal.preview') : t('tasks.notesPlaceholder')}
-            className="relative w-full resize-none overflow-hidden bg-transparent border-0 outline-none text-base leading-[1.8] placeholder:text-muted-foreground/50 dark:placeholder:text-muted-foreground/40"
-            spellCheck={false}
-          />
+        <div
+          className={cn(
+            "flex-1 relative notes-lines",
+            mobile ? "mt-8" : "mt-12"
+          )}
+        >
+          {/* Markdown 编辑器 - Typora 风格，直接输入语法 */}
+          <div ref={editorContainerRef} className="relative z-10" />
         </div>
 
         {/* 字数统计 - 右下角，淡入动画 */}
@@ -290,7 +371,7 @@ export function NotesPanel({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.3 }}
-          className="absolute bottom-6 right-6 text-xs text-muted-foreground/60"
+          className="absolute bottom-6 right-16 text-xs text-muted-foreground/60"
         >
           {isZh
             ? t('tasks.charCount', { count })

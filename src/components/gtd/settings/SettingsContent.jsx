@@ -7,7 +7,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { pageTransition } from '@/lib/motion'
-import { AppearanceSection, DataSection, AISection, AboutSection } from './sections'
+import { AppearanceSection, EditorSection, DataSection, AISection, AboutSection } from './sections'
 
 // ============================================================================
 // 设置内容区
@@ -18,6 +18,8 @@ export function SettingsContent({ activeSection, sync, fileSystem, onExport, onI
     switch (activeSection) {
       case 'appearance':
         return <AppearanceSection />
+      case 'editor':
+        return <EditorSection />
       case 'data':
         return (
           <DataSection

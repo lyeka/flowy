@@ -23,6 +23,9 @@
     "dialog:default",
     "dialog:allow-open",
     "dialog:allow-save",
+    "haptics:allow-impact-feedback",
+    "haptics:allow-notification-feedback",
+    "haptics:allow-selection-feedback",
     {
       "identifier": "fs:allow-exists",
       "allow": [

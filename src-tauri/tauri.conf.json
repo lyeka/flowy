@@ -44,6 +44,12 @@
     "longDescription": "Flowy 是基于 GTD 方法论的优雅时间和项目管理工具",
     "macOS": {
       "minimumSystemVersion": "10.13"
+    },
+    "android": {
+      "minSdkVersion": 31
+    },
+    "iOS": {
+      "minimumSystemVersion": "14.0"
     }
   }
 }

@@ -12,6 +12,7 @@ i18n.js: i18next 国际化配置，语言切换与持久化
 
 ## 子目录
 
+editor/: CodeMirror Markdown 编辑器封装，WYSIWYG 渲染 + 工具栏命令
 fs/: 文件系统抽象层，统一 Tauri/Capacitor/Web 三端文件操作
 format/: 数据格式处理，任务 JSON + 日记 Markdown 序列化
 sync/: 云同步功能，WebDAV 同步 + 冲突检测与解决

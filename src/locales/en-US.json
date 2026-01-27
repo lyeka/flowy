@@ -209,10 +209,20 @@
   },
   "settings": {
     "appearance": "Appearance",
+    "editor": "Editor",
     "data": "Data",
     "ai": "AI Assistant",
     "about": "About",
     "storage": "Storage"
+  },
+  "editor": {
+    "preset": "Preset",
+    "bullet": "Bullet Style",
+    "h1Size": "Heading 1",
+    "h2Size": "Heading 2",
+    "h3Size": "Heading 3",
+    "quoteBorder": "Quote Border",
+    "boldWeight": "Bold Weight"
   },
   "sync": {
     "title": "Cloud Sync",
