@@ -109,11 +109,24 @@ function ConstellationLines({ stars }) {
       const from = todayStars[i]
       const to = todayStars[i + 1]
 
-      // 解析百分比位置
-      const fromX = parseFloat(from.x) / 100
-      const fromY = parseFloat(from.y) / 100
-      const toX = parseFloat(to.x) / 100
-      const toY = parseFloat(to.y) / 100
+      // 解析百分比位置 - 处理可能是字符串 "50%" 或数字 0.5 的情况
+      const parsePercent = (val) => {
+        if (!val) return 0.5
+        const str = String(val)
+        if (str.includes('%')) {
+          return parseFloat(str.replace('%', '')) / 100
+        }
+        const num = parseFloat(val)
+        return isNaN(num) ? 0.5 : Math.max(0, Math.min(1, num))
+      }
+
+      const fromX = parsePercent(from.x)
+      const fromY = parsePercent(from.y)
+      const toX = parsePercent(to.x)
+      const toY = parsePercent(to.y)
+
+      // 检查是否有效
+      if ([fromX, fromY, toX, toY].some(v => isNaN(v))) continue
 
       result.push({
         x1: fromX,

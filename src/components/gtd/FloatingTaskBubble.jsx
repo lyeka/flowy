@@ -15,7 +15,7 @@ import { PLANET_COLORS } from './Planet'
 // 漂浮气泡任务卡片
 // ═══════════════════════════════════════════════════════════════════════════
 
-const COLOR_KEYS = ['coral', 'purple', 'cyan', 'cream']
+const COLOR_KEYS = ['green', 'blue', 'purple', 'orange', 'pink', 'cream']
 
 export function FloatingTaskBubble({
   task,
@@ -30,7 +30,7 @@ export function FloatingTaskBubble({
 
   // 获取对应的行星颜色
   const colorKey = COLOR_KEYS[index % COLOR_KEYS.length]
-  const color = PLANET_COLORS[colorKey]
+  const color = PLANET_COLORS[colorKey] || PLANET_COLORS.cream || { filter: 'none' }
 
   // 随机动画参数
   const animDuration = useMemo(() => 4 + Math.random() * 2, [])
