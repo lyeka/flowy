@@ -1,20 +1,20 @@
 # GTD 时间项目管理 (跨平台版)
-Tauri 2.0 (桌面端) + Capacitor 8.0 (移动端) + Vite 7 + React 19 + TailwindCSS v4 + shadcn/ui + Framer Motion + react-i18next
+Tauri 2.0 (桌面端) + Capacitor 8.0 (移动端) + Vite 7 + React 19 + TailwindCSS v4 + shadcn/ui + GSAP + react-i18next
 
 <directory>
 src/
 ├── components/
 │   ├── ui/          - shadcn 组件库
-│   └── gtd/         - GTD 业务组件 (22文件: QuickCapture, Sidebar, Settings, SyncSettings, ConflictDialog, FolderPicker, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip, AIPromptCard, AISettings)
-├── stores/          - 状态管理 (4文件: gtd.js, calendar.js, journal.js, ai.js)
+│   └── gtd/         - GTD 业务组件 (28文件: QuickCapture, Sidebar, Settings, SyncSettings, ConflictDialog, FolderPicker, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip, AIPromptCard, AISettings, FocusView, FocusGreeting, FocusRecommendCard, FocusTaskItem, FocusOverdueCard, FocusEmptyState)
+├── stores/          - 状态管理 (5文件: gtd.js, calendar.js, journal.js, ai.js, editor.js)
 ├── hooks/           - React Hooks (2文件: useFileSystem.js, useSync.js)
-├── lib/             - 工具函数 (5文件: utils.js, motion.js, platform.js, tauri.js(废弃), i18n.js)
+├── lib/             - 工具函数 (6文件: utils.js, motion.js, platform.js, haptics.js, tauri.js(废弃), i18n.js)
 │   ├── ai/          - AI 功能模块 (3文件: crypto.js, prompts.js, openai.js)
 │   ├── fs/          - 文件系统抽象层 (5文件: adapter.js, tauri.js, capacitor.js, web.js, index.js)
 │   ├── format/      - 数据格式处理 (3文件: task.js, journal.js, index.js)
 │   └── sync/        - 云同步功能 (3文件: conflict.js, webdav.js, index.js)
 ├── locales/         - 国际化翻译文件 (2文件: zh-CN.json, en-US.json)
-├── App.jsx          - 应用入口，支持列表/日历/日记视图切换，集成跨平台功能
+├── App.jsx          - 应用入口，支持专注/列表/日历/日记视图切换，集成跨平台功能
 ├── main.jsx         - React 挂载点，初始化 i18n
 └── index.css        - 全局样式 + CSS 变量
 
@@ -45,6 +45,19 @@ package.json        - 包含 tauri:dev/tauri:build (桌面端) 和 cap:android/c
 - 将来/也许 (Someday): 暂时搁置
 - 已完成 (Done): 归档
 
+## 专注视图 (Focus View)
+
+- **设计哲学**：专注是一种"主动选择"，而非"被动提醒"
+- **视觉风格**：柔性宇宙插画，SVG filter 手绘行星 + 椭圆轨道带 + GSAP 动画
+- **轨道带**：多条同心椭圆（像土星环），深蓝紫色，-15度倾斜
+- **手绘行星**：SVG feTurbulence + feDisplacementMap 实现不规则边缘，玻璃球高光
+- **独立视图**：与列表/日历/日记并列，作为侧边栏第一个入口
+- **时间感知问候**：根据早中晚显示不同问候语 + 今日任务数量
+- **AI 推荐**：智能推荐最应该优先处理的 3 个任务
+- **本地降级**：AI 禁用或失败时使用本地排序（紧急性 + 创建时间）
+- **过期任务处理**：折叠卡片显示过期任务，支持快速操作（今天/明天/删除）
+- **空状态引导**：无任务时引导用户去收集箱选择
+
 ## 日历视图
 
 - 月视图/周视图切换
@@ -66,12 +79,13 @@ package.json        - 包含 tauri:dev/tauri:build (桌面端) 和 cap:android/c
 ## AI 功能
 
 - **智能问题生成**：根据用户指导方向、任务完成情况和历史日记，动态生成个性化引导问题
+- **任务推荐**：分析任务紧急性、重要性、可行性，推荐最应该优先处理的任务
 - **用户指导方向**：用户输入指导性提示词（如"我想探讨人生的哲理和意义"），AI 据此生成问题
 - **上下文感知**：结合今日任务、最近日记、时间上下文（周几、早中晚）生成问题
 - **优雅交互**：问题卡片轻量非侵入，点击插入、悬停删除、支持刷新
 - **隐私优先**：用户自己配置 OpenAI API Key，加密存储在本地
 - **完全可选**：默认关闭，用户完全控制
-- **优雅降级**：API 失败时使用通用开放式问题
+- **优雅降级**：API 失败时使用通用开放式问题或本地排序
 
 ## 跨平台特性
 

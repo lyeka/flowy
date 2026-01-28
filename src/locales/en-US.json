@@ -256,5 +256,86 @@
     "links": "Links",
     "madeWith": "Made with",
     "by": "by"
+  },
+  "focus": {
+    "title": "Focus",
+    "circle": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "night": "Late night",
+      "empty": "Nothing planned",
+      "allDone": "All done",
+      "pending": "things to do"
+    },
+    "greeting": {
+      "morning": "Good morning, {{count}} things today",
+      "afternoon": "Good afternoon, {{count}} things left",
+      "evening": "Good evening, you did well today",
+      "night": "It's late, get some rest"
+    },
+    "state": {
+      "idle": "Nothing planned yet, pick some from inbox?",
+      "flow": "Nice rhythm, stay focused",
+      "optimal": "In the zone, keep it up",
+      "busy": "Getting busy, but you got this",
+      "overload": "Quite a lot, pick the top 3 first"
+    },
+    "overdue": {
+      "title": "{{count}} overdue tasks need attention",
+      "one": "1 thing pending, handle it now?",
+      "few": "A few things piled up, time to sort?",
+      "many": "Some backlog, prioritize what matters"
+    },
+    "recommend": {
+      "title": "AI recommends these {{count}} first",
+      "short": "AI Picks",
+      "loading": "AI is analyzing...",
+      "fallback": "Default sort",
+      "refresh": "Refresh",
+      "viewAll": "View all tasks"
+    },
+    "empty": {
+      "title": "No tasks for today",
+      "hint": "Pick some from inbox?",
+      "action": "Go to Inbox",
+      "universe": "The universe begins with your first thought",
+      "complete": "The universe feels complete today"
+    },
+    "complete": {
+      "title": "Awesome!",
+      "hint": "All tasks completed today"
+    },
+    "task": {
+      "createdToday": "Created today",
+      "createdAgo": "Created {{days}} days ago",
+      "dueToday": "Due today",
+      "overdue": "{{days}} days overdue"
+    },
+    "pomodoro": {
+      "selectDuration": "Select focus duration",
+      "start": "Start Focus",
+      "abandon": "Abandon",
+      "completeTask": "Complete Task",
+      "continue": "Continue Next",
+      "timeUp": "Time's up!",
+      "takeBreak": "Take a break, grab some water",
+      "completedCount": "{{count}} completed"
+    },
+    "viewAll": "View all",
+    "viewToday": "View Today",
+    "fromInbox": "From Inbox",
+    "fromSomeday": "From Someday",
+    "simplify": "Simplify Tasks",
+    "aiRecommend": "AI Recommend",
+    "overdueTitle": "{{count}} overdue tasks",
+    "daysOverdue": "{{days}} days overdue",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "abandon": "Abandon",
+    "moveAllToToday": "Move all to today",
+    "abandonAll": "Abandon all",
+    "writeJournal": "Write Journal",
+    "viewTomorrow": "View Tomorrow"
   }
 }

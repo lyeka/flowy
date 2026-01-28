@@ -1,7 +1,7 @@
 /**
  * [INPUT]: journal data, tasks, AI config, time context
- * [OUTPUT]: buildContext, parseAIResponse - 构建 AI prompt 上下文和解析响应
- * [POS]: AI 模块的核心逻辑层，负责 prompt 工程（开放式问题引导 + 维度池灵感 + 反套路设计）
+ * [OUTPUT]: buildContext, parseAIResponse, buildTaskRecommendPrompt, parseTaskRecommendResponse - 构建 AI prompt 上下文和解析响应
+ * [POS]: AI 模块的核心逻辑层，负责 prompt 工程（开放式问题引导 + 维度池灵感 + 反套路设计 + 任务推荐）
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -343,7 +343,7 @@ export function getFallbackPrompts() {
       '此刻你的身体在告诉你什么？'
     ],
     [
-      '如果可以重来，今天你会做什么不同的选择？',
+      '如果可以重来，今天你���做什么不同的选择？',
       '最近有什么让你感到感恩的事情？',
       '你现在最想逃避的是什么？'
     ],
@@ -365,4 +365,119 @@ export function getFallbackPrompts() {
     dismissed: false,
     inserted: false
   }))
+}
+
+// ============================================================
+// Task Recommendation Prompt
+// ============================================================
+
+export function buildTaskRecommendSystemPrompt() {
+  return `你是一个任务优先级分析助手。你的任务是帮助用户从待办事项中选出最应该优先处理的 3 个任务。
+
+分析原则：
+1. 紧急性：过期任务 > 今天到期 > 即将到期 > 无截止日期
+2. 重要性：根据任务标题判断任务的重要程度
+3. 可行性：考虑当前时间，选择适合现在做的任务
+4. 心理负担：拖延较久的任务应该优先处理，减轻心理负担
+
+输出格式（纯文本，每行一个任务 ID）：
+任务ID1
+任务ID2
+任务ID3
+
+注意：
+- 直接输出任务 ID，不要添加序号、标点或其他格式
+- 如果任务少于 3 个，输出所有任务 ID
+- 按推荐优先级排序，最重要的在第一行`
+}
+
+export function buildTaskRecommendUserPrompt(tasks, timeContext) {
+  const lines = []
+
+  // 时间上下文
+  lines.push(`当前时间：${timeContext.dayOfWeek} ${timeContext.timeOfDay}`)
+  lines.push('')
+
+  // 任务列表
+  lines.push('待处理任务：')
+  tasks.forEach(task => {
+    const dueInfo = task.dueDate
+      ? `截止: ${new Date(task.dueDate).toLocaleDateString('zh-CN')}`
+      : '无截止日期'
+    const createdDays = Math.floor((Date.now() - task.createdAt) / (24 * 60 * 60 * 1000))
+    const createdInfo = createdDays > 0 ? `创建于 ${createdDays} 天前` : '今天创建'
+    lines.push(`- ID: ${task.id}`)
+    lines.push(`  标题: ${task.title}`)
+    lines.push(`  ${dueInfo} | ${createdInfo}`)
+  })
+  lines.push('')
+
+  lines.push('请从以上任务中选出最应该优先处理的 3 个任务（按优先级排序）。')
+
+  return lines.join('\n')
+}
+
+export function parseTaskRecommendResponse(response, tasks) {
+  try {
+    // 按行分割，提取任务 ID
+    const ids = response
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .slice(0, 3)
+
+    // 根据 ID 找到对应的任务
+    const recommended = []
+    for (const id of ids) {
+      const task = tasks.find(t => t.id === id)
+      if (task) {
+        recommended.push(task)
+      }
+    }
+
+    return recommended
+  } catch (error) {
+    console.error('Failed to parse task recommend response:', error)
+    return []
+  }
+}
+
+// 本地排序降级方案
+export function getLocalRecommendedTasks(tasks, count = 3) {
+  const now = Date.now()
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayStart = today.getTime()
+
+  // 计算任务优先级分数
+  const scored = tasks.map(task => {
+    let score = 0
+
+    // 过期任务优先级最高
+    if (task.dueDate && task.dueDate < todayStart) {
+      const daysOverdue = Math.floor((todayStart - task.dueDate) / (24 * 60 * 60 * 1000))
+      score += 1000 + daysOverdue * 10
+    }
+    // 今天到期
+    else if (task.dueDate && task.dueDate < todayStart + 24 * 60 * 60 * 1000) {
+      score += 500
+    }
+    // 有截止日期
+    else if (task.dueDate) {
+      const daysUntilDue = Math.floor((task.dueDate - now) / (24 * 60 * 60 * 1000))
+      score += Math.max(0, 100 - daysUntilDue * 5)
+    }
+
+    // 创建时间越久，优先级越高（减轻心理负担）
+    const daysOld = Math.floor((now - task.createdAt) / (24 * 60 * 60 * 1000))
+    score += Math.min(daysOld * 2, 50)
+
+    return { task, score }
+  })
+
+  // 按分数排序，取前 N 个
+  return scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, count)
+    .map(item => item.task)
 }
