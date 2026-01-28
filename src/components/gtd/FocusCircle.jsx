@@ -1,7 +1,7 @@
 /**
- * [INPUT]: react, @/lib/utils, ./StarDust, ./OrbitPaths, ./Planet, ./BlueDust, ./MiniInfo, ./NoiseOverlay, ./Constellation
+ * [INPUT]: react, @/lib/utils, ./StarDust, ./OrbitPaths, ./Planet, ./BlueDust, ./MiniInfo, ./NoiseOverlay, ./Constellation, ./ZDepthLayer, ./DeepSpaceDust, ./DarkNebula, ./SpaceGlow
  * [OUTPUT]: FocusCircle 组件
- * [POS]: 专注视图核心 - 柔性宇宙插画，时间感知背景，已完成任务星座
+ * [POS]: 专注视图核心 - 柔性宇宙插画，时间感知背景，深度分层 + 视差，已完成任务星座
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -15,6 +15,10 @@ import { BlueDust } from './BlueDust'
 import { MiniInfo } from './MiniInfo'
 import { NoiseOverlay } from './NoiseOverlay'
 import { Constellation } from './Constellation'
+import { ParallaxProvider, FarLayer, MidLayer, NearLayer } from './ZDepthLayer'
+import { DeepSpaceDust } from './DeepSpaceDust'
+import { DarkNebula } from './DarkNebula'
+import { SpaceGlow } from './SpaceGlow'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 时间感知背景色配置 - 使用 CSS 变量
@@ -189,65 +193,97 @@ export function FocusCircle({
   }, [savedPositions])
 
   return (
-    <div
-      className={cn(
-        "relative w-full h-full min-h-[500px]",
-        className
-      )}
-      style={{
-        minHeight: '600px',
-        background: `var(${timeConfig.cssVar})`
-      }}
-    >
-      {/* Layer 1: 背景星点 */}
-      <StarDust count={35} />
+    <ParallaxProvider className={cn("relative w-full h-full min-h-[500px]", className)} intensity={0.8}>
+      {/* 时间感知背景底色 */}
+      <div
+        className="absolute inset-0"
+        style={{
+          minHeight: '600px',
+          background: `var(${timeConfig.cssVar})`
+        }}
+      />
 
-      {/* Layer 2: 椭圆轨道带 */}
+      {/* ═════════════════════════════════════════════════════════════════════════
+          Far Layer - 最远景
+          zIndex: 3-5, blur: 1px, 视差速度: 0.08
+         ═════════════════════════════════════════════════════════════════════════ */}
+      <FarLayer>
+        {/* 背景星点 - 1-3px */}
+        <StarDust count={35} />
+      </FarLayer>
+
+      {/* 星云 - 移出层测试 */}
+      <DarkNebula />
+
+      {/* 极微星点 - 移出层测试 */}
+      <DeepSpaceDust count={200} />
+
+      {/* ═════════════════════════════════════════════════════════════════════════
+          Mid Layer - 中景
+          zIndex: 10, blur: 0.3px, 视差速度: 0.2
+         ═════════════════════════════════════════════════════════════════════════ */}
+      <MidLayer>
+        {/* 空间辉光 */}
+        <SpaceGlow />
+
+        {/* 蓝色粒子 */}
+        <BlueDust count={25} />
+
+        {/* 已完成任务星座 */}
+        <Constellation stars={tasks.filter(t => t.completed)} />
+      </MidLayer>
+
+      {/* 轨道 - 移出层测试 */}
       <OrbitPaths />
 
-      {/* Layer 3: 蓝色粒子 */}
-      <BlueDust count={25} />
+      {/* ═════════════════════════════════════════════════════════════════════════
+          Near Layer - 近景
+          zIndex: 20, blur: 0, 视差速度: 0.4
+         ═════════════════════════════════════════════════════════════════════════ */}
+      <NearLayer>
+        {/* 行星 */}
+        {PLANET_CONFIG.map((config, i) => {
+          const task = planetTasks[i]
+          if (!task) return null
 
-      {/* Layer 4: 已完成任务星座 */}
-      <Constellation stars={tasks.filter(t => t.completed)} />
+          const position = getPlanetPosition(task, config)
 
-      {/* Layer 5: 行星 */}
-      {PLANET_CONFIG.map((config, i) => {
-        const task = planetTasks[i]
-        if (!task) return null
+          return (
+            <Planet
+              key={task.id}
+              task={task}
+              size={config.size}
+              position={position}
+              colorKey={config.colorKey}
+              hasRing={config.hasRing}
+              layer={config.layer}
+              isSelected={task.id === selectedTaskId}
+              isOverdue={isTaskOverdue(task)}
+              pomodoroCount={getTaskPomodoros(task)}
+              onClick={onParticleClick}
+              onLongPress={onLongPress}
+              onPositionChange={handlePositionChange}
+              onTaskSelect={onTaskSelect}
+              onEdit={onEditTask}
+              onMoveToToday={onMoveToToday}
+              onMoveToTomorrow={onMoveToTomorrow}
+              onDelete={onDeleteTask}
+              onCollapsed={handleCollapsed}
+            />
+          )
+        })}
+      </NearLayer>
 
-        const position = getPlanetPosition(task, config)
+      {/* ═════════════════════════════════════════════════════════════════════════
+          UI Layer - 不参与视差
+         ═════════════════════════════════════════════════════════════════════════ */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* 噪点纹理 */}
+        <NoiseOverlay />
 
-        return (
-          <Planet
-            key={task.id}
-            task={task}
-            size={config.size}
-            position={position}
-            colorKey={config.colorKey}
-            hasRing={config.hasRing}
-            layer={config.layer}
-            isSelected={task.id === selectedTaskId}
-            isOverdue={isTaskOverdue(task)}
-            pomodoroCount={getTaskPomodoros(task)}
-            onClick={onParticleClick}
-            onLongPress={onLongPress}
-            onPositionChange={handlePositionChange}
-            onTaskSelect={onTaskSelect}
-            onEdit={onEditTask}
-            onMoveToToday={onMoveToToday}
-            onMoveToTomorrow={onMoveToTomorrow}
-            onDelete={onDeleteTask}
-            onCollapsed={handleCollapsed}
-          />
-        )
-      })}
-
-      {/* Layer 6: 噪点纹理 */}
-      <NoiseOverlay />
-
-      {/* Layer 7: 右上角信息 */}
-      <MiniInfo count={pendingCount} timeKey={timeConfig.key} />
-    </div>
+        {/* 右上角信息 */}
+        <MiniInfo count={pendingCount} timeKey={timeConfig.key} />
+      </div>
+    </ParallaxProvider>
   )
 }
