@@ -5,7 +5,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { createContext, useContext, useState, useRef, useEffect } from 'react'
+import { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import gsap from 'gsap'
 
@@ -39,18 +39,22 @@ export const DEPTH_LAYERS = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 const ParallaxContext = createContext({
-  x: 0,
-  y: 0
+  intensity: 1
 })
 
-// Hook: 获取当前视差偏移
+// Hook: 获取当前视差偏移（已废弃，保留兼容性）
 export function useParallax(speed = 1) {
-  const { x, y } = useContext(ParallaxContext)
+  const { intensity } = useContext(ParallaxContext)
+  // 通过 CSS 变量应用视差，不在 render 中计算
   return {
-    x: x * speed,
-    y: y * speed,
+    x: 0,
+    y: 0,
+    intensity,
     style: {
-      transform: `translate(${x * speed}px, ${y * speed}px)`
+      transform: `translate(
+        calc(var(--parallax-x) * ${speed}),
+        calc(var(--parallax-y) * ${speed})
+      )`
     }
   }
 }
@@ -67,11 +71,14 @@ export function ZDepthLayer({
   disableParallax = false
 }) {
   const config = DEPTH_LAYERS[layer] || DEPTH_LAYERS.mid
-  const { x, y } = useContext(ParallaxContext)
 
-  // 计算视差偏移
-  const parallaxX = disableParallax ? 0 : x * config.parallaxSpeed * 10
-  const parallaxY = disableParallax ? 0 : y * config.parallaxSpeed * 10
+  // 通过 CSS 变量应用视差，不在 render 中计算
+  const transformStyle = disableParallax ? {} : {
+    transform: `translate(
+      calc(var(--parallax-x) * ${config.parallaxSpeed * 10}),
+      calc(var(--parallax-y) * ${config.parallaxSpeed * 10})
+    )`
+  }
 
   return (
     <div
@@ -86,9 +93,8 @@ export function ZDepthLayer({
       <div
         style={{
           filter: config.blur > 0 ? `blur(${config.blur}px)` : undefined,
-          transform: `translate(${parallaxX}px, ${parallaxY}px)`,
+          ...transformStyle,
           willChange: 'transform',
-          transition: 'transform 0.15s ease-out',
           width: '100%',
           height: '100%'
         }}
@@ -108,42 +114,59 @@ export function ParallaxProvider({
   className,
   intensity = 1  // 视差强度倍数
 }) {
-  const [targetPos, setTargetPos] = useState({ x: 0, y: 0 })  // 鼠标目标位置
-  const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 }) // 当前缓动位置
+  const containerRef = useRef(null)
   const gsapObjRef = useRef({ x: 0, y: 0 })
+  const targetPosRef = useRef({ x: 0, y: 0 })
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = useCallback((e) => {
     // 归一化到 -1 到 1
     const x = ((e.clientX / window.innerWidth) - 0.5) * 2 * intensity
     const y = ((e.clientY / window.innerHeight) - 0.5) * 2 * intensity
-    setTargetPos({ x, y })
-  }
+    targetPosRef.current = { x, y }
+  }, [intensity])
 
-  const handleMouseLeave = () => {
-    setTargetPos({ x: 0, y: 0 })
-  }
+  const handleMouseLeave = useCallback(() => {
+    targetPosRef.current = { x: 0, y: 0 }
+  }, [])
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 惯性回弹 - 鼠标停止后缓动归位
+  // 惯性回弹 - GSAP 直接操作 CSS 变量，不触发 React 渲染
   // ═══════════════════════════════════════════════════════════════════════════
   useEffect(() => {
-    gsap.to(gsapObjRef.current, {
-      x: targetPos.x,
-      y: targetPos.y,
+    if (!containerRef.current) return
+
+    // 创建 GSAP 动画，返回一个 tween 对象
+    const tween = gsap.to(gsapObjRef.current, {
+      x: targetPosRef.current.x,
+      y: targetPosRef.current.y,
       duration: 0.8,
       ease: 'power2.out',
       onUpdate: () => {
-        setCurrentPos({ x: gsapObjRef.current.x, y: gsapObjRef.current.y })
+        // 直接修改 CSS 变量，不通过 React
+        if (containerRef.current) {
+          containerRef.current.style.setProperty('--parallax-x', `${gsapObjRef.current.x}px`)
+          containerRef.current.style.setProperty('--parallax-y', `${gsapObjRef.current.y}px`)
+        }
       }
     })
-  }, [targetPos])
+
+    // 清理函数
+    return () => {
+      tween.kill()
+    }
+  }, [intensity]) // 依赖 intensity 而非 targetPosRef.current
 
   return (
-    <ParallaxContext.Provider value={currentPos}>
+    <ParallaxContext.Provider value={{ intensity }}>
       <div
+        ref={containerRef}
         className={cn("relative", className)}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        style={{
+          '--parallax-x': '0px',
+          '--parallax-y': '0px'
+        }}
       >
         {children}
       </div>

@@ -130,7 +130,8 @@ function savePlanetPosition(taskId, position) {
 export function FocusCircle({
   totalCount = 0,
   completedCount = 0,
-  tasks = [],
+  planetTasks = [],
+  allTasks = [],
   selectedTaskId = null,
   onParticleClick,
   onTaskSelect,
@@ -157,11 +158,6 @@ export function FocusCircle({
 
   // 加载保存的位置
   const savedPositions = loadSavedPositions()
-
-  // 准备行星任务数据 - 只取未完成的任务
-  const planetTasks = useMemo(() => {
-    return tasks.filter(t => !t.completed).slice(0, PLANET_CONFIG.length)
-  }, [tasks])
 
   // 处理位置变化
   const handlePositionChange = useCallback((taskId, position) => {
@@ -230,7 +226,7 @@ export function FocusCircle({
         <BlueDust count={25} />
 
         {/* 已完成任务星座 */}
-        <Constellation stars={tasks.filter(t => t.completed)} />
+        <Constellation stars={allTasks.filter(t => t.completed)} />
       </MidLayer>
 
       {/* 轨道 - 移出层测试 */}

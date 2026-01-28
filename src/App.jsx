@@ -68,7 +68,12 @@ function AppContent({ fileSystem, sync }) {
     toggleComplete,
     moveTask,
     deleteTask,
-    loadTasks
+    loadTasks,
+    // 预处理数据 - 供 FocusView 使用
+    todayTasks,
+    completedToday,
+    overdueTasks,
+    planetTasks
   } = useGTD({ fileSystem: fileSystem.isReady ? fileSystem.fs : null })
 
   const {
@@ -351,7 +356,11 @@ function AppContent({ fileSystem, sync }) {
         <JournalPastView />
       ) : viewMode === 'focus' ? (
         <FocusView
-          tasks={tasks}
+          todayTasks={todayTasks}
+          completedCount={completedToday}
+          overdueTasks={overdueTasks}
+          planetTasks={planetTasks}
+          allTasks={tasks}
           onComplete={handleToggleComplete}
           onMoveToToday={(id) => moveTask(id, GTD_LISTS.TODAY)}
           onMoveToTomorrow={(id) => {

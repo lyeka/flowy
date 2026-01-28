@@ -5,11 +5,10 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { isToday, isPast } from '@/stores/gtd'
 import { useAI } from '@/stores/ai'
 import { ChevronRight, Sparkles, Plus, Calendar, BookOpen } from 'lucide-react'
 import { FocusCircle } from './FocusCircle'
@@ -305,7 +304,11 @@ function OverdueCard({ tasks, onMoveToToday, onMoveToTomorrow, onDelete }) {
 // 主组件
 // ═══════════════════════════════════════════════════════════════════════════
 export function FocusView({
-  tasks = [],
+  todayTasks = [],
+  completedCount = 0,
+  overdueTasks = [],
+  planetTasks = [],
+  allTasks = [],
   onComplete,
   onMoveToToday,
   onMoveToTomorrow,
@@ -332,27 +335,6 @@ export function FocusView({
 
   // 星座系统
   const { stars, addStar } = useConstellation()
-
-  // 今日任务（包括过期）
-  const todayTasks = useMemo(() => {
-    return tasks.filter(t =>
-      !t.completed && (isToday(t.dueDate) || isPast(t.dueDate))
-    )
-  }, [tasks])
-
-  // 已完成任务数
-  const completedToday = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return tasks.filter(t =>
-      t.completed && t.completedAt && new Date(t.completedAt) >= today
-    ).length
-  }, [tasks])
-
-  // 过期任务
-  const overdueTasks = useMemo(() => {
-    return tasks.filter(t => !t.completed && isPast(t.dueDate))
-  }, [tasks])
 
   // 加载推荐任务
   const loadRecommendations = useCallback(async () => {
@@ -382,15 +364,13 @@ export function FocusView({
 
   // 处理任务完成
   const handleComplete = useCallback((taskId) => {
-    const task = tasks.find(t => t.id === taskId)
+    const task = todayTasks.find(t => t.id === taskId)
     if (task) {
-      // 标记完成时间
-      const completedTask = { ...task, completed: true, completedAt: new Date().toISOString() }
       onComplete?.(taskId)
     }
     setRecommendedTasks(prev => prev.filter(t => t.id !== taskId))
     if (selectedTaskId === taskId) setSelectedTaskId(null)
-  }, [tasks, onComplete, selectedTaskId])
+  }, [todayTasks, onComplete, selectedTaskId])
 
   // 处理任务选择
   const handleTaskSelect = useCallback((taskId) => {
@@ -419,8 +399,8 @@ export function FocusView({
   }, [])
 
   // 判断状态
-  const isEmpty = todayTasks.length === 0 && completedToday === 0
-  const isAllDone = todayTasks.length === 0 && completedToday > 0
+  const isEmpty = todayTasks.length === 0 && completedCount === 0
+  const isAllDone = todayTasks.length === 0 && completedCount > 0
 
   return (
     <div className={cn(
@@ -429,9 +409,10 @@ export function FocusView({
     )}>
       {/* 柔性宇宙插画 */}
       <FocusCircle
-        totalCount={todayTasks.length + completedToday}
-        completedCount={completedToday}
-        tasks={tasks}
+        totalCount={todayTasks.length + completedCount}
+        completedCount={completedCount}
+        planetTasks={planetTasks}
+        allTasks={allTasks}
         selectedTaskId={selectedTaskId}
         onParticleClick={handleComplete}
         onTaskSelect={handleTaskSelect}

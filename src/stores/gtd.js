@@ -465,6 +465,36 @@ export function useGTD(options = {}) {
     }, {})
   }, [tasks])
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 预处理数据 - 供 FocusView 使用
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // 今日任务（包括过期）
+  const todayTasks = useMemo(() => {
+    return tasks.filter(t =>
+      !t.completed && (isToday(t.dueDate) || isPast(t.dueDate))
+    )
+  }, [tasks])
+
+  // 已完成任务数
+  const completedToday = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return tasks.filter(t =>
+      t.completed && t.completedAt && new Date(t.completedAt) >= today
+    ).length
+  }, [tasks])
+
+  // 过期任务
+  const overdueTasks = useMemo(() => {
+    return tasks.filter(t => !t.completed && isPast(t.dueDate))
+  }, [tasks])
+
+  // 行星任务（未完成，最多 6 个）
+  const planetTasks = useMemo(() => {
+    return tasks.filter(t => !t.completed).slice(0, 6)
+  }, [tasks])
+
   return {
     tasks,
     filteredTasks,
@@ -478,6 +508,11 @@ export function useGTD(options = {}) {
     toggleComplete,
     moveTask,
     loadTasks: loadTasksFromData,
-    flush
+    flush,
+    // 预处理数据
+    todayTasks,
+    completedToday,
+    overdueTasks,
+    planetTasks
   }
 }

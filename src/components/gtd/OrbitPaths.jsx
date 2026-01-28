@@ -5,7 +5,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { useEffect, useRef, useMemo } from 'react'
+import React, { useEffect, useRef, useMemo } from 'react'
 import gsap from 'gsap'
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -35,7 +35,7 @@ function getEllipsePoint(cx, cy, rx, ry, angle, rotation) {
 // 单个弧线片段
 // ═══════════════════════════════════════════════════════════════════════════
 
-function OrbitSegment({ segment, index }) {
+const OrbitSegment = React.memo(function OrbitSegment({ segment, index }) {
   // 计算弧线路径
   const start = getEllipsePoint(segment.cx, segment.cy, segment.rx, segment.ry, segment.startAngle, segment.rotation)
   const end = getEllipsePoint(segment.cx, segment.cy, segment.rx, segment.ry, segment.endAngle, segment.rotation)
@@ -70,7 +70,7 @@ function OrbitSegment({ segment, index }) {
       />
     </>
   )
-}
+})
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 生成轨道片段 - 随机分布的短弧线
