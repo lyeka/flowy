@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 @/stores/gtd, @/stores/journal, @/hooks/useFileSystem, @/hooks/useSync, @/components/gtd/*, @/components/ui/sonner, @/lib/platform, react-i18next
  * [OUTPUT]: 导出 App 根组件
- * [POS]: 应用入口，组装 GTD 布局，支持列表/日历/日记视图切换，集成跨平台功能（桌面端+移动端），管理抽屉和快速捕获状态，集成文件系统和云同步
+ * [POS]: 应用入口，组装 GTD 布局，支持专注/列表/日历/日记视图切换，集成跨平台功能（桌面端+移动端），管理抽屉和快速捕获状态，集成文件系统和云同步
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -20,6 +20,7 @@ import { CalendarView } from '@/components/gtd/CalendarView'
 import { NotesPanel } from '@/components/gtd/NotesPanel'
 import { JournalNowView } from '@/components/gtd/JournalNowView'
 import { JournalPastView } from '@/components/gtd/JournalPastView'
+import { FocusView } from '@/components/gtd/FocusView'
 import { ConflictDialog } from '@/components/gtd/ConflictDialog'
 import { Toaster } from '@/components/ui/sonner'
 import { toast } from 'sonner'
@@ -78,7 +79,7 @@ function AppContent({ fileSystem, sync }) {
     getJournalById
   } = useJournal()
 
-  const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
+  const [viewMode, setViewMode] = useState('focus') // 'focus' | 'list' | 'calendar'
   const [journalView, setJournalView] = useState(null) // 'now' | 'past' | null
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false) // 移动端抽屉状态
@@ -327,6 +328,7 @@ function AppContent({ fileSystem, sync }) {
           activeList={activeList}
           onSelect={setActiveList}
           counts={counts}
+          tasks={tasks}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           journalView={journalView}
@@ -337,6 +339,9 @@ function AppContent({ fileSystem, sync }) {
           onSettingsOpenChange={setSettingsOpen}
           sync={sync}
           fileSystem={fileSystem}
+          onMoveTask={moveTask}
+          onDeleteTask={deleteTask}
+          onToggleComplete={handleToggleComplete}
         />
       )}
       {/* 视图渲染优先级：journalView > viewMode */}
@@ -344,6 +349,27 @@ function AppContent({ fileSystem, sync }) {
         <JournalNowView onClose={() => setJournalView(null)} />
       ) : journalView === 'past' ? (
         <JournalPastView />
+      ) : viewMode === 'focus' ? (
+        <FocusView
+          tasks={tasks}
+          onComplete={handleToggleComplete}
+          onMoveToToday={(id) => moveTask(id, GTD_LISTS.TODAY)}
+          onMoveToTomorrow={(id) => {
+            const tomorrow = new Date()
+            tomorrow.setDate(tomorrow.getDate() + 1)
+            tomorrow.setHours(0, 0, 0, 0)
+            updateTask(id, { dueDate: tomorrow.getTime() })
+          }}
+          onDelete={handleDelete}
+          onGoToInbox={() => {
+            setActiveList(GTD_LISTS.INBOX)
+            setViewMode('list')
+          }}
+          onGoToToday={() => {
+            setActiveList(GTD_LISTS.TODAY)
+            setViewMode('list')
+          }}
+        />
       ) : viewMode === 'calendar' ? (
         <CalendarView
           tasks={tasks}
@@ -534,6 +560,7 @@ function AppContent({ fileSystem, sync }) {
             activeList={activeList}
             onSelect={setActiveList}
             counts={counts}
+            tasks={tasks}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             journalView={journalView}
@@ -546,6 +573,9 @@ function AppContent({ fileSystem, sync }) {
             onQuickCaptureOpen={() => setQuickCaptureOpen(true)}
             sync={sync}
             fileSystem={fileSystem}
+            onMoveTask={moveTask}
+            onDeleteTask={deleteTask}
+            onToggleComplete={handleToggleComplete}
           />
 
           {/* 移动端抽屉 */}

@@ -1,14 +1,14 @@
 /**
- * [INPUT]: React hooks, crypto.js (encryptKey, decryptKey), openai.js (generatePrompts, generateTitle), prompts.js (buildContext)
+ * [INPUT]: React hooks, crypto.js (encryptKey, decryptKey), openai.js (generatePrompts, generateTitle, recommendTasks), prompts.js (buildContext, getLocalRecommendedTasks)
  * [OUTPUT]: useAI hook - AI 配置和状态管理
- * [POS]: AI 模块的状态层，管理配置和生成逻辑（问题 + 标题）
+ * [POS]: AI 模块的状态层，管理配置和生成逻辑（问题 + 标题 + 任务推荐）
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState, useEffect, useCallback } from 'react'
 import { encryptKey, decryptKey } from '@/lib/ai/crypto'
-import { generatePrompts as generatePromptsAPI, generateTitle as generateTitleAPI } from '@/lib/ai/openai'
-import { buildContext } from '@/lib/ai/prompts'
+import { generatePrompts as generatePromptsAPI, generateTitle as generateTitleAPI, recommendTasks as recommendTasksAPI } from '@/lib/ai/openai'
+import { buildContext, getLocalRecommendedTasks } from '@/lib/ai/prompts'
 
 // ============================================================
 // Constants
@@ -143,6 +143,47 @@ export function useAI() {
     setConfig(DEFAULT_CONFIG)
   }, [])
 
+  // 推荐任务
+  const recommendTasks = useCallback(async (tasks) => {
+    // 如果没有任务，返回空
+    if (!tasks || tasks.length === 0) {
+      return { tasks: [], fallback: true }
+    }
+
+    // 如果 AI 未启用，使用本地排序
+    if (!config.enabled || !config.apiKey) {
+      return { tasks: getLocalRecommendedTasks(tasks, 3), fallback: true }
+    }
+
+    setGenerating(true)
+    setError(null)
+
+    try {
+      // 获取时间上下文
+      const hour = new Date().getHours()
+      const dayOfWeek = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][new Date().getDay()]
+      let timeOfDay = '清晨'
+      if (hour >= 8 && hour < 12) timeOfDay = '上午'
+      else if (hour >= 12 && hour < 14) timeOfDay = '中午'
+      else if (hour >= 14 && hour < 18) timeOfDay = '下午'
+      else if (hour >= 18 && hour < 22) timeOfDay = '晚上'
+      else if (hour >= 22 || hour < 5) timeOfDay = '深夜'
+
+      const timeContext = { dayOfWeek, timeOfDay }
+
+      // 调用 API
+      const result = await recommendTasksAPI(tasks, timeContext, config)
+
+      setGenerating(false)
+      return result
+    } catch (err) {
+      console.error('Failed to recommend tasks:', err)
+      setGenerating(false)
+      setError(err.message)
+      return { tasks: getLocalRecommendedTasks(tasks, 3), fallback: true }
+    }
+  }, [config])
+
   return {
     config,
     generating,
@@ -151,6 +192,7 @@ export function useAI() {
     getDecryptedApiKey,
     generatePrompts,
     generateTitle,
+    recommendTasks,
     resetConfig
   }
 }

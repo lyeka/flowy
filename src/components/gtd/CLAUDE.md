@@ -4,7 +4,7 @@
 ## 成员清单
 
 QuickCapture.jsx: 快速收集输入框，顶部任务添加入口
-Sidebar.jsx: 侧边栏导航，GTD 五大列表切换 + 列表/日历视图切换 + 日记分组（此刻/过往）+ 设置入口，移动端简化为 3 按钮底部导航（Menu、FAB、日历）
+Sidebar.jsx: 侧边栏导航，GTD 五大列表切换 + 专注/列表/日历视图切换 + 日记分组（此刻/过往）+ 设置入口，移动端简化为 3 按钮底部导航（Menu、FAB、日历）
 Drawer.jsx: 移动端左侧滑抽屉，显示 GTD 五大列表 + 日记分组 + 设置入口，替代底部导航的列表切换功能
 ActionSheet.jsx: 移动端底部操作表，显示任务操作选项（设置日期、移动到列表、删除），替代桌面端的下拉菜单
 ConflictDialog.jsx: 同步冲突解决对话框，展示冲突详情 + 策略选择（合并/本地/远程/保留两者）
@@ -21,9 +21,19 @@ JournalPastView.jsx: "过往"视图，历史日记支持列表/弧线画布（�
 JournalItem.jsx: 过往日记列表项，显示日期 + 标题 + 预览 + 字数
 JournalChip.jsx: 日历内日记小卡片，虚线边框，不可拖拽，BookText 图标
 AIPromptCard.jsx: AI 问题卡片，展示生成的引导问题（无 emoji），支持点击插入、悬停删除、刷新，淡入淡出动画，显示加载状态
+FocusView.jsx: 专注视图主组件，柔性宇宙插画风格，整合 FocusCircle + TaskBubbleZone + Empty/Complete 状态
+FocusCircle.jsx: 专注视图核心 - 柔性宇宙插画，SVG filter 手绘行星 + 椭圆轨道带
+StarDust.jsx: 背景星点层，GSAP 动画，35个微小白色粒子极慢漂浮
+OrbitPaths.jsx: 椭圆轨道带 - 多条同心椭圆（像土星环），深蓝紫色，GSAP 描边动画
+Planet.jsx: SVG filter 手绘风格行星，feTurbulence + feDisplacementMap 实现不规则边缘，玻璃球高光
+BlueDust.jsx: 蓝色粒子层，GSAP 动画，25个蓝色小点集中在中间区域
+MiniInfo.jsx: 右上角极简信息标签，GSAP 入场动画，问候语 + 数字
+NoiseOverlay.jsx: 全局噪点纹理层，SVG feTurbulence 实现颗粒感
+FloatingTaskBubble.jsx: 漂浮气泡任务卡片，圆角胶囊形状，渐变圆点前缀，与行星系统融为一体
+TaskBubbleZone.jsx: 底部任务气泡区域，水平排列漂浮气泡，最多显示5个
 
 ## 子目录
 
-settings/: 设置模块，左右分栏布局（桌面端）+ Sheet 全屏（移动端）
+settings/: 设置模块，左右分栏布局��桌面端）+ Sheet 全屏（移动端）
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

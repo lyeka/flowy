@@ -1,6 +1,6 @@
 /**
  * [INPUT]: React useState/useEffect/useCallback/useMemo/useRef, format/task.js
- * [OUTPUT]: useGTD hook，提供任务 CRUD 和状态管理，支持文件系统持久化
+ * [OUTPUT]: useGTD hook，提供任务 CRUD 和状态管理，支持文件系统持久化；calculateFocusState 专注度计算；isToday/isPast/isFuture 日期工具
  * [POS]: stores 层核心状态模块，被所有 GTD 组件消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -103,25 +103,66 @@ const getTodayBounds = () => {
   return { start, end }
 }
 
-const isToday = (timestamp) => {
+// 导出日期工具函数供其他模块使用
+export const isToday = (timestamp) => {
   if (!timestamp) return false
   const { start, end } = getTodayBounds()
   return timestamp >= start && timestamp < end
 }
 
-const isFuture = (timestamp) => {
+export const isFuture = (timestamp) => {
   if (!timestamp) return false
   const { end } = getTodayBounds()
   return timestamp >= end
 }
 
-const isPast = (timestamp) => {
+export const isPast = (timestamp) => {
   if (!timestamp) return false
   const { start } = getTodayBounds()
   return timestamp < start
 }
 
 const getStartOfTomorrow = () => getTodayBounds().end
+
+/* ========================================
+   专注度计算
+   ======================================== */
+
+/**
+ * 计算专注度状态
+ * @param {Array} tasks - 所有任务
+ * @returns {Object} 专注度状态
+ */
+export function calculateFocusState(tasks) {
+  // 今日任务：dueDate 是今天且未完成
+  const today = tasks.filter(t => isToday(t.dueDate) && !t.completed)
+  // 过期任务：dueDate 在今天之前且未完成
+  const overdue = tasks.filter(t => isPast(t.dueDate) && !t.completed && t.dueDate)
+
+  // 主状态：基于 Today 数量
+  // idle(0) → flow(1-2) → optimal(3-5) → busy(6-7) → overload(8+)
+  let state = 'optimal'
+
+  if (today.length === 0) {
+    state = 'idle'
+  } else if (today.length <= 2) {
+    state = 'flow'
+  } else if (today.length <= 5) {
+    state = 'optimal'
+  } else if (today.length <= 7) {
+    state = 'busy'
+  } else {
+    state = 'overload'
+  }
+
+  return {
+    state,
+    todayCount: today.length,
+    overdueCount: overdue.length,
+    overdueTasks: overdue,
+    todayTasks: today
+  }
+}
 
 const isTaskInList = (task, list) => {
   switch (list) {

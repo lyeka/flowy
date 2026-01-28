@@ -256,5 +256,72 @@
     "links": "链接",
     "madeWith": "用",
     "by": "制作"
+  },
+  "focus": {
+    "title": "专注",
+    "circle": {
+      "morning": "早安",
+      "afternoon": "下午好",
+      "evening": "晚上好",
+      "night": "夜深了",
+      "empty": "今天还没有安排",
+      "allDone": "全部完成",
+      "pending": "件事待完成"
+    },
+    "greeting": {
+      "morning": "早安，今天有 {{count}} 件事",
+      "afternoon": "下午好，还有 {{count}} 件事",
+      "evening": "晚上好，今天完成得不错",
+      "night": "夜深了，好好休息"
+    },
+    "state": {
+      "idle": "今天还没开始，从收集箱挑几件事？",
+      "flow": "节奏刚好，专注当下",
+      "optimal": "状态正佳，继续保持",
+      "busy": "有点忙，但你能搞定",
+      "overload": "事情有点多，挑最重要的 3 件先做"
+    },
+    "overdue": {
+      "title": "{{count}} 个过期任务需要处理",
+      "one": "有 1 件事还没处理，要现在做吗？",
+      "few": "有几件事拖了一阵子，整理一下？",
+      "many": "积压了一些事情，挑重要的先处理"
+    },
+    "recommend": {
+      "title": "AI 推荐你先做这 {{count}} 件",
+      "short": "AI 推荐",
+      "loading": "AI 正在分析...",
+      "fallback": "默认排序",
+      "refresh": "刷新推荐",
+      "viewAll": "查看全部任务"
+    },
+    "empty": {
+      "title": "今天还没有任务",
+      "hint": "从收集箱选几件事？",
+      "action": "去收集箱"
+    },
+    "complete": {
+      "title": "太棒了！",
+      "hint": "今天的任务都完成了"
+    },
+    "task": {
+      "createdToday": "今天创建",
+      "createdAgo": "创建于 {{days}} 天前",
+      "dueToday": "今天到期",
+      "overdue": "过期 {{days}} 天"
+    },
+    "viewAll": "查看全部",
+    "viewToday": "查看今日任务",
+    "fromInbox": "从收集箱选择",
+    "fromSomeday": "从搁置中选择",
+    "simplify": "精简任务",
+    "aiRecommend": "AI 推荐",
+    "overdueTitle": "{{count}} 个过期任务",
+    "daysOverdue": "过期 {{days}} 天",
+    "today": "今天",
+    "tomorrow": "明天",
+    "abandon": "放弃",
+    "moveAllToToday": "全部移到今天",
+    "abandonAll": "全部放弃"
   }
 }
