@@ -30,9 +30,6 @@ export function FloatingTaskBubble({
   const colorKey = COLOR_KEYS[index % COLOR_KEYS.length]
   const color = PLANET_COLORS[colorKey]
 
-  // 生成渐变
-  const gradient = `radial-gradient(circle at 35% 35%, ${color.highlight} 0%, ${color.base} 50%, ${color.shadow} 100%)`
-
   // 随机动画参数
   const animDuration = useMemo(() => 4 + Math.random() * 2, [])
   const animDelay = useMemo(() => Math.random() * 2, [])
@@ -67,10 +64,10 @@ export function FloatingTaskBubble({
       whileTap={{ scale: 0.95 }}
       onClick={() => onComplete?.(task.id)}
     >
-      {/* 小圆点 - 与行星呼应 */}
+      {/* 小圆点 - 与行星呼应，平涂风格 */}
       <div
         className="w-3 h-3 rounded-full flex-shrink-0"
-        style={{ background: gradient }}
+        style={{ background: color.fill }}
       />
 
       {/* 任务标题 */}

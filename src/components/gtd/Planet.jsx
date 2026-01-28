@@ -1,7 +1,7 @@
 /**
  * [INPUT]: react, gsap, @/lib/utils
  * [OUTPUT]: Planet 组件, PLANET_COLORS 常量
- * [POS]: SVG filter 手绘风格行星，不规则边缘 + 渐变填充 + 玻璃球高光
+ * [POS]: 手绘插画风格行星，平涂色块 + SVG filter 不规则边缘
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -10,33 +10,29 @@ import gsap from 'gsap'
 import { cn } from '@/lib/utils'
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 行星颜色配置
+// 行星颜色配置 - 平涂色块，手绘插画风格
 // ═══════════════════════════════════════════════════════════════════════════
 export const PLANET_COLORS = {
   coral: {
-    base: '#ff7b5c',
-    highlight: '#ffb090',
-    shadow: '#cc5a40',
+    fill: '#ff7b5c',
+    stroke: '#cc5a40',
   },
   purple: {
-    base: '#a855f7',
-    highlight: '#d4a5ff',
-    shadow: '#7c3aed',
+    fill: '#a855f7',
+    stroke: '#7c3aed',
   },
   cyan: {
-    base: '#4dd4ac',
-    highlight: '#a0f0d0',
-    shadow: '#2a9d8f',
+    fill: '#4dd4ac',
+    stroke: '#2a9d8f',
   },
   cream: {
-    base: '#f0d090',
-    highlight: '#fff0c0',
-    shadow: '#c0a060',
+    fill: '#f0d090',
+    stroke: '#c0a060',
   },
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 手绘风格行星组件 - SVG filter 实现不规则边缘
+// 手绘插画风格行星 - 平涂 + 不规则边缘
 // ═══════════════════════════════════════════════════════════════════════════
 export function Planet({
   task,
@@ -91,9 +87,6 @@ export function Planet({
     return () => tween.kill()
   }, [layerConfig.speed])
 
-  // 渐变背景
-  const gradient = `radial-gradient(circle at 30% 30%, ${color.highlight} 0%, ${color.base} 45%, ${color.shadow} 100%)`
-
   return (
     <div
       ref={ref}
@@ -115,14 +108,17 @@ export function Planet({
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onClick?.(task?.id)}
     >
-      {/* SVG Filter 定义 */}
-      <svg className="absolute w-0 h-0">
+      {/* SVG 手绘行星 */}
+      <svg
+        className="absolute inset-0 w-full h-full"
+        viewBox="0 0 100 100"
+      >
         <defs>
+          {/* 手绘扭曲效果 */}
           <filter id={filterId}>
-            {/* 手绘扭曲效果 */}
             <feTurbulence
               type="turbulence"
-              baseFrequency="0.015"
+              baseFrequency="0.02"
               numOctaves="2"
               result="noise"
               seed={Math.floor(Math.random() * 100)}
@@ -130,61 +126,39 @@ export function Planet({
             <feDisplacementMap
               in="SourceGraphic"
               in2="noise"
-              scale={size * 0.04}
+              scale="3"
               xChannelSelector="R"
               yChannelSelector="G"
             />
           </filter>
         </defs>
-      </svg>
 
-      {/* 土星环（在行星后面） */}
-      {hasRing && (
-        <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            width: size * 1.6,
-            height: size * 0.5,
-            border: `2px solid ${color.base}60`,
-            borderRadius: '50%',
-            transform: 'translate(-50%, -50%) rotateX(70deg)',
-          }}
+        {/* 土星环（在行星后面） */}
+        {hasRing && (
+          <ellipse
+            cx="50"
+            cy="50"
+            rx="45"
+            ry="12"
+            fill="none"
+            stroke={color.stroke}
+            strokeWidth="2"
+            strokeOpacity="0.5"
+            filter={`url(#${filterId})`}
+          />
+        )}
+
+        {/* 行星主体 - 平涂色块 */}
+        <circle
+          cx="50"
+          cy="50"
+          r="42"
+          fill={color.fill}
+          stroke={color.stroke}
+          strokeWidth="2"
+          filter={`url(#${filterId})`}
         />
-      )}
-
-      {/* 行星主体 - 应用手绘 filter */}
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: gradient,
-          boxShadow: `0 0 ${size * 0.3}px ${color.base}40`,
-          filter: `url(#${filterId})`,
-        }}
-      />
-
-      {/* 玻璃球高光 */}
-      <div
-        className="absolute rounded-full bg-white/70"
-        style={{
-          width: size * 0.15,
-          height: size * 0.15,
-          left: '22%',
-          top: '18%',
-          filter: 'blur(1px)',
-        }}
-      />
-
-      {/* 次级高光 */}
-      <div
-        className="absolute rounded-full bg-white/40"
-        style={{
-          width: size * 0.08,
-          height: size * 0.08,
-          left: '35%',
-          top: '28%',
-          filter: 'blur(0.5px)',
-        }}
-      />
+      </svg>
 
       {/* Tooltip */}
       {isHovered && task && (
