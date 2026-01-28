@@ -298,7 +298,9 @@
     "empty": {
       "title": "No tasks for today",
       "hint": "Pick some from inbox?",
-      "action": "Go to Inbox"
+      "action": "Go to Inbox",
+      "universe": "The universe begins with your first thought",
+      "complete": "The universe feels complete today"
     },
     "complete": {
       "title": "Awesome!",
@@ -309,6 +311,16 @@
       "createdAgo": "Created {{days}} days ago",
       "dueToday": "Due today",
       "overdue": "{{days}} days overdue"
+    },
+    "pomodoro": {
+      "selectDuration": "Select focus duration",
+      "start": "Start Focus",
+      "abandon": "Abandon",
+      "completeTask": "Complete Task",
+      "continue": "Continue Next",
+      "timeUp": "Time's up!",
+      "takeBreak": "Take a break, grab some water",
+      "completedCount": "{{count}} completed"
     },
     "viewAll": "View all",
     "viewToday": "View Today",
@@ -322,6 +334,8 @@
     "tomorrow": "Tomorrow",
     "abandon": "Abandon",
     "moveAllToToday": "Move all to today",
-    "abandonAll": "Abandon all"
+    "abandonAll": "Abandon all",
+    "writeJournal": "Write Journal",
+    "viewTomorrow": "View Tomorrow"
   }
 }

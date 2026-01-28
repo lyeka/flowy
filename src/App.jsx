@@ -369,6 +369,16 @@ function AppContent({ fileSystem, sync }) {
             setActiveList(GTD_LISTS.TODAY)
             setViewMode('list')
           }}
+          onEditTask={(task) => {
+            setSelectedTaskId(task.id)
+            setViewMode('list')
+          }}
+          onUpdatePomodoro={(taskId, count) => {
+            updateTask(taskId, {
+              pomodoros: count,
+              lastPomodoroAt: new Date().toISOString()
+            })
+          }}
         />
       ) : viewMode === 'calendar' ? (
         <CalendarView

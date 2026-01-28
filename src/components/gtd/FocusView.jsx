@@ -1,76 +1,302 @@
 /**
- * [INPUT]: react, react-i18next, framer-motion, @/stores/gtd, @/stores/ai, @/lib/utils, @/components/gtd/Focus*, @/components/gtd/TaskBubbleZone
+ * [INPUT]: react, react-i18next, framer-motion, @/stores/gtd, @/stores/ai, @/lib/utils, @/components/gtd/Focus*, @/components/gtd/TaskBubbleZone, @/components/gtd/FocusMode
  * [OUTPUT]: FocusView 组件
- * [POS]: 专注视图主组件，柔性宇宙插画风格
+ * [POS]: 专注视图主组件，柔性宇宙插画风格，整合专注模式、坍缩动画、星座系统
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { isToday, isPast } from '@/stores/gtd'
 import { useAI } from '@/stores/ai'
-import { ChevronRight, Sparkles } from 'lucide-react'
+import { ChevronRight, Sparkles, Plus, Calendar, BookOpen } from 'lucide-react'
 import { FocusCircle } from './FocusCircle'
 import { TaskBubbleZone } from './TaskBubbleZone'
+import { FocusMode } from './FocusMode'
+import { useConstellation } from './Constellation'
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 空状态 - 宁静的虚无
+// 空状态 - 三层递进式引导
 // ═══════════════════════════════════════════════════════════════════════════
-function EmptyState({ onGoToInbox }) {
+function EmptyState({ onGoToInbox, level = 'empty' }) {
   const { t } = useTranslation()
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="absolute bottom-24 left-1/2 -translate-x-1/2 text-center space-y-4 z-50"
-    >
-      <p className="text-white/60 font-light">
-        {t('focus.empty.hint')}
-      </p>
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onGoToInbox}
-        className={cn(
-          "inline-flex items-center gap-2 px-6 py-2.5 rounded-full",
-          "bg-white/15 hover:bg-white/25",
-          "text-white text-sm font-light",
-          "transition-colors backdrop-blur-sm"
-        )}
+  // 层级1：完全空白（无任务）
+  if (level === 'empty') {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="absolute bottom-24 left-1/2 -translate-x-1/2 text-center space-y-6 z-50 w-full max-w-md px-8"
       >
-        {t('focus.empty.action')}
-        <ChevronRight className="w-4 h-4" />
-      </motion.button>
-    </motion.div>
-  )
+        {/* 星点装饰 */}
+        <div className="flex justify-center gap-4 mb-8">
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="w-1 h-1 rounded-full"
+              style={{
+                background: 'var(--focus-text-bright)',
+                opacity: 0.4
+              }}
+              animate={{
+                scale: [1, 1.5, 1],
+                opacity: [0.4, 0.8, 0.4],
+              }}
+              transition={{
+                duration: 2 + i * 0.3,
+                repeat: Infinity,
+                delay: i * 0.2,
+              }}
+            />
+          ))}
+        </div>
+
+        <p className="text-lg font-light" style={{ color: 'var(--focus-text-secondary)' }}>
+          宇宙诞生于你的第一个念头
+        </p>
+
+        <div className="flex gap-4 justify-center">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onGoToInbox}
+            className={cn(
+              "inline-flex items-center gap-2 px-6 py-3 rounded-full",
+              "text-sm font-light",
+              "transition-colors backdrop-blur-sm"
+            )}
+            style={{
+              background: 'var(--focus-accent-bg)',
+              color: 'var(--focus-text-bright)'
+            }}
+          >
+            <Plus className="w-4 h-4" />
+            从收集箱选择
+          </motion.button>
+        </div>
+      </motion.div>
+    )
+  }
+
+  // 层级2：今日任务全部完成
+  if (level === 'complete') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="absolute bottom-24 left-1/2 -translate-x-1/2 text-center space-y-6 z-50 w-full max-w-md px-8"
+      >
+        {/* 恒星装饰 */}
+        <div className="flex justify-center gap-6 mb-4">
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="w-2 h-2 rounded-full"
+              style={{
+                background: 'var(--focus-star-core)',
+                opacity: 0.6,
+                boxShadow: '0 0 8px var(--focus-star-glow)'
+              }}
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.4, 0.9, 0.4],
+              }}
+              transition={{
+                duration: 2 + i * 0.4,
+                repeat: Infinity,
+                delay: i * 0.3,
+              }}
+            />
+          ))}
+        </div>
+
+        <p className="text-xl font-light" style={{ color: 'var(--focus-text-bright)' }}>
+          今天的宇宙很完整
+        </p>
+
+        <div className="flex gap-4 justify-center">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={cn(
+              "inline-flex items-center gap-2 px-5 py-2.5 rounded-full",
+              "text-sm font-light",
+              "transition-colors backdrop-blur-sm"
+            )}
+            style={{
+              background: 'var(--focus-accent-bg)',
+              color: 'var(--focus-text-bright)'
+            }}
+          >
+            <BookOpen className="w-4 h-4" />
+            写篇日记
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={cn(
+              "inline-flex items-center gap-2 px-5 py-2.5 rounded-full",
+              "text-sm font-light",
+              "transition-colors backdrop-blur-sm"
+            )}
+            style={{
+              background: 'var(--focus-accent-bg)',
+              color: 'var(--focus-text-bright)'
+            }}
+          >
+            <Calendar className="w-4 h-4" />
+            查看明日计划
+          </motion.button>
+        </div>
+      </motion.div>
+    )
+  }
+
+  return null
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 完成状态 - 完美的圆
+// 过期任务折叠卡片
 // ═══════════════════════════════════════════════════════════════════════════
-function CompleteState() {
+function OverdueCard({ tasks, onMoveToToday, onMoveToTomorrow, onDelete }) {
   const { t } = useTranslation()
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  if (tasks.length === 0) return null
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 100 }}
-      className="absolute bottom-24 left-1/2 -translate-x-1/2 text-center z-50"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="absolute top-6 left-6 right-6 z-50"
     >
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-        className="w-12 h-12 mx-auto mb-4"
+      <div
+        className={cn(
+          "rounded-2xl backdrop-blur-sm overflow-hidden border"
+        )}
+        style={{
+          background: 'oklch(from var(--destructive) l c h / 15%)',
+          borderColor: 'oklch(from var(--destructive) l c h / 20%)'
+        }}
       >
-        <Sparkles className="w-full h-full text-white/40" />
-      </motion.div>
-      <p className="text-white/60 font-light">
-        {t('focus.complete.hint')}
-      </p>
+        {/* 头部 */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full px-4 py-3 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <span
+              className="w-2 h-2 rounded-full animate-pulse"
+              style={{ background: 'var(--destructive)' }}
+            />
+            <span className="text-sm" style={{ color: 'var(--focus-text-bright)' }}>
+              {tasks.length} 个过期任务
+            </span>
+          </div>
+          <ChevronRight
+            className={cn(
+              "w-4 h-4 transition-transform",
+              isExpanded && "rotate-90"
+            )}
+            style={{ color: 'oklch(from var(--focus-text-bright) l c h / 60%)' }}
+          />
+        </button>
+
+        {/* 展开 */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-t"
+              style={{ borderColor: 'oklch(from var(--destructive) l c h / 10%)' }}
+            >
+              <div className="p-3 space-y-2">
+                {tasks.map(task => (
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between px-3 py-2 rounded-lg"
+                    style={{ background: 'oklch(from var(--destructive) l c h / 10%)' }}
+                  >
+                    <span
+                      className="text-sm truncate flex-1"
+                      style={{ color: 'oklch(from var(--focus-text-bright) l c h / 80%)' }}
+                    >
+                      {task.title}
+                    </span>
+                    <div className="flex gap-1 ml-2">
+                      <button
+                        onClick={() => onMoveToToday?.(task.id)}
+                        className="px-2 py-1 text-xs rounded transition-colors"
+                        style={{
+                          color: 'oklch(from var(--focus-text-bright) l c h / 60%)'
+                        }}
+                        onMouseEnter={(e) => e.target.style.color = 'var(--focus-text-bright)'}
+                        onMouseLeave={(e) => e.target.style.color = 'oklch(from var(--focus-text-bright) l c h / 60%)'}
+                      >
+                        今天
+                      </button>
+                      <button
+                        onClick={() => onMoveToTomorrow?.(task.id)}
+                        className="px-2 py-1 text-xs rounded transition-colors"
+                        style={{
+                          color: 'oklch(from var(--focus-text-bright) l c h / 60%)'
+                        }}
+                        onMouseEnter={(e) => e.target.style.color = 'var(--focus-text-bright)'}
+                        onMouseLeave={(e) => e.target.style.color = 'oklch(from var(--focus-text-bright) l c h / 60%)'}
+                      >
+                        明天
+                      </button>
+                      <button
+                        onClick={() => onDelete?.(task.id)}
+                        className="px-2 py-1 text-xs rounded transition-colors"
+                        style={{
+                          color: 'oklch(from var(--destructive) l c h / 70%)'
+                        }}
+                        onMouseEnter={(e) => e.target.style.color = 'oklch(from var(--destructive) l c h / 90%)'}
+                        onMouseLeave={(e) => e.target.style.color = 'oklch(from var(--destructive) l c h / 70%)'}
+                      >
+                        删除
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 批量操作 */}
+              <div className="px-3 pb-3 flex gap-2">
+                <button
+                  onClick={() => tasks.forEach(t => onMoveToToday?.(t.id))}
+                  className="flex-1 px-3 py-2 text-xs rounded-lg transition-colors"
+                  style={{
+                    color: 'oklch(from var(--focus-text-bright) l c h / 80%)'
+                  }}
+                  onMouseEnter={(e) => e.target.style.background = 'oklch(from var(--focus-text-bright) l c h / 10%)'}
+                  onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                >
+                  全部移到今天
+                </button>
+                <button
+                  onClick={() => setIsExpanded(false)}
+                  className="px-3 py-2 text-xs rounded-lg transition-colors"
+                  style={{
+                    color: 'oklch(from var(--focus-text-bright) l c h / 60%)'
+                  }}
+                  onMouseEnter={(e) => e.target.style.background = 'oklch(from var(--focus-text-bright) l c h / 10%)'}
+                  onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                >
+                  收起
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   )
 }
@@ -86,6 +312,8 @@ export function FocusView({
   onDelete,
   onGoToInbox,
   onGoToToday,
+  onEditTask,
+  onUpdatePomodoro,
   className
 }) {
   const { t } = useTranslation()
@@ -96,8 +324,14 @@ export function FocusView({
   const [isFallback, setIsFallback] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  // 选中任务状态 - 用于高亮对应星球
+  // 选中任务状态
   const [selectedTaskId, setSelectedTaskId] = useState(null)
+
+  // 专注模式状态
+  const [focusModeTask, setFocusModeTask] = useState(null)
+
+  // 星座系统
+  const { stars, addStar } = useConstellation()
 
   // 今日任务（包括过期）
   const todayTasks = useMemo(() => {
@@ -148,15 +382,40 @@ export function FocusView({
 
   // 处理任务完成
   const handleComplete = useCallback((taskId) => {
-    onComplete?.(taskId)
+    const task = tasks.find(t => t.id === taskId)
+    if (task) {
+      // 标记完成时间
+      const completedTask = { ...task, completed: true, completedAt: new Date().toISOString() }
+      onComplete?.(taskId)
+    }
     setRecommendedTasks(prev => prev.filter(t => t.id !== taskId))
-    // 清除选中状态
     if (selectedTaskId === taskId) setSelectedTaskId(null)
-  }, [onComplete, selectedTaskId])
+  }, [tasks, onComplete, selectedTaskId])
 
-  // 处理任务选择 - 高亮对应星球
+  // 处理任务选择
   const handleTaskSelect = useCallback((taskId) => {
     setSelectedTaskId(prev => prev === taskId ? null : taskId)
+  }, [])
+
+  // 处理长按进入专注模式
+  const handleLongPress = useCallback((task) => {
+    setFocusModeTask(task)
+  }, [])
+
+  // 处理行星坍缩完成
+  const handlePlanetCollapsed = useCallback((task, position, size) => {
+    // 添加到星座系统
+    addStar(task, position, size)
+  }, [addStar])
+
+  // 处理番茄钟完成
+  const handlePomodoroComplete = useCallback((taskId, count) => {
+    onUpdatePomodoro?.(taskId, count)
+  }, [onUpdatePomodoro])
+
+  // 处理专注模式放弃
+  const handleFocusModeAbandon = useCallback(() => {
+    setFocusModeTask(null)
   }, [])
 
   // 判断状态
@@ -172,18 +431,32 @@ export function FocusView({
       <FocusCircle
         totalCount={todayTasks.length + completedToday}
         completedCount={completedToday}
-        tasks={todayTasks}
+        tasks={tasks}
         selectedTaskId={selectedTaskId}
         onParticleClick={handleComplete}
         onTaskSelect={handleTaskSelect}
+        onLongPress={handleLongPress}
+        onPlanetCollapsed={handlePlanetCollapsed}
+        onEditTask={onEditTask}
+        onMoveToToday={onMoveToToday}
+        onMoveToTomorrow={onMoveToTomorrow}
+        onDeleteTask={onDelete}
         className="flex-1"
       />
 
+      {/* 过期任务卡片 */}
+      <OverdueCard
+        tasks={overdueTasks}
+        onMoveToToday={onMoveToToday}
+        onMoveToTomorrow={onMoveToTomorrow}
+        onDelete={onDelete}
+      />
+
       {/* 空状态 */}
-      {isEmpty && <EmptyState onGoToInbox={onGoToInbox} />}
+      {isEmpty && <EmptyState level="empty" onGoToInbox={onGoToInbox} />}
 
       {/* 完成状态 */}
-      {isAllDone && <CompleteState />}
+      {isAllDone && <EmptyState level="complete" />}
 
       {/* 底部任务气泡区 */}
       {!isEmpty && !isAllDone && recommendedTasks.length > 0 && (
@@ -197,24 +470,18 @@ export function FocusView({
         />
       )}
 
-      {/* 过期任务提醒 - 左上角 */}
-      {overdueTasks.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="absolute top-6 left-6 z-50"
-        >
-          <div className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-full",
-            "bg-red-500/20 backdrop-blur-sm",
-            "text-xs text-white/80 font-light"
-          )}>
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-            {t('focus.overdueTitle', { count: overdueTasks.length })}
-          </div>
-        </motion.div>
-      )}
+      {/* 专注模式 */}
+      <AnimatePresence>
+        {focusModeTask && (
+          <FocusMode
+            task={focusModeTask}
+            initialPomodoros={focusModeTask.pomodoros || 0}
+            onPomodoroComplete={handlePomodoroComplete}
+            onTaskComplete={handleComplete}
+            onAbandon={handleFocusModeAbandon}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

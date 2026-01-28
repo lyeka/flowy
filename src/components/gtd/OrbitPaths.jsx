@@ -1,7 +1,7 @@
 /**
  * [INPUT]: react, gsap
  * [OUTPUT]: OrbitPaths 组件
- * [POS]: 轨道带 - 椭圆形轨道线（像土星环），深蓝紫色
+ * [POS]: 轨道带 - 椭圆形轨道线（像土星环），使用 CSS 变量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -20,14 +20,12 @@ const ORBIT_ELLIPSES = [
   { cx: 400, cy: 300, rx: 580, ry: 220, rotation: -15, opacity: 0.1, width: 0.5, speed: 0.3 },
 ]
 
-// 深蓝紫色
-const ORBIT_COLOR = '100, 120, 180'
-
 // ═══════════════════════════════════════════════════════════════════════════
 // 轨道带组件 - 椭圆形，呼吸感动效
 // ═══════════════════════════════════════════════════════════════════════════
 export function OrbitPaths() {
   const ellipsesRef = useRef([])
+  const containerRef = useRef(null)
 
   // 入场动画 + 呼吸效果
   useEffect(() => {
@@ -62,9 +60,14 @@ export function OrbitPaths() {
 
   return (
     <svg
+      ref={containerRef}
       className="absolute inset-0 w-full h-full pointer-events-none"
       viewBox="0 0 800 600"
       preserveAspectRatio="xMidYMid slice"
+      style={{
+        // 使用 CSS 变量作为轨道颜色
+        color: 'var(--focus-orbit)'
+      }}
     >
       {ORBIT_ELLIPSES.map((orbit, i) => (
         <ellipse
@@ -75,7 +78,8 @@ export function OrbitPaths() {
           rx={orbit.rx}
           ry={orbit.ry}
           transform={`rotate(${orbit.rotation} ${orbit.cx} ${orbit.cy})`}
-          stroke={`rgba(${ORBIT_COLOR}, ${orbit.opacity})`}
+          stroke="currentColor"
+          strokeOpacity={orbit.opacity}
           strokeWidth={orbit.width}
           fill="none"
         />

@@ -298,7 +298,9 @@
     "empty": {
       "title": "今天还没有任务",
       "hint": "从收集箱选几件事？",
-      "action": "去收集箱"
+      "action": "去收集箱",
+      "universe": "宇宙诞生于你的第一个念头",
+      "complete": "今天的宇宙很完整"
     },
     "complete": {
       "title": "太棒了！",
@@ -309,6 +311,16 @@
       "createdAgo": "创建于 {{days}} 天前",
       "dueToday": "今天到期",
       "overdue": "过期 {{days}} 天"
+    },
+    "pomodoro": {
+      "selectDuration": "选择专注时长",
+      "start": "开始专注",
+      "abandon": "放弃",
+      "completeTask": "直接完成任务",
+      "continue": "继续下一个",
+      "timeUp": "时间到！",
+      "takeBreak": "休息一下，喝杯水",
+      "completedCount": "已完成 {{count}} 个"
     },
     "viewAll": "查看全部",
     "viewToday": "查看今日任务",
@@ -322,6 +334,8 @@
     "tomorrow": "明天",
     "abandon": "放弃",
     "moveAllToToday": "全部移到今天",
-    "abandonAll": "全部放弃"
+    "abandonAll": "全部放弃",
+    "writeJournal": "写篇日记",
+    "viewTomorrow": "查看明日计划"
   }
 }

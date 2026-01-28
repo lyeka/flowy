@@ -21,19 +21,21 @@ JournalPastView.jsx: "过往"视图，历史日记支持列表/弧线画布（�
 JournalItem.jsx: 过往日记列表项，显示日期 + 标题 + 预览 + 字数
 JournalChip.jsx: 日历内日记小卡片，虚线边框，不可拖拽，BookText 图标
 AIPromptCard.jsx: AI 问题卡片，展示生成的引导问题（无 emoji），支持点击插入、悬停删除、刷新，淡入淡出动画，显示加载状态
-FocusView.jsx: 专注视图主组件，柔性宇宙插画风格，整合 FocusCircle + TaskBubbleZone + Empty/Complete 状态
-FocusCircle.jsx: 专注视图核心 - 柔性宇宙插画，SVG filter 手绘行星 + 椭圆轨道带
+FocusView.jsx: 专注视图主组件，柔性宇宙插画风格，整合 FocusMode 专注模式 + Constellation 星座系统 + OverdueCard 过期任务卡片 + 两层空状态引导
+FocusCircle.jsx: 专注视图核心 - 柔性宇宙插画，时间感知背景（晨曦/清醒/午后/暮蓝/深空），行星位置 localStorage 持久化，集成 Constellation
+Planet.jsx: 手绘风格行星，支持坍缩动画（GSAP 收缩 + 粒子迸发 + 闪白）+ 红巨星状态（过期任务暗红脉动）+ 番茄环渲染（显示已完成番茄钟数量）+ 长按进入专注模式 + 右键菜单（编辑/移到今天或明天/删除）+ 拖拽整理位置
+FocusMode.jsx: 全屏专注模式组件，番茄钟计时器（15/25/45分钟可选），倒计时进度，完成番茄钟/直接完成任务按钮，放弃专注，GSAP 入场动画
+Constellation.jsx: 完成任务星座系统，已完成任务留下微弱恒星（闪烁动画），当天完成的恒星之间虚线连线，useConstellation hook 管理状态 + localStorage 持久化
 StarDust.jsx: 背景星点层，GSAP 动画，35个微小白色粒子极慢漂浮
 OrbitPaths.jsx: 椭圆轨道带 - 多条同心椭圆（像土星环），深蓝紫色，GSAP 描边动画
-Planet.jsx: SVG filter 手绘风格行星，feTurbulence + feDisplacementMap 实现不规则边缘，玻璃球高光
 BlueDust.jsx: 蓝色粒子层，GSAP 动画，25个蓝色小点集中在中间区域
-MiniInfo.jsx: 右上角极简信息标签，GSAP 入场动画，问候语 + 数字
+MiniInfo.jsx: 右上角极简信息标签，GSAP 入场动画，问候语 + 数字，支持时间感知
 NoiseOverlay.jsx: 全局噪点纹理层，SVG feTurbulence 实现颗粒感
 FloatingTaskBubble.jsx: 漂浮气泡任务卡片，圆角胶囊形状，渐变圆点前缀，与行星系统融为一体
 TaskBubbleZone.jsx: 底部任务气泡区域，水平排列漂浮气泡，最多显示5个
 
 ## 子目录
 
-settings/: 设置模块，左右分栏布局��桌面端）+ Sheet 全屏（移动端）
+settings/: 设置模块，左右分栏布局（桌面端）+ Sheet 全屏（移动端）
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

@@ -125,6 +125,48 @@
   --shadow-xl: 0px 1px 2px 0px hsl(225 27.7778% 14.1176% / 0.04), 0px 8px 10px -1px hsl(225 27.7778% 14.1176% / 0.04);
   --shadow-2xl: 0px 1px 2px 0px hsl(225 27.7778% 14.1176% / 0.10);
   --tracking-normal: 0em;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+   * Focus View 专用 token - 从设计系统派生
+   * ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* 时间感知背景 - stone 绿色系变体，与 --muted(88.6450°) 一致 */
+  --focus-bg-dawn: oklch(0.9850 0.0050 91.4461);
+  --focus-bg-morning: oklch(0.9650 0.0045 91.4461);
+  --focus-bg-afternoon: oklch(0.9251 0.0071 88.6450);
+  --focus-bg-evening: oklch(0.3500 0.0080 88.6450);
+  --focus-bg-night: oklch(0.1448 0.0050 88.6450);
+
+  /* 文字颜色 - 支持明暗背景 */
+  --focus-text-primary: oklch(0.2417 0.0298 269.8827);
+  --focus-text-secondary: oklch(0.5510 0.0234 264.3637);
+  --focus-text-muted: oklch(0.5510 0.0234 264.3637 / 70%);
+  --focus-text-bright: oklch(0.9702 0 0);
+
+  /* 行星颜色 - 保持特色但协调 */
+  --focus-planet-coral: oklch(0.7200 0.0800 30.0000);
+  --focus-planet-coral-glow: oklch(0.7200 0.0800 30.0000 / 60%);
+  --focus-planet-purple: oklch(0.6500 0.0800 280.0000);
+  --focus-planet-purple-glow: oklch(0.6500 0.0800 280.0000 / 60%);
+  --focus-planet-cyan: oklch(0.7000 0.0500 180.0000);
+  --focus-planet-cyan-glow: oklch(0.7000 0.0500 180.0000 / 60%);
+  --focus-planet-cream: oklch(0.9000 0.0150 85.0000);
+  --focus-planet-cream-glow: oklch(0.9000 0.0150 85.0000 / 60%);
+  --focus-planet-urgent: oklch(0.6500 0.1800 25.0000);
+  --focus-planet-urgent-glow: oklch(0.6500 0.1800 25.0000 / 80%);
+
+  /* 轨道带 - 基于设计系统的 primary 绿色 */
+  --focus-orbit: oklch(0.6333 0.0309 154.9039 / 25%);
+
+  /* UI 元素 */
+  --focus-card-bg: oklch(0.2417 0.0298 269.8827 / 90%);
+  --focus-card-border: oklch(0.2417 0.0298 269.8827 / 20%);
+  --focus-accent-bg: oklch(0.6333 0.0309 154.9039 / 20%);
+
+  /* 恒星/星座系统 */
+  --focus-star-core: oklch(0.9761 0.0041 91.4461);
+  --focus-star-glow: oklch(0.9761 0.0041 91.4461 / 60%);
+  --focus-star-line: oklch(0.9761 0.0041 91.4461 / 30%);
 }
 
 .dark {
@@ -180,6 +222,17 @@
   --shadow-lg: 0px 1px 2px 0px hsl(0 0% 0% / 0.04), 0px 4px 6px -1px hsl(0 0% 0% / 0.04);
   --shadow-xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.04), 0px 8px 10px -1px hsl(0 0% 0% / 0.04);
   --shadow-2xl: 0px 1px 2px 0px hsl(0 0% 0% / 0.10);
+
+  /* Focus View 深色模式适配 - stone 绿色系 */
+  --focus-bg-dawn: oklch(0.2000 0.0050 91.4461);
+  --focus-bg-morning: oklch(0.1822 0.0045 91.4461);
+  --focus-bg-afternoon: oklch(0.1600 0.0060 88.6450);
+  --focus-bg-evening: oklch(0.1448 0.0070 88.6450);
+  --focus-bg-night: oklch(0.1200 0.0050 88.6450);
+  --focus-text-primary: oklch(0.9702 0 0);
+  --focus-text-secondary: oklch(0.7058 0 0);
+  --focus-text-muted: oklch(0.5510 0.0234 264.3637 / 70%);
+  --focus-card-bg: oklch(0.9702 0 0 / 90%);
 }
 
 @layer base {
@@ -349,5 +402,19 @@
   50% {
     opacity: 1;
     transform: scale(1.1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 番茄环脉冲动画
+ * ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes ring-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
   }
 }
