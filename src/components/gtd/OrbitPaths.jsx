@@ -66,7 +66,6 @@ const OrbitSegment = React.memo(function OrbitSegment({ segment, index }) {
         strokeWidth={segment.width}
         fill="none"
         strokeLinecap="round"
-        style={{ filter: `blur(${segment.blur}px)` }}
       />
     </>
   )
@@ -147,6 +146,7 @@ export function OrbitPaths() {
       className="absolute inset-0 w-full h-full pointer-events-none"
       viewBox="0 0 800 600"
       preserveAspectRatio="xMidYMid slice"
+      style={{ filter: 'blur(0.6px)' }}
     >
       {segments.map((seg, index) => (
         <OrbitSegment key={index} segment={seg} index={index} />

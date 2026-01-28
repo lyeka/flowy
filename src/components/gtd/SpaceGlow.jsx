@@ -101,8 +101,7 @@ function GlowSpot({ glow, index }) {
           ${glow.color} 0%,
           transparent 65%
         )`,
-        opacity: glow.opacity,
-        filter: 'blur(60px)'
+        opacity: glow.opacity
       }}
     />
   )
@@ -140,7 +139,8 @@ export function SpaceGlow({
       ref={containerRef}
       className={cn("absolute inset-0 pointer-events-none", className)}
       style={{
-        zIndex: 5  // far 层，在 StarDust 和 DarkNebula 之上
+        zIndex: 5,  // far 层，在 StarDust 和 DarkNebula 之上
+        filter: 'blur(60px)'
       }}
     >
       {glows.map((glow, index) => (

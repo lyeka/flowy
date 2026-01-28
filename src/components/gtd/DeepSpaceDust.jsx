@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 // 极微小星点 - 0.3-1px，创造尺度差
 // ═══════════════════════════════════════════════════════════════════════════
 
-const MICRO_DUST_COUNT = 80  // 从200减少到80，提升性能
+const MICRO_DUST_COUNT = 25  // 从 80 减到 25，提升性能
 
 // 冷色系星点颜色 - 80% 灰白，20% 冷蓝
 function pickDustColor() {

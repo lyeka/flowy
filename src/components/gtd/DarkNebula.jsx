@@ -25,8 +25,7 @@ function NebulaParticle({ particle }) {
         transform: 'translate(-50%, -50%)',
         borderRadius: '50%',
         background: `radial-gradient(circle, ${particle.color} 0%, transparent 65%)`,
-        opacity: particle.opacity,
-        filter: `blur(${particle.blur}px)`
+        opacity: particle.opacity
       }}
     />
   )
@@ -40,7 +39,7 @@ function generateNebulaParticles() {
   const particles = []
 
   // 20-30 个小光点，形成云雾感
-  for (let i = 0; i < 24; i++) {
+  for (let i = 0; i < 8; i++) {
     particles.push({
       x: 10 + Math.random() * 80,
       y: 10 + Math.random() * 80,
@@ -74,7 +73,7 @@ export function DarkNebula({ className }) {
     <div
       ref={containerRef}
       className={cn("absolute inset-0 pointer-events-none", className)}
-      style={{ zIndex: 3, mixBlendMode: 'multiply' }}
+      style={{ zIndex: 3, mixBlendMode: 'multiply', filter: 'blur(20px)' }}
     >
       {particles.map((p, i) => (
         <NebulaParticle key={i} particle={p} />

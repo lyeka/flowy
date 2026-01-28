@@ -122,11 +122,17 @@ export function Sidebar({ activeList, onSelect, counts, tasks = [], viewMode, on
 
   // 桌面端：侧边栏
   return (
-    <aside className={cn(
-      "border-r bg-sidebar p-4 flex flex-col gap-4 transition-all duration-300",
-      collapsed ? "w-20" : "w-64",
-      className
-    )}>
+    <aside
+      className={cn(
+        "border-r bg-sidebar p-4 flex flex-col gap-4",
+        collapsed ? "w-20" : "w-64",
+        className
+      )}
+      style={{
+        transition: 'width 150ms ease-out',
+        willChange: 'width'
+      }}
+    >
       {/* 标题栏 + 折叠按钮 */}
       <div className={cn(
         "flex items-center px-3",

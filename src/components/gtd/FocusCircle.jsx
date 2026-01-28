@@ -212,7 +212,7 @@ export function FocusCircle({
       <DarkNebula />
 
       {/* 极微星点 - 移出层测试 */}
-      <DeepSpaceDust count={200} />
+      <DeepSpaceDust count={25} />
 
       {/* ═════════════════════════════════════════════════════════════════════════
           Mid Layer - 中景

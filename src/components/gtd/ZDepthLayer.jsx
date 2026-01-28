@@ -16,13 +16,13 @@ import gsap from 'gsap'
 export const DEPTH_LAYERS = {
   far: {
     zIndex: 3,
-    blur: 1,
+    blur: 0,  // 移除 blur，减少合成层
     parallaxSpeed: 0.03,  // 最慢，最远
     opacity: 0.7
   },
   mid: {
     zIndex: 10,
-    blur: 0.3,
+    blur: 0,  // 移除 blur，减少合成层
     parallaxSpeed: 0.15,  // 中速
     opacity: 0.85
   },
@@ -165,7 +165,8 @@ export function ParallaxProvider({
         onMouseLeave={handleMouseLeave}
         style={{
           '--parallax-x': '0px',
-          '--parallax-y': '0px'
+          '--parallax-y': '0px',
+          contain: 'layout style paint'
         }}
       >
         {children}

@@ -403,10 +403,13 @@ export function FocusView({
   const isAllDone = todayTasks.length === 0 && completedCount > 0
 
   return (
-    <div className={cn(
-      "flex-1 flex flex-col min-h-screen relative overflow-hidden",
-      className
-    )}>
+    <div
+      className={cn(
+        "flex-1 flex flex-col min-h-screen relative overflow-hidden",
+        className
+      )}
+      style={{ contain: 'layout style paint' }}
+    >
       {/* 柔性宇宙插画 */}
       <FocusCircle
         totalCount={todayTasks.length + completedCount}
