@@ -36,22 +36,6 @@ function getEllipsePoint(cx, cy, rx, ry, angle, rotation) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function OrbitSegment({ segment, index }) {
-  const pathRef = useRef(null)
-
-  useEffect(() => {
-    if (!pathRef.current) return
-
-    // 极慢闪烁
-    gsap.to(pathRef.current, {
-      strokeOpacity: segment.opacity * (0.4 + Math.random() * 0.4),
-      duration: 6 + Math.random() * 4,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut',
-      delay: Math.random() * 3
-    })
-  }, [segment.opacity])
-
   // 计算弧线路径
   const start = getEllipsePoint(segment.cx, segment.cy, segment.rx, segment.ry, segment.startAngle, segment.rotation)
   const end = getEllipsePoint(segment.cx, segment.cy, segment.rx, segment.ry, segment.endAngle, segment.rotation)
@@ -60,17 +44,34 @@ function OrbitSegment({ segment, index }) {
 
   const pathData = `M ${start.x} ${start.y} A ${segment.rx} ${segment.ry} ${segment.rotation} ${largeArcFlag} 1 ${end.x} ${end.y}`
 
+  // 根据弧线在椭圆上的位置决定亮度 - 透视效果
+  // SVG 坐标系：y=0 在顶部，y 向下增大
+  // y 越小（上方/远处）→ 更暗；y 越大（下方/近处）→ 更亮
+  const avgY = (start.y + end.y) / 2
+  // y 坐标范围大约 100-500，映射到 0.5-1.5 倍亮度
+  const positionFactor = (avgY - 150) / 200 + 0.5
+  const clampedFactor = Math.max(0.4, Math.min(1.6, positionFactor))
+
+  const gradientId = `orbit-seg-${index}`
+
   return (
-    <path
-      ref={pathRef}
-      d={pathData}
-      stroke="#5a6a7a"
-      strokeWidth={segment.width}
-      fill="none"
-      strokeLinecap="round"
-      strokeOpacity={segment.opacity}
-      style={{ filter: `blur(${segment.blur}px)` }}
-    />
+    <>
+      <defs>
+        <linearGradient id={gradientId} x1={`${start.x}%`} y1={`${start.y}%`} x2={`${end.x}%`} y2={`${end.y}%`}>
+          <stop offset="0%" stopColor="#5a6a7a" stopOpacity={segment.opacity * 0.4 * clampedFactor} />
+          <stop offset="50%" stopColor="#5a6a7a" stopOpacity={segment.opacity * clampedFactor} />
+          <stop offset="100%" stopColor="#5a6a7a" stopOpacity={segment.opacity * 0.4 * clampedFactor} />
+        </linearGradient>
+      </defs>
+      <path
+        d={pathData}
+        stroke={`url(#${gradientId})`}
+        strokeWidth={segment.width}
+        fill="none"
+        strokeLinecap="round"
+        style={{ filter: `blur(${segment.blur}px)` }}
+      />
+    </>
   )
 }
 
@@ -84,11 +85,11 @@ function generateOrbitSegments() {
 
   // 每条轨道分成 8-12 个随机片段
   const orbits = [
-    { rx: 350, ry: 100, count: 12, width: 1.5, blur: 0.3, baseOpacity: 0.6 },
-    { rx: 400, ry: 130, count: 10, width: 1.2, blur: 0.5, baseOpacity: 0.5 },
-    { rx: 450, ry: 160, count: 8, width: 1, blur: 0.8, baseOpacity: 0.4 },
-    { rx: 500, ry: 190, count: 7, width: 0.8, blur: 1, baseOpacity: 0.35 },
-    { rx: 550, ry: 220, count: 5, width: 0.5, blur: 1.2, baseOpacity: 0.25 },
+    { rx: 350, ry: 100, count: 12, width: 1.5, blur: 0.3, baseOpacity: 0.85 },
+    { rx: 400, ry: 130, count: 10, width: 1.2, blur: 0.5, baseOpacity: 0.75 },
+    { rx: 450, ry: 160, count: 8, width: 1, blur: 0.8, baseOpacity: 0.65 },
+    { rx: 500, ry: 190, count: 7, width: 0.8, blur: 1, baseOpacity: 0.55 },
+    { rx: 550, ry: 220, count: 5, width: 0.5, blur: 1.2, baseOpacity: 0.45 },
   ]
 
   orbits.forEach((orbit) => {
@@ -119,7 +120,7 @@ function generateOrbitSegments() {
         endAngle: startAngle + length,
         width: orbit.width,
         blur: orbit.blur,
-        opacity: orbit.baseOpacity * (0.6 + Math.random() * 0.4)
+        opacity: orbit.baseOpacity
       })
     }
   })
