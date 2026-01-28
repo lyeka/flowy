@@ -96,6 +96,9 @@ export function FocusView({
   const [isFallback, setIsFallback] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  // 选中任务状态 - 用于高亮对应星球
+  const [selectedTaskId, setSelectedTaskId] = useState(null)
+
   // 今日任务（包括过期）
   const todayTasks = useMemo(() => {
     return tasks.filter(t =>
@@ -147,7 +150,14 @@ export function FocusView({
   const handleComplete = useCallback((taskId) => {
     onComplete?.(taskId)
     setRecommendedTasks(prev => prev.filter(t => t.id !== taskId))
-  }, [onComplete])
+    // 清除选中状态
+    if (selectedTaskId === taskId) setSelectedTaskId(null)
+  }, [onComplete, selectedTaskId])
+
+  // 处理任务选择 - 高亮对应星球
+  const handleTaskSelect = useCallback((taskId) => {
+    setSelectedTaskId(prev => prev === taskId ? null : taskId)
+  }, [])
 
   // 判断状态
   const isEmpty = todayTasks.length === 0 && completedToday === 0
@@ -163,7 +173,9 @@ export function FocusView({
         totalCount={todayTasks.length + completedToday}
         completedCount={completedToday}
         tasks={todayTasks}
+        selectedTaskId={selectedTaskId}
         onParticleClick={handleComplete}
+        onTaskSelect={handleTaskSelect}
         className="flex-1"
       />
 
@@ -178,6 +190,8 @@ export function FocusView({
         <TaskBubbleZone
           tasks={recommendedTasks}
           isFallback={isFallback}
+          selectedTaskId={selectedTaskId}
+          onSelect={handleTaskSelect}
           onComplete={handleComplete}
           onViewAll={onGoToToday}
         />

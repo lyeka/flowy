@@ -19,22 +19,22 @@ import { NoiseOverlay } from './NoiseOverlay'
 // ═══════════════════════════════════════════════════════════════════════════
 const PLANET_CONFIG = [
   // 左侧小行星
-  { x: '12%', y: '45%', size: 40, colorKey: 'purple', layer: 'back' },
+  { x: '12%', y: '45%', size: 75, colorKey: 'purple', layer: 'back' },
 
-  // 中间巨大橙色行星（主角）
+  // 中间大行星（主角）
   { x: '50%', y: '50%', size: 150, colorKey: 'coral', layer: 'front' },
 
   // 右上小行星
-  { x: '72%', y: '28%', size: 45, colorKey: 'cyan', layer: 'mid' },
+  { x: '72%', y: '28%', size: 82, colorKey: 'cyan', layer: 'mid' },
 
   // 左下小行星
-  { x: '28%', y: '68%', size: 35, colorKey: 'purple', layer: 'back' },
+  { x: '28%', y: '68%', size: 68, colorKey: 'purple', layer: 'back' },
 
   // 右下土星
-  { x: '85%', y: '55%', size: 80, colorKey: 'cream', hasRing: true, layer: 'front' },
+  { x: '85%', y: '55%', size: 98, colorKey: 'cream', hasRing: true, layer: 'front' },
 
   // 额外小行星
-  { x: '62%', y: '65%', size: 28, colorKey: 'cyan', layer: 'mid' },
+  { x: '62%', y: '65%', size: 52, colorKey: 'cyan', layer: 'mid' },
 ]
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -44,7 +44,9 @@ export function FocusCircle({
   totalCount = 0,
   completedCount = 0,
   tasks = [],
+  selectedTaskId = null,
   onParticleClick,
+  onTaskSelect,
   className
 }) {
   // 准备行星任务数据 - 只取未完成的任务
@@ -62,6 +64,7 @@ export function FocusCircle({
         "bg-[#9aa8a0]",
         className
       )}
+      style={{ minHeight: '600px' }}
     >
       {/* Layer 1: 背景星点 */}
       <StarDust count={35} />
@@ -86,7 +89,9 @@ export function FocusCircle({
             colorKey={config.colorKey}
             hasRing={config.hasRing}
             layer={config.layer}
+            isSelected={task.id === selectedTaskId}
             onClick={onParticleClick}
+            onTaskSelect={onTaskSelect}
           />
         )
       })}

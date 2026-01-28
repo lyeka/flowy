@@ -16,6 +16,8 @@ import { FloatingTaskBubble } from './FloatingTaskBubble'
 export function TaskBubbleZone({
   tasks = [],
   isFallback = false,
+  selectedTaskId = null,
+  onSelect,
   onComplete,
   onViewAll,
   className
@@ -57,6 +59,8 @@ export function TaskBubbleZone({
               task={task}
               index={i}
               isAIRecommended={!isFallback}
+              isSelected={task.id === selectedTaskId}
+              onSelect={onSelect}
               onComplete={onComplete}
             />
           ))}

@@ -21,6 +21,8 @@ export function FloatingTaskBubble({
   task,
   index = 0,
   isAIRecommended = false,
+  isSelected = false,
+  onSelect,
   onComplete,
   className
 }) {
@@ -40,10 +42,13 @@ export function FloatingTaskBubble({
         "inline-flex items-center gap-3 px-5 py-3",
         "bg-background/40 backdrop-blur-md",
         "rounded-full",
-        "border border-border/20",
+        "border",
         "cursor-pointer",
-        "hover:bg-background/60 hover:border-primary/30",
-        "transition-colors",
+        "hover:bg-background/60",
+        "transition-all duration-200",
+        isSelected
+          ? "border-primary/50 bg-primary/10 ring-2 ring-primary/20"
+          : "border-border/20 hover:border-primary/30",
         className
       )}
       initial={{ opacity: 0, y: 20 }}
@@ -60,14 +65,20 @@ export function FloatingTaskBubble({
           delay: animDelay,
         },
       }}
-      whileHover={{ scale: 1.05 }}
+      whileHover={{ scale: isSelected ? 1.02 : 1.05 }}
       whileTap={{ scale: 0.95 }}
-      onClick={() => onComplete?.(task.id)}
+      onClick={() => {
+        if (isSelected) {
+          onComplete?.(task.id)
+        } else {
+          onSelect?.(task.id)
+        }
+      }}
     >
-      {/* 小圆点 - 与行星呼应，平涂风格 */}
+      {/* 小圆点 - 与行星呼应，用相同 filter */}
       <div
-        className="w-3 h-3 rounded-full flex-shrink-0"
-        style={{ background: color.fill }}
+        className="w-3 h-3 rounded-full flex-shrink-0 bg-amber-300"
+        style={{ filter: color.filter }}
       />
 
       {/* 任务标题 */}
