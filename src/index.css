@@ -130,13 +130,12 @@
    * Focus View 专用 token - 从设计系统派生
    * ═══════════════════════════════════════════════════════════════════════════ */
 
-  /* 时间感知背景 - stone 绿色系变体，与 --muted(88.6450°) 一致 */
-  /* 更暗的背景，增强深邃感 */
-  --focus-bg-dawn: oklch(0.9850 0.0050 91.4461);
-  --focus-bg-morning: oklch(0.9650 0.0045 91.4461);
-  --focus-bg-afternoon: oklch(0.9251 0.0071 88.6450);
-  --focus-bg-evening: oklch(0.1800 0.0060 88.6450);  /* 从 0.35 降到 0.18 */
-  --focus-bg-night: oklch(0.1000 0.0050 88.6450);    /* 从 0.1448 降到 0.10 */
+  /* 时间感知背景 - 浅色模式与系统背景一致，随时间微调亮度 */
+  --focus-bg-dawn: oklch(0.976 0.004 91.4);
+  --focus-bg-morning: oklch(0.965 0.004 91.4);
+  --focus-bg-afternoon: oklch(0.950 0.005 91.4);
+  --focus-bg-evening: oklch(0.925 0.006 91.4);
+  --focus-bg-night: oklch(0.900 0.006 91.4);
 
   /* 文字颜色 - 支持明暗背景 */
   --focus-text-primary: oklch(0.2417 0.0298 269.8827);
@@ -156,8 +155,8 @@
   --focus-planet-urgent: oklch(0.6500 0.1800 25.0000);
   --focus-planet-urgent-glow: oklch(0.6500 0.1800 25.0000 / 80%);
 
-  /* 轨道带 - 调试 100% */
-  --focus-orbit: oklch(0.6333 0.0309 154.9039 / 100%);
+  /* 轨道带 - 浅色模式用 primary 色，深色模式在 .dark 中覆盖 */
+  --focus-orbit: oklch(0.6333 0.0309 154.9039 / 60%);
 
   /* UI 元素 */
   --focus-card-bg: oklch(0.2417 0.0298 269.8827 / 90%);
@@ -234,6 +233,8 @@
   --focus-text-secondary: oklch(0.7058 0 0);
   --focus-text-muted: oklch(0.5510 0.0234 264.3637 / 70%);
   --focus-card-bg: oklch(0.9702 0 0 / 90%);
+  /* 轨道带 - 深色模式保持原有 primary 色调 */
+  --focus-orbit: oklch(0.6333 0.0309 154.9039 / 100%);
 }
 
 @layer base {
@@ -417,5 +418,19 @@
   50% {
     transform: scale(1.05);
     opacity: 1;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 行星引力涟漪动画 - 悬停时向外扩散
+ * ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes ripple-expand {
+  0% {
+    transform: scale(1);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
   }
 }

@@ -45,10 +45,7 @@ function OrbitSegment({ segment, index }) {
   const pathData = `M ${start.x} ${start.y} A ${segment.rx} ${segment.ry} ${segment.rotation} ${largeArcFlag} 1 ${end.x} ${end.y}`
 
   // 根据弧线在椭圆上的位置决定亮度 - 透视效果
-  // SVG 坐标系：y=0 在顶部，y 向下增大
-  // y 越小（上方/远处）→ 更暗；y 越大（下方/近处）→ 更亮
   const avgY = (start.y + end.y) / 2
-  // y 坐标范围大约 100-500，映射到 0.5-1.5 倍亮度
   const positionFactor = (avgY - 150) / 200 + 0.5
   const clampedFactor = Math.max(0.4, Math.min(1.6, positionFactor))
 

@@ -80,22 +80,22 @@ function getTimeBasedConfig() {
 // ═══════════════════════════════════════════════════════════════════════════
 const PLANET_CONFIG = [
   // 左侧小行星
-  { x: '12%', y: '45%', size: 75, colorKey: 'purple', layer: 'back' },
+  { x: '12%', y: '35%', size: 75, colorKey: 'purple', layer: 'back' },
 
   // 中间大行星（主角）
-  { x: '50%', y: '50%', size: 150, colorKey: 'coral', layer: 'front' },
+  { x: '50%', y: '40%', size: 150, colorKey: 'coral', layer: 'front' },
 
   // 右上小行星
-  { x: '72%', y: '28%', size: 82, colorKey: 'cyan', layer: 'mid' },
+  { x: '72%', y: '20%', size: 82, colorKey: 'cyan', layer: 'mid' },
 
   // 左下小行星
-  { x: '28%', y: '68%', size: 68, colorKey: 'purple', layer: 'back' },
+  { x: '28%', y: '50%', size: 68, colorKey: 'purple', layer: 'back' },
 
   // 右下土星
-  { x: '85%', y: '55%', size: 98, colorKey: 'cream', hasRing: true, layer: 'front' },
+  { x: '85%', y: '42%', size: 98, colorKey: 'cream', hasRing: true, layer: 'front' },
 
   // 额外小行星
-  { x: '62%', y: '65%', size: 52, colorKey: 'cyan', layer: 'mid' },
+  { x: '62%', y: '48%', size: 52, colorKey: 'cyan', layer: 'mid' },
 ]
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -639,28 +639,46 @@ export function Planet({
           dangerouslySetInnerHTML={{ __html: selectPlanetSVG(task.id) }}
         />
 
-        {/* Tooltip */}
+        {/* Tooltip - 重新设计 */}
         {isHovered && task && !isDragging && !collapsed && (
           <div
-            className={cn(
-              "absolute left-1/2 -translate-x-1/2 whitespace-nowrap",
-              "px-3 py-1.5 rounded-full",
-              "backdrop-blur-sm",
-              "text-xs",
-              "pointer-events-none shadow-lg"
-            )}
-            style={{
-              top: '110%',
-              background: 'var(--focus-card-bg)',
-              color: 'var(--focus-text-primary)'
-            }}
+            className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+            style={{ top: '135%' }}
           >
-            {task.title}
-            {pomodoroCount > 0 && (
-              <span className="ml-2 text-amber-500">🍅 {pomodoroCount}</span>
-            )}
+            {/* 连接线 */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 w-px"
+              style={{
+                top: '-8px',
+                height: '8px',
+                background: 'oklch(from var(--primary) l c h / 40%)'
+              }}
+            />
+            {/* 内容卡片 */}
+            <div
+              className="px-3 py-2 rounded-lg shadow-sm text-xs whitespace-nowrap"
+              style={{
+                background: 'oklch(from var(--card) l c h)',
+                border: '1px solid oklch(from var(--border) l c h)',
+                color: 'oklch(from var(--foreground) l c h)'
+              }}
+            >
+              <span className="font-medium">{task.title}</span>
+              {pomodoroCount > 0 && (
+                <span
+                  className="ml-2 px-1.5 py-0.5 rounded text-[10px]"
+                  style={{
+                    background: 'oklch(from var(--primary) l c h / 15%)',
+                    color: 'oklch(from var(--primary) l c h)'
+                  }}
+                >
+                  {pomodoroCount}
+                </span>
+              )}
+            </div>
           </div>
         )}
+
       </div>
 
       {/* 坍缩后的恒星残留 */}

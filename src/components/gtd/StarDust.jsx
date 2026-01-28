@@ -1,7 +1,7 @@
 /**
  * [INPUT]: react, gsap
  * [OUTPUT]: StarDust 组件
- * [POS]: 背景星点层，冷色系（80% 灰白，20% 冷蓝），GSAP 动画
+ * [POS]: 背景星点层，冷色系（80% 灰白，20% 冷蓝），GSAP 漂移 + 闪烁动画
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -41,22 +41,38 @@ export function StarDust({ count = 35 }) {
     const dots = containerRef.current.children
     const tweens = []
 
-    Array.from(dots).forEach(dot => {
+    Array.from(dots).forEach((dot, i) => {
+      // 漂移动画
       const duration = 6 + Math.random() * 4
       const driftX = (Math.random() - 0.5) * 20
       const driftY = (Math.random() - 0.5) * 20
 
-      const tween = gsap.to(dot, {
+      const driftTween = gsap.to(dot, {
         x: `+=${driftX}`,
         y: `+=${driftY}`,
-        opacity: 0.6,
         duration,
         delay: Math.random() * 4,
         repeat: -1,
         yoyo: true,
         ease: 'sine.inOut',
       })
-      tweens.push(tween)
+      tweens.push(driftTween)
+
+      // 只有前8个星点闪烁，减少性能开销
+      if (i < 8) {
+        const twinkleDuration = 2 + Math.random() * 4
+        const targetOpacity = 0.15 + Math.random() * 0.35
+
+        const twinkleTween = gsap.to(dot, {
+          opacity: targetOpacity,
+          duration: twinkleDuration,
+          delay: Math.random() * 3,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+        })
+        tweens.push(twinkleTween)
+      }
     })
 
     return () => tweens.forEach(t => t.kill())
@@ -74,7 +90,7 @@ export function StarDust({ count = 35 }) {
             width: p.size,
             height: p.size,
             backgroundColor: p.color,
-            opacity: 0.2,
+            opacity: 0.3,
           }}
         />
       ))}
