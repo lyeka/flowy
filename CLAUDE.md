@@ -5,7 +5,7 @@ Tauri 2.0 (桌面端) + Capacitor 8.0 (移动端) + Vite 7 + React 19 + Tailwind
 src/
 ├── components/
 │   ├── ui/          - shadcn 组件库
-│   └── gtd/         - GTD 业务组件 (28文件: QuickCapture, Sidebar, Settings, SyncSettings, ConflictDialog, FolderPicker, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip, AIPromptCard, AISettings, FocusView, FocusGreeting, FocusRecommendCard, FocusTaskItem, FocusOverdueCard, FocusEmptyState)
+│   └── gtd/         - GTD 业务组件 (30文件: QuickCapture, Sidebar, Settings, SyncSettings, ConflictDialog, FolderPicker, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip, AIPromptCard, AISettings, FocusView, FocusGreeting, FocusRecommendCard, FocusTaskItem, FocusOverdueCard, FocusEmptyState, TimerPlanet, planetTextures)
 ├── stores/          - 状态管理 (5文件: gtd.js, calendar.js, journal.js, ai.js, editor.js)
 ├── hooks/           - React Hooks (2文件: useFileSystem.js, useSync.js)
 ├── lib/             - 工具函数 (6文件: utils.js, motion.js, platform.js, haptics.js, tauri.js(废弃), i18n.js)
@@ -27,6 +27,7 @@ src-tauri/
 
 android/             - Capacitor Android 原生项目
 ios/                 - Capacitor iOS 原生项目
+public/planets/      - 番茄钟星球纹理图片 (7张: mars, jupiter, moon, venus, neptune, mercury, pluto)
 </directory>
 
 <config>

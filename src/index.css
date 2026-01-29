@@ -491,3 +491,48 @@
     transform: scale(1.2);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 番茄钟星球旋转动画 - 纹理横向滚动模拟自转
+ * ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes planet-rotate {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-planet-rotate {
+  animation: planet-rotate 120s linear infinite;
+  will-change: background-position;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 专注模式入场动画 - 建筑级设计
+ * ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes focus-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.focus-animate-entry {
+  animation: focus-fade-in 0.8s ease-out forwards;
+}
+
+.focus-delay-1 {
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.focus-delay-2 {
+  animation-delay: 0.4s;
+  opacity: 0;
+}

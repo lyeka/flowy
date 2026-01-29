@@ -185,58 +185,54 @@ function PomodoroRings({ count, size }) {
 // 右键菜单组件
 // ═══════════════════════════════════════════════════════════════════════════
 function ContextMenu({ position, task, onClose, onComplete, onMoveToToday, onMoveToTomorrow, onDelete, onEdit, onFocus, onToggleStar }) {
-  const menuRef = useRef(null)
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        onClose()
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [onClose])
-
   if (!position) return null
 
   return (
-    <div
-      ref={menuRef}
-      className="fixed z-50 min-w-[160px] py-2 rounded-lg backdrop-blur-sm shadow-xl"
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        transform: 'translate(8px, 8px)',
-        background: 'var(--focus-card-bg)',
-        border: '1px solid var(--focus-card-border)'
-      }}
-    >
-      {/* 进入专注 - 首选项 */}
-      {onFocus && (
-        <ContextMenuButton onClick={onFocus} className="text-amber-600 hover:bg-amber-500/10 font-medium">
-          进入专注
+    <>
+      {/* 透明遮罩层 - 点击时关闭菜单 */}
+      <div
+        className="fixed inset-0 z-40 pointer-events-auto"
+        onClick={onClose}
+      />
+      {/* 菜单本体 */}
+      <div
+        className="fixed z-50 min-w-[160px] py-2 rounded-lg backdrop-blur-sm shadow-xl pointer-events-auto"
+        style={{
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          transform: 'translate(8px, 8px)',
+          background: 'var(--focus-card-bg)',
+          border: '1px solid var(--focus-card-border)'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 进入专注 - 首选项 */}
+        {onFocus && (
+          <ContextMenuButton onClick={onFocus} className="text-amber-600 hover:bg-amber-500/10 font-medium">
+            进入专注
+          </ContextMenuButton>
+        )}
+        <ContextMenuButton onClick={onComplete} className="text-green-600 hover:bg-green-500/10">
+          完成任务
         </ContextMenuButton>
-      )}
-      <ContextMenuButton onClick={onComplete} className="text-green-600 hover:bg-green-500/10">
-        完成任务
-      </ContextMenuButton>
-      <ContextMenuButton onClick={onToggleStar} className={task.starred ? "text-amber-500" : ""}>
-        {task.starred ? '取消星标' : '添加星标'}
-      </ContextMenuButton>
-      <ContextMenuButton onClick={onEdit}>
-        编辑任务
-      </ContextMenuButton>
-      <ContextMenuButton onClick={onMoveToToday}>
-        移到今天
-      </ContextMenuButton>
-      <ContextMenuButton onClick={onMoveToTomorrow}>
-        移到明天
-      </ContextMenuButton>
-      <div className="h-px bg-border/50 my-1" />
-      <ContextMenuButton onClick={onDelete} className="text-destructive hover:bg-destructive/10">
-        删除
-      </ContextMenuButton>
-    </div>
+        <ContextMenuButton onClick={onToggleStar} className={task.starred ? "text-amber-500" : ""}>
+          {task.starred ? '取消星标' : '添加星标'}
+        </ContextMenuButton>
+        <ContextMenuButton onClick={onEdit}>
+          编辑任务
+        </ContextMenuButton>
+        <ContextMenuButton onClick={onMoveToToday}>
+          移到今天
+        </ContextMenuButton>
+        <ContextMenuButton onClick={onMoveToTomorrow}>
+          移到明天
+        </ContextMenuButton>
+        <div className="h-px bg-border/50 my-1" />
+        <ContextMenuButton onClick={onDelete} className="text-destructive hover:bg-destructive/10">
+          删除
+        </ContextMenuButton>
+      </div>
+    </>
   )
 }
 
