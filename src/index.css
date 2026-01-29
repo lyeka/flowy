@@ -167,6 +167,27 @@
   --focus-star-core: oklch(0.9761 0.0041 91.4461);
   --focus-star-glow: oklch(0.9761 0.0041 91.4461 / 60%);
   --focus-star-line: oklch(0.9761 0.0041 91.4461 / 30%);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+   * 星云卡片系统 - 从行星色板派生，让卡片"从宇宙中浮现"
+   * ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* 暖色星云 - 红巨星/过期任务 */
+  --focus-nebula-warm: oklch(0.6500 0.1200 25.0000);
+  --focus-nebula-warm-glow: oklch(0.6500 0.1200 25.0000 / 15%);
+  --focus-nebula-warm-core: oklch(0.7000 0.1500 25.0000);
+
+  /* 冷色星云 - 深空/溢出任务 */
+  --focus-nebula-cool: oklch(0.6500 0.0600 280.0000);
+  --focus-nebula-cool-glow: oklch(0.6500 0.0600 280.0000 / 12%);
+
+  /* 星云边框 - 极淡 */
+  --focus-nebula-border: oklch(0.7000 0.0400 264.0000 / 8%);
+
+  /* 按钮/交互元素 - 从宇宙背景派生 */
+  --focus-button-bg: oklch(0.5510 0.0234 264.3637 / 10%);
+  --focus-button-hover: oklch(0.5510 0.0234 264.3637 / 20%);
+  --focus-button-glow: oklch(0.6500 0.0600 280.0000 / 20%);
 }
 
 .dark {
@@ -235,6 +256,17 @@
   --focus-card-bg: oklch(0.9702 0 0 / 90%);
   /* 轨道带 - 深色模式保持原有 primary 色调 */
   --focus-orbit: oklch(0.6333 0.0309 154.9039 / 100%);
+
+  /* 星云卡片系统 - 深色模式适配 */
+  --focus-nebula-warm: oklch(0.5500 0.1000 25.0000);
+  --focus-nebula-warm-glow: oklch(0.5500 0.1000 25.0000 / 20%);
+  --focus-nebula-warm-core: oklch(0.6000 0.1200 25.0000);
+  --focus-nebula-cool: oklch(0.5500 0.0500 280.0000);
+  --focus-nebula-cool-glow: oklch(0.5500 0.0500 280.0000 / 15%);
+  --focus-nebula-border: oklch(0.6000 0.0300 264.0000 / 10%);
+  --focus-button-bg: oklch(0.7058 0 0 / 8%);
+  --focus-button-hover: oklch(0.7058 0 0 / 15%);
+  --focus-button-glow: oklch(0.5500 0.0500 280.0000 / 25%);
 }
 
 @layer base {
@@ -432,5 +464,30 @@
   100% {
     transform: scale(1.6);
     opacity: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 星云呼吸动画 - 缓慢、有机、沉浸
+ * ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes nebula-breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes star-twinkle {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
   }
 }
