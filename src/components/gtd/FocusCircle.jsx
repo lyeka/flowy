@@ -12,7 +12,6 @@ import { StarDust } from './StarDust'
 import { OrbitPaths } from './OrbitPaths'
 import { Planet } from './Planet'
 import { BlueDust } from './BlueDust'
-import { MiniInfo } from './MiniInfo'
 import { NoiseOverlay } from './NoiseOverlay'
 import { Constellation } from './Constellation'
 import { ParallaxProvider, FarLayer, MidLayer, NearLayer } from './ZDepthLayer'
@@ -276,9 +275,6 @@ export function FocusCircle({
       <div className="absolute inset-0 pointer-events-none">
         {/* 噪点纹理 */}
         <NoiseOverlay />
-
-        {/* 右上角信息 */}
-        <MiniInfo count={pendingCount} timeKey={timeConfig.key} />
       </div>
     </ParallaxProvider>
   )

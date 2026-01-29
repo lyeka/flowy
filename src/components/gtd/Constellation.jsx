@@ -213,23 +213,6 @@ export function Constellation({
       {stars.map((star, index) => (
         <CompletedStar key={star.id} star={star} index={index} />
       ))}
-
-      {/* 悬停提示 */}
-      {todayCount > 0 && (
-        <div
-          ref={tooltipRef}
-          className="absolute bottom-24 left-1/2 -translate-x-1/2 text-center"
-        >
-          <p
-            className="text-sm font-light"
-            style={{ color: 'oklch(from var(--focus-text-bright) l c h / 40%)' }}
-          >
-            {todayCount === 1
-              ? '今天完成了一颗恒星'
-              : `今天完成了 ${todayCount} 颗恒星`}
-          </p>
-        </div>
-      )}
     </div>
   )
 }

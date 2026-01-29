@@ -184,7 +184,7 @@ function PomodoroRings({ count, size }) {
 // ═══════════════════════════════════════════════════════════════════════════
 // 右键菜单组件
 // ═══════════════════════════════════════════════════════════════════════════
-function ContextMenu({ position, task, onClose, onMoveToToday, onMoveToTomorrow, onDelete, onEdit, onFocus }) {
+function ContextMenu({ position, task, onClose, onComplete, onMoveToToday, onMoveToTomorrow, onDelete, onEdit, onFocus }) {
   const menuRef = useRef(null)
 
   useEffect(() => {
@@ -217,6 +217,9 @@ function ContextMenu({ position, task, onClose, onMoveToToday, onMoveToTomorrow,
           进入专注
         </ContextMenuButton>
       )}
+      <ContextMenuButton onClick={onComplete} className="text-green-600 hover:bg-green-500/10">
+        完成任务
+      </ContextMenuButton>
       <ContextMenuButton onClick={onEdit}>
         编辑任务
       </ContextMenuButton>
@@ -476,7 +479,7 @@ export function Planet({
     setShowContextMenu(true)
   }
 
-  // 点击处理（两次点击完成）
+  // 点击处理（只选中，不完成）
   const handleClick = useCallback((e) => {
     e.stopPropagation()
 
@@ -486,15 +489,9 @@ export function Planet({
     // 如果正在坍缩，不处理
     if (isCollapsing) return
 
-    if (isSelected) {
-      // 第二次点击 - 触发坍缩
-      triggerCollapse()
-      onClick?.(task.id)
-    } else {
-      // 第一次点击 - 选中
-      onTaskSelect?.(task.id)
-    }
-  }, [isSelected, collapsed, isCollapsing, triggerCollapse, onClick, onTaskSelect, task.id])
+    // 点击切换选中状态
+    onTaskSelect?.(task.id)
+  }, [collapsed, isCollapsing, onTaskSelect, task.id])
 
   // GSAP 呼吸感动画
   useEffect(() => {
@@ -706,6 +703,7 @@ export function Planet({
             position={contextMenuPos}
             task={task}
             onClose={() => setShowContextMenu(false)}
+            onComplete={() => { triggerCollapse(); onClick?.(task.id); setShowContextMenu(false) }}
             onFocus={() => { onLongPress?.(task); setShowContextMenu(false) }}
             onEdit={() => { onEdit?.(task); setShowContextMenu(false) }}
             onMoveToToday={() => { onMoveToToday?.(task.id); setShowContextMenu(false) }}
