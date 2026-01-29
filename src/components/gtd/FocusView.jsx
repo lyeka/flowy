@@ -1,18 +1,16 @@
 /**
- * [INPUT]: react, react-i18next, framer-motion, @/stores/gtd, @/stores/ai, @/lib/utils, @/components/gtd/Focus*, @/components/gtd/TaskBubbleZone, @/components/gtd/FocusMode
+ * [INPUT]: react, react-i18next, framer-motion, @/stores/gtd, @/lib/utils, @/components/gtd/Focus*, @/components/gtd/FocusMode
  * [OUTPUT]: FocusView 组件
- * [POS]: 专注视图主组件，柔性宇宙插画风格，整合专注模式、坍缩动画、星座系统
+ * [POS]: 专注视图主组件，柔性宇宙插画风格，整合专注模式、坍缩动画、星座系统、溢出任务折叠卡片
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { useAI } from '@/stores/ai'
-import { ChevronRight, Sparkles, Plus, Calendar, BookOpen } from 'lucide-react'
+import { ChevronRight, ChevronDown, Plus, Calendar, BookOpen, Star } from 'lucide-react'
 import { FocusCircle } from './FocusCircle'
-import { TaskBubbleZone } from './TaskBubbleZone'
 import { FocusMode } from './FocusMode'
 import { useConstellation } from './Constellation'
 
@@ -301,6 +299,123 @@ function OverdueCard({ tasks, onMoveToToday, onMoveToTomorrow, onDelete }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// 溢出任务折叠卡片
+// ═══════════════════════════════════════════════════════════════════════════
+function OverflowCard({ tasks, onTaskClick, onToggleStar }) {
+  const { t } = useTranslation()
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  if (tasks.length === 0) return null
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="absolute bottom-6 left-6 right-6 z-50"
+    >
+      <div
+        className={cn(
+          "rounded-2xl backdrop-blur-sm overflow-hidden border"
+        )}
+        style={{
+          background: 'var(--focus-card-bg)',
+          borderColor: 'var(--focus-card-border)'
+        }}
+      >
+        {/* 头部 */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full px-4 py-3 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ background: 'var(--focus-text-secondary)' }}
+            />
+            <span className="text-sm" style={{ color: 'var(--focus-text-bright)' }}>
+              还有 {tasks.length} 个任务
+            </span>
+          </div>
+          {isExpanded ? (
+            <ChevronDown
+              className="w-4 h-4"
+              style={{ color: 'oklch(from var(--focus-text-bright) l c h / 60%)' }}
+            />
+          ) : (
+            <ChevronRight
+              className="w-4 h-4"
+              style={{ color: 'oklch(from var(--focus-text-bright) l c h / 60%)' }}
+            />
+          )}
+        </button>
+
+        {/* 展开 */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-t"
+              style={{ borderColor: 'oklch(from var(--focus-card-border) l c h / 50%)' }}
+            >
+              <div className="p-3 space-y-2 max-h-48 overflow-y-auto">
+                {tasks.map(task => (
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors"
+                    style={{ background: 'oklch(from var(--focus-text-bright) l c h / 5%)' }}
+                    onClick={() => onTaskClick?.(task)}
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onToggleStar?.(task.id)
+                        }}
+                        className="flex-shrink-0"
+                      >
+                        <Star
+                          className={cn(
+                            "w-4 h-4 transition-colors",
+                            task.starred ? "fill-amber-400 text-amber-400" : "text-muted-foreground"
+                          )}
+                        />
+                      </button>
+                      <span
+                        className="text-sm truncate"
+                        style={{ color: 'oklch(from var(--focus-text-bright) l c h / 80%)' }}
+                      >
+                        {task.title}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 收起按钮 */}
+              <div className="px-3 pb-3">
+                <button
+                  onClick={() => setIsExpanded(false)}
+                  className="w-full px-3 py-2 text-xs rounded-lg transition-colors text-center"
+                  style={{
+                    color: 'oklch(from var(--focus-text-bright) l c h / 60%)'
+                  }}
+                  onMouseEnter={(e) => e.target.style.background = 'oklch(from var(--focus-text-bright) l c h / 10%)'}
+                  onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                >
+                  收起
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // 主组件
 // ═══════════════════════════════════════════════════════════════════════════
 export function FocusView({
@@ -308,6 +423,7 @@ export function FocusView({
   completedCount = 0,
   overdueTasks = [],
   planetTasks = [],
+  overflowTasks = [],
   allTasks = [],
   onComplete,
   onMoveToToday,
@@ -317,15 +433,10 @@ export function FocusView({
   onGoToToday,
   onEditTask,
   onUpdatePomodoro,
+  onToggleStar,
   className
 }) {
   const { t } = useTranslation()
-  const { recommendTasks } = useAI()
-
-  // 推荐任务状态
-  const [recommendedTasks, setRecommendedTasks] = useState([])
-  const [isFallback, setIsFallback] = useState(false)
-  const [loading, setLoading] = useState(false)
 
   // 选中任务状态
   const [selectedTaskId, setSelectedTaskId] = useState(null)
@@ -336,41 +447,11 @@ export function FocusView({
   // 星座系统
   const { stars, addStar } = useConstellation()
 
-  // 加载推荐任务
-  const loadRecommendations = useCallback(async () => {
-    if (todayTasks.length === 0) {
-      setRecommendedTasks([])
-      return
-    }
-
-    setLoading(true)
-    try {
-      const result = await recommendTasks(todayTasks)
-      setRecommendedTasks(result.tasks.slice(0, 5))
-      setIsFallback(result.fallback)
-    } catch (error) {
-      console.error('Failed to load recommendations:', error)
-      setRecommendedTasks(todayTasks.slice(0, 5))
-      setIsFallback(true)
-    } finally {
-      setLoading(false)
-    }
-  }, [todayTasks, recommendTasks])
-
-  // 初始加载
-  useEffect(() => {
-    loadRecommendations()
-  }, [])
-
   // 处理任务完成
   const handleComplete = useCallback((taskId) => {
-    const task = todayTasks.find(t => t.id === taskId)
-    if (task) {
-      onComplete?.(taskId)
-    }
-    setRecommendedTasks(prev => prev.filter(t => t.id !== taskId))
+    onComplete?.(taskId)
     if (selectedTaskId === taskId) setSelectedTaskId(null)
-  }, [todayTasks, onComplete, selectedTaskId])
+  }, [onComplete, selectedTaskId])
 
   // 处理任务选择
   const handleTaskSelect = useCallback((taskId) => {
@@ -425,6 +506,7 @@ export function FocusView({
         onMoveToToday={onMoveToToday}
         onMoveToTomorrow={onMoveToTomorrow}
         onDeleteTask={onDelete}
+        onToggleStar={onToggleStar}
         className="flex-1"
       />
 
@@ -436,23 +518,18 @@ export function FocusView({
         onDelete={onDelete}
       />
 
+      {/* 溢出任务卡片 */}
+      <OverflowCard
+        tasks={overflowTasks}
+        onTaskClick={onEditTask}
+        onToggleStar={onToggleStar}
+      />
+
       {/* 空状态 */}
       {isEmpty && <EmptyState level="empty" onGoToInbox={onGoToInbox} />}
 
       {/* 完成状态 */}
       {isAllDone && <EmptyState level="complete" />}
-
-      {/* 底部任务气泡区 */}
-      {!isEmpty && !isAllDone && recommendedTasks.length > 0 && (
-        <TaskBubbleZone
-          tasks={recommendedTasks}
-          isFallback={isFallback}
-          selectedTaskId={selectedTaskId}
-          onSelect={handleTaskSelect}
-          onComplete={handleComplete}
-          onViewAll={onGoToToday}
-        />
-      )}
 
       {/* 专注模式 */}
       <AnimatePresence>

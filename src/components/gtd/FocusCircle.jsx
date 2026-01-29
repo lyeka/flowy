@@ -75,25 +75,17 @@ function getTimeBasedConfig() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 行星配置 - 沿椭圆轨道分布
+// 行星配置 - 沿椭圆轨道分布，位置 0 是主角（最重要的任务）
 // ═══════════════════════════════════════════════════════════════════════════
 const PLANET_CONFIG = [
-  // 左侧小行星
-  { x: '12%', y: '35%', size: 75, colorKey: 'purple', layer: 'back' },
-
-  // 中间大行星（主角）
+  // 位置 0：主角（最重要的任务）- 中间大行星
   { x: '50%', y: '40%', size: 150, colorKey: 'coral', layer: 'front' },
 
-  // 右上小行星
+  // 位置 1-5：配角
+  { x: '12%', y: '35%', size: 75, colorKey: 'purple', layer: 'back' },
   { x: '72%', y: '20%', size: 82, colorKey: 'cyan', layer: 'mid' },
-
-  // 左下小行星
   { x: '28%', y: '50%', size: 68, colorKey: 'purple', layer: 'back' },
-
-  // 右下土星
   { x: '85%', y: '42%', size: 98, colorKey: 'cream', hasRing: true, layer: 'front' },
-
-  // 额外小行星
   { x: '62%', y: '48%', size: 52, colorKey: 'cyan', layer: 'mid' },
 ]
 
@@ -141,6 +133,7 @@ export function FocusCircle({
   onMoveToToday,
   onMoveToTomorrow,
   onDeleteTask,
+  onToggleStar,
   className
 }) {
   // 时间感知背景
@@ -263,6 +256,7 @@ export function FocusCircle({
               onMoveToToday={onMoveToToday}
               onMoveToTomorrow={onMoveToTomorrow}
               onDelete={onDeleteTask}
+              onToggleStar={onToggleStar}
               onCollapsed={handleCollapsed}
             />
           )

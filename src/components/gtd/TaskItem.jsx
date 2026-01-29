@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 @/components/ui/checkbox, @/stores/gtd, framer-motion, lucide-react, react-i18next, @/lib/platform, @/lib/haptics
  * [OUTPUT]: 导出 TaskItem 组件
- * [POS]: 单个任务项渲染，支持完成、编辑、移动、删除、日期设置，移动端支持滑动手势和长按菜单
+ * [POS]: 单个任务项渲染，支持完成、编辑、移动、删除、日期设置、星标切换，移动端支持滑动手势和长按菜单
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -28,12 +28,12 @@ import { cn } from '@/lib/utils'
 import { isMobile } from '@/lib/platform'
 import { hapticsLight, hapticsSuccess, hapticsWarning } from '@/lib/haptics'
 import { GTD_LISTS, GTD_LIST_META } from '@/stores/gtd'
-import { MoreHorizontal, Trash2, ArrowRight, Inbox, Sun, Calendar, CheckCircle, CalendarDays, X, Check } from 'lucide-react'
+import { MoreHorizontal, Trash2, ArrowRight, Inbox, Sun, Calendar, CheckCircle, CalendarDays, X, Check, Star } from 'lucide-react'
 import { snappy, bouncy } from '@/lib/motion'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
-export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTaskClick }) {
+export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTaskClick, onToggleStar }) {
   const { t } = useTranslation()
   const mobile = isMobile()
   const [dateOpen, setDateOpen] = useState(false)
@@ -152,6 +152,11 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
   // ActionSheet 操作列表
   const actionSheetActions = [
     {
+      icon: Star,
+      label: task.starred ? '取消星标' : '添加星标',
+      onPress: () => onToggleStar?.(task.id)
+    },
+    {
       icon: CalendarDays,
       label: t('tasks.setDate'),
       onPress: () => setDateOpen(true)
@@ -244,6 +249,27 @@ export function TaskItem({ task, onToggle, onMove, onDelete, onUpdateDate, onTas
         >
           {task.title}
         </motion.span>
+
+        {/* 星标图标 */}
+        {onToggleStar && (
+          <button
+            data-no-note
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggleStar(task.id)
+            }}
+            className={cn(
+              "p-1 rounded transition-colors",
+              task.starred
+                ? "text-amber-500"
+                : mobile
+                  ? "text-muted-foreground"
+                  : "text-muted-foreground opacity-0 group-hover:opacity-100"
+            )}
+          >
+            <Star className={cn("h-4 w-4", task.starred && "fill-amber-500")} />
+          </button>
+        )}
 
         {/* 滑动提示图标（移动端） */}
         {mobile && (

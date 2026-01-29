@@ -67,13 +67,15 @@ function AppContent({ fileSystem, sync }) {
     updateTask,
     toggleComplete,
     moveTask,
+    toggleStar,
     deleteTask,
     loadTasks,
     // 预处理数据 - 供 FocusView 使用
     todayTasks,
     completedToday,
     overdueTasks,
-    planetTasks
+    planetTasks,
+    overflowTasks
   } = useGTD({ fileSystem: fileSystem.isReady ? fileSystem.fs : null })
 
   const {
@@ -360,6 +362,7 @@ function AppContent({ fileSystem, sync }) {
           completedCount={completedToday}
           overdueTasks={overdueTasks}
           planetTasks={planetTasks}
+          overflowTasks={overflowTasks}
           allTasks={tasks}
           onComplete={handleToggleComplete}
           onMoveToToday={(id) => moveTask(id, GTD_LISTS.TODAY)}
@@ -388,6 +391,7 @@ function AppContent({ fileSystem, sync }) {
               lastPomodoroAt: new Date().toISOString()
             })
           }}
+          onToggleStar={toggleStar}
         />
       ) : viewMode === 'calendar' ? (
         <CalendarView
@@ -441,6 +445,7 @@ function AppContent({ fileSystem, sync }) {
               onDelete={handleDelete}
               onUpdateDate={(id, dueDate) => updateTask(id, { dueDate })}
               onTaskClick={setSelectedTaskId}
+              onToggleStar={toggleStar}
             />
           </ScrollArea>
         </main>

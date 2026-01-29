@@ -1,6 +1,6 @@
 /**
  * [INPUT]: React useState/useEffect/useCallback/useMemo/useRef, format/task.js
- * [OUTPUT]: useGTD hook，提供任务 CRUD 和状态管理，支持文件系统持久化；calculateFocusState 专注度计算；isToday/isPast/isFuture 日期工具
+ * [OUTPUT]: useGTD hook，提供任务 CRUD 和状态管理，支持文件系统持久化；calculateFocusState 专注度计算；isToday/isPast/isFuture 日期工具；星标功能
  * [POS]: stores 层核心状态模块，被所有 GTD 组件消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -59,6 +59,7 @@ const getDefaultTasks = () => {
       createdAt: now,
       completedAt: null,
       dueDate: now,
+      starred: false,
       notes: [
         "Shall I compare thee to a summer's day?",
         "Thou art more lovely and more temperate:",
@@ -372,6 +373,7 @@ export function useGTD(options = {}) {
       createdAt: now,
       completedAt: list === GTD_LISTS.DONE ? now : null,
       dueDate,
+      starred: false,
       notes: ''
     }
     setTasks(prev => [task, ...prev])
@@ -422,6 +424,11 @@ export function useGTD(options = {}) {
       }
       return next
     }))
+  }, [])
+
+  // 切换星标状态
+  const toggleStar = useCallback((id) => {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, starred: !t.starred } : t))
   }, [])
 
   // 加载任务(用于导入)
@@ -490,10 +497,32 @@ export function useGTD(options = {}) {
     return tasks.filter(t => !t.completed && isPast(t.dueDate))
   }, [tasks])
 
-  // 行星任务（未完成，最多 6 个）
+  // 行星任务（今天或过期，必须有截止日期，星标优先，最多 6 个）
   const planetTasks = useMemo(() => {
-    return tasks.filter(t => !t.completed).slice(0, 6)
+    const now = new Date()
+    now.setHours(23, 59, 59, 999)
+
+    return tasks
+      .filter(t => {
+        if (t.completed) return false
+        if (!t.dueDate) return false
+        return t.dueDate <= now.getTime()
+      })
+      .sort((a, b) => {
+        // 1. 星标优先
+        if (a.starred !== b.starred) return (b.starred ? 1 : 0) - (a.starred ? 1 : 0)
+        // 2. 过期任务优先（更紧急）
+        if (a.dueDate !== b.dueDate) return a.dueDate - b.dueDate
+        // 3. 按创建时间
+        return new Date(a.createdAt) - new Date(b.createdAt)
+      })
   }, [tasks])
+
+  // 星球显示任务（前 6 个）
+  const displayPlanetTasks = useMemo(() => planetTasks.slice(0, 6), [planetTasks])
+
+  // 溢出任务（第 7 个及之后）
+  const overflowTasks = useMemo(() => planetTasks.slice(6), [planetTasks])
 
   return {
     tasks,
@@ -507,12 +536,14 @@ export function useGTD(options = {}) {
     deleteTask,
     toggleComplete,
     moveTask,
+    toggleStar,
     loadTasks: loadTasksFromData,
     flush,
     // 预处理数据
     todayTasks,
     completedToday,
     overdueTasks,
-    planetTasks
+    planetTasks: displayPlanetTasks,
+    overflowTasks
   }
 }

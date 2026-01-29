@@ -1,7 +1,7 @@
 /**
  * [INPUT]: react, gsap, framer-motion, @/lib/utils, @/assets/plant/*
  * [OUTPUT]: Planet 组件, PLANET_COLORS 常量
- * [POS]: 手绘风格行星，随机素材渲染，支持坍缩动画、红巨星状态、番茄环渲染、长按专注、右键菜单
+ * [POS]: 手绘风格行星，随机素材渲染，支持坍缩动画、红巨星状态、番茄环渲染、长按专注、右键菜单、星标功能
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -184,7 +184,7 @@ function PomodoroRings({ count, size }) {
 // ═══════════════════════════════════════════════════════════════════════════
 // 右键菜单组件
 // ═══════════════════════════════════════════════════════════════════════════
-function ContextMenu({ position, task, onClose, onComplete, onMoveToToday, onMoveToTomorrow, onDelete, onEdit, onFocus }) {
+function ContextMenu({ position, task, onClose, onComplete, onMoveToToday, onMoveToTomorrow, onDelete, onEdit, onFocus, onToggleStar }) {
   const menuRef = useRef(null)
 
   useEffect(() => {
@@ -219,6 +219,9 @@ function ContextMenu({ position, task, onClose, onComplete, onMoveToToday, onMov
       )}
       <ContextMenuButton onClick={onComplete} className="text-green-600 hover:bg-green-500/10">
         完成任务
+      </ContextMenuButton>
+      <ContextMenuButton onClick={onToggleStar} className={task.starred ? "text-amber-500" : ""}>
+        {task.starred ? '取消星标' : '添加星标'}
       </ContextMenuButton>
       <ContextMenuButton onClick={onEdit}>
         编辑任务
@@ -323,7 +326,8 @@ export function Planet({
   onMoveToToday,
   onMoveToTomorrow,
   onDelete,
-  onCollapsed, // 新增：坍缩完成回调
+  onToggleStar,
+  onCollapsed,
   className
 }) {
   const ref = useRef(null)
@@ -592,6 +596,17 @@ export function Planet({
         onContextMenu={handleContextMenu}
         onClick={handleClick}
       >
+        {/* 星标光晕 */}
+        {task.starred && !collapsed && (
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, oklch(0.85 0.15 85 / 40%) 0%, transparent 60%)',
+              animation: 'pulse-glow 3s ease-in-out infinite',
+            }}
+          />
+        )}
+
         {/* 番茄环 */}
         <PomodoroRings count={pomodoroCount} size={size} />
 
@@ -705,6 +720,7 @@ export function Planet({
             onClose={() => setShowContextMenu(false)}
             onComplete={() => { triggerCollapse(); onClick?.(task.id); setShowContextMenu(false) }}
             onFocus={() => { onLongPress?.(task); setShowContextMenu(false) }}
+            onToggleStar={() => { onToggleStar?.(task.id); setShowContextMenu(false) }}
             onEdit={() => { onEdit?.(task); setShowContextMenu(false) }}
             onMoveToToday={() => { onMoveToToday?.(task.id); setShowContextMenu(false) }}
             onMoveToTomorrow={() => { onMoveToTomorrow?.(task.id); setShowContextMenu(false) }}
