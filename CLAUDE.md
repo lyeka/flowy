@@ -5,14 +5,15 @@ Tauri 2.0 (桌面端) + Capacitor 8.0 (移动端) + Vite 7 + React 19 + Tailwind
 src/
 ├── components/
 │   ├── ui/          - shadcn 组件库
-│   └── gtd/         - GTD 业务组件 (30文件: QuickCapture, Sidebar, Settings, SyncSettings, ConflictDialog, FolderPicker, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip, AIPromptCard, AISettings, FocusView, FocusGreeting, FocusRecommendCard, FocusTaskItem, FocusOverdueCard, FocusEmptyState, TimerPlanet, planetTextures)
+│   └── gtd/         - GTD 业务组件 (28文件: QuickCapture, Sidebar, Settings, SyncSettings, ConflictDialog, FolderPicker, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip, AIPromptCard, AISettings, FocusView, FocusGreeting, FocusRecommendCard, FocusTaskItem, FocusOverdueCard, FocusEmptyState)
 ├── stores/          - 状态管理 (5文件: gtd.js, calendar.js, journal.js, ai.js, editor.js)
 ├── hooks/           - React Hooks (2文件: useFileSystem.js, useSync.js)
 ├── lib/             - 工具函数 (6文件: utils.js, motion.js, platform.js, haptics.js, tauri.js(废弃), i18n.js)
 │   ├── ai/          - AI 功能模块 (3文件: crypto.js, prompts.js, openai.js)
 │   ├── fs/          - 文件系统抽象层 (5文件: adapter.js, tauri.js, capacitor.js, web.js, index.js)
 │   ├── format/      - 数据格式处理 (3文件: task.js, journal.js, index.js)
-│   └── sync/        - 云同步功能 (3文件: conflict.js, webdav.js, index.js)
+│   ├── sync/        - 云同步功能 (3文件: conflict.js, webdav.js, index.js)
+│   └── planet/      - 共享星球素材系统 (3文件: index.js, svgs.js, colors.js)
 ├── locales/         - 国际化翻译文件 (2文件: zh-CN.json, en-US.json)
 ├── App.jsx          - 应用入口，支持专注/列表/日历/日记视图切换，集成跨平台功能
 ├── main.jsx         - React 挂载点，初始化 i18n
@@ -27,7 +28,6 @@ src-tauri/
 
 android/             - Capacitor Android 原生项目
 ios/                 - Capacitor iOS 原生项目
-public/planets/      - 番茄钟星球纹理图片 (7张: mars, jupiter, moon, venus, neptune, mercury, pluto)
 </directory>
 
 <config>
@@ -48,7 +48,7 @@ package.json        - 包含 tauri:dev/tauri:build (桌面端) 和 cap:android/c
 
 ## 专注视图 (Focus View)
 
-- **设计哲学**：专注是一种"主动选择"，而非"被动提醒"
+- **设计哲学**：专注是一种"主动选择"，而非"被动提醒"；减法设计，屏蔽干扰
 - **视觉风格**：柔性宇宙插画，SVG filter 手绘行星 + 椭圆轨道带 + GSAP 动画
 - **轨道带**：多条同心椭圆（像土星环），深蓝紫色，-15度倾斜
 - **手绘行星**：SVG feTurbulence + feDisplacementMap 实现不规则边缘，玻璃球高光
@@ -60,6 +60,16 @@ package.json        - 包含 tauri:dev/tauri:build (桌面端) 和 cap:android/c
 - **溢出任务**：超过 6 个任务时，底部折叠卡片显示剩余任务
 - **过期任务处理**：折叠卡片显示过期任务，支持快速操作（今天/明天/删除）
 - **空状态引导**：无任务时引导用户去收集箱选择
+
+## 专注模式 (Focus Mode)
+
+- **极简设计**：深邃黑色 + 一个发光的 SVG 手绘星球 = 唯一视觉焦点
+- **共享素材**：使用 lib/planet/ 共享素材系统，与主视图星球风格一致
+- **有机运动**：GSAP 呼吸动画（scale 1→1.02，5秒循环）+ 轻微漂移（x/y ±8px，12秒循环）
+- **进度表达**：星球随进度增大（140px → 280px），无进度环
+- **暂停状态**：呼吸幅度加大（1.04），表示"等待"
+- **极简背景**：纯色背景 + 20个极微星点，无星云、无辉光、无噪点
+- **信息层级**：星球（视觉焦点）→ 时间 + 任务标题（上下文）→ 控制按钮（最小化）
 
 ## 日历视图
 

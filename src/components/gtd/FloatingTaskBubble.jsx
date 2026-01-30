@@ -1,5 +1,5 @@
 /**
- * [INPUT]: react, framer-motion, lucide-react, @/lib/utils
+ * [INPUT]: react, framer-motion, lucide-react, @/lib/utils, @/lib/planet
  * [OUTPUT]: FloatingTaskBubble 组件
  * [POS]: 漂浮气泡任务卡片，圆角胶囊，与行星系统融为一体
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -9,7 +9,7 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { PLANET_COLORS } from './Planet'
+import { PLANET_COLORS } from '@/lib/planet'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 漂浮气泡任务卡片

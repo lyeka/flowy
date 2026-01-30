@@ -1,19 +1,17 @@
 /**
- * [INPUT]: react, gsap, react-i18next, framer-motion, @/lib/utils, TimerPlanet, NoiseOverlay
- * [OUTPUT]: FocusMode 组件
- * [POS]: 全屏专注模式 - 星际航行设计，星球从远方逐渐靠近表达进度
+ * [INPUT]: react, gsap, react-i18next, framer-motion, @/lib/utils, @/lib/planet
+ * [OUTPUT]: FocusMode 组件, FocusModeBackdrop 组件
+ * [POS]: 全屏专注模式 - 极简设计，SVG 手绘星球 + 有机运动 + 尺寸进度
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Play, Pause } from 'lucide-react'
+import { X, Play, Pause, Check } from 'lucide-react'
 import gsap from 'gsap'
 import { cn } from '@/lib/utils'
-import { TimerPlanet } from './TimerPlanet'
-import { getRandomPlanet } from './planetTextures'
-import { NoiseOverlay } from './NoiseOverlay'
+import { selectSVG, selectColor } from '@/lib/planet'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 番茄钟时长选项（分钟）
@@ -30,24 +28,23 @@ function formatTime(seconds) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 深空星尘 - 稀疏的背景星点
+// 极简星点背景 - 20 个微弱星点
 // ═══════════════════════════════════════════════════════════════════════════
-function DeepSpaceStars() {
+function MinimalStars() {
   const stars = useMemo(() => {
-    return Array.from({ length: 30 }, (_, i) => ({
+    return Array.from({ length: 20 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: 0.5 + Math.random() * 1,
-      opacity: 0.1 + Math.random() * 0.3,
-      delay: Math.random() * 3
+      size: 0.5 + Math.random() * 0.8,
+      opacity: 0.08 + Math.random() * 0.12
     }))
   }, [])
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {stars.map(star => (
-        <motion.div
+        <div
           key={star.id}
           className="absolute rounded-full"
           style={{
@@ -56,17 +53,53 @@ function DeepSpaceStars() {
             width: star.size,
             height: star.size,
             background: 'var(--focus-star-core)',
-            boxShadow: `0 0 ${star.size * 2}px var(--focus-star-glow)`
+            opacity: star.opacity
           }}
+        />
+      ))}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 粒子爆发效果 - 完成时触发
+// ═══════════════════════════════════════════════════════════════════════════
+function ParticleBurst({ active }) {
+  const particles = useMemo(() => {
+    return Array.from({ length: 16 }, (_, i) => ({
+      id: i,
+      angle: (i / 16) * Math.PI * 2,
+      distance: 150 + Math.random() * 100,
+      size: 2 + Math.random() * 3,
+      delay: Math.random() * 0.3
+    }))
+  }, [])
+
+  if (!active) return null
+
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      {particles.map(p => (
+        <motion.div
+          key={p.id}
+          className="absolute left-1/2 top-1/2 rounded-full"
+          style={{
+            width: p.size,
+            height: p.size,
+            background: 'var(--focus-star-core)',
+            boxShadow: '0 0 8px var(--focus-star-glow)'
+          }}
+          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
           animate={{
-            opacity: [star.opacity, star.opacity * 1.5, star.opacity],
-            scale: [1, 1.2, 1]
+            x: Math.cos(p.angle) * p.distance,
+            y: Math.sin(p.angle) * p.distance,
+            opacity: 0,
+            scale: 0
           }}
           transition={{
-            duration: 2 + Math.random() * 2,
-            repeat: Infinity,
-            delay: star.delay,
-            ease: 'easeInOut'
+            duration: 1,
+            delay: p.delay,
+            ease: 'easeOut'
           }}
         />
       ))}
@@ -88,9 +121,7 @@ function VoyageButton({ minutes, selected, onSelect, label }) {
       {/* 星点 */}
       <motion.div
         className="relative"
-        animate={{
-          scale: selected ? [1, 1.2, 1] : 1
-        }}
+        animate={{ scale: selected ? [1, 1.2, 1] : 1 }}
         transition={{
           duration: 1.5,
           repeat: selected ? Infinity : 0,
@@ -132,73 +163,7 @@ function VoyageButton({ minutes, selected, onSelect, label }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 航行进度条
-// ═══════════════════════════════════════════════════════════════════════════
-function VoyageProgress({ progress }) {
-  return (
-    <div className="w-48 h-[2px] bg-[var(--focus-text-muted)] rounded-full overflow-hidden">
-      <motion.div
-        className="h-full rounded-full"
-        style={{
-          background: 'var(--focus-star-core)',
-          boxShadow: '0 0 8px var(--focus-star-glow)'
-        }}
-        initial={{ width: 0 }}
-        animate={{ width: `${progress * 100}%` }}
-        transition={{ duration: 0.1 }}
-      />
-    </div>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 粒子爆发效果
-// ═══════════════════════════════════════════════════════════════════════════
-function ParticleBurst({ active }) {
-  const particles = useMemo(() => {
-    return Array.from({ length: 16 }, (_, i) => ({
-      id: i,
-      angle: (i / 16) * Math.PI * 2,
-      distance: 150 + Math.random() * 100,
-      size: 2 + Math.random() * 3,
-      delay: Math.random() * 0.3
-    }))
-  }, [])
-
-  if (!active) return null
-
-  return (
-    <div className="absolute inset-0 pointer-events-none">
-      {particles.map(p => (
-        <motion.div
-          key={p.id}
-          className="absolute left-1/2 top-1/2 rounded-full"
-          style={{
-            width: p.size,
-            height: p.size,
-            background: 'var(--focus-star-core)',
-            boxShadow: '0 0 8px var(--focus-star-glow)'
-          }}
-          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
-          animate={{
-            x: Math.cos(p.angle) * p.distance,
-            y: Math.sin(p.angle) * p.distance,
-            opacity: 0,
-            scale: 0
-          }}
-          transition={{
-            duration: 1,
-            delay: p.delay,
-            ease: 'power2.out'
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 专注模式主组件 - 星际航行
+// 专注模式主组件 - 极简设计
 // ═══════════════════════════════════════════════════════════════════════════
 export function FocusMode({
   task = null,
@@ -209,9 +174,13 @@ export function FocusMode({
 }) {
   const { t } = useTranslation()
   const containerRef = useRef(null)
+  const planetRef = useRef(null)
+  const breatheTweenRef = useRef(null)
+  const driftTweenRef = useRef(null)
 
-  // 随机选择星球
-  const [planet] = useState(getRandomPlanet)
+  // 根据任务 ID 选择 SVG 和颜色
+  const svgContent = useMemo(() => task ? selectSVG(task.id) : '', [task?.id])
+  const colorConfig = useMemo(() => task ? selectColor(task.id).config : { filter: '' }, [task?.id])
 
   // 状态
   const [step, setStep] = useState('select')
@@ -226,10 +195,11 @@ export function FocusMode({
   const startTimeRef = useRef(null)
   const totalDurationRef = useRef(25 * 60)
 
-  // 计算进度和星球尺寸
+  // 计算进度
   const progress = (totalDuration - remainingSeconds) / totalDuration
-  // 星球尺寸：100px（远方）→ 400px（抵达）
-  const planetSize = step === 'select' ? 120 : 100 + progress * 300
+  // 星球尺寸：140px → 280px（随进度增大）
+  const planetSize = step === 'select' ? 160 : 140 + progress * 140
+  const isPaused = step === 'paused'
 
   // 入场动画
   useEffect(() => {
@@ -239,6 +209,35 @@ export function FocusMode({
       { opacity: 1, duration: 0.8, ease: 'power2.out' }
     )
   }, [])
+
+  // GSAP 有机运动 - 呼吸 + 漂移
+  useEffect(() => {
+    if (!planetRef.current || step === 'select') return
+
+    // 呼吸动画：暂停时幅度加大
+    breatheTweenRef.current = gsap.to(planetRef.current, {
+      scale: isPaused ? 1.04 : 1.02,
+      duration: isPaused ? 2 : 5,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    })
+
+    // 漂移动画
+    driftTweenRef.current = gsap.to(planetRef.current, {
+      x: 8,
+      y: 6,
+      duration: 12,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    })
+
+    return () => {
+      breatheTweenRef.current?.kill()
+      driftTweenRef.current?.kill()
+    }
+  }, [step, isPaused])
 
   // 启动计时器
   const startTimer = useCallback(() => {
@@ -318,14 +317,13 @@ export function FocusMode({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      {/* 深空背景 */}
-      <DeepSpaceStars />
-      <NoiseOverlay />
+      {/* 极简星点背景 */}
+      <MinimalStars />
 
       {/* 粒子爆发 */}
       <ParticleBurst active={showBurst} />
 
-      {/* 返回基地按钮 */}
+      {/* 返回按钮 */}
       <motion.button
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -334,7 +332,6 @@ export function FocusMode({
         className="absolute top-8 left-8 flex items-center gap-2 text-sm text-[var(--focus-text-muted)] hover:text-[var(--focus-text-secondary)] transition-colors"
       >
         <X className="w-4 h-4" />
-        <span>{t('focus.pomodoro.returnBase', '返回基地')}</span>
       </motion.button>
 
       {/* 已完成番茄钟数量 */}
@@ -372,15 +369,15 @@ export function FocusMode({
               className="flex flex-col items-center"
             >
               {/* 星球预览 */}
-              <div className="mb-8">
-                <TimerPlanet
-                  size={planetSize}
-                  progress={0}
-                  timeDisplay=""
-                  isPaused={false}
-                  planet={planet}
-                />
-              </div>
+              <div
+                className="mb-8 transition-all duration-300"
+                style={{
+                  width: planetSize,
+                  height: planetSize,
+                  filter: colorConfig.filter
+                }}
+                dangerouslySetInnerHTML={{ __html: svgContent }}
+              />
 
               {/* 任务标题 */}
               <p className="text-sm text-[var(--focus-text-secondary)] mb-2 max-w-md text-center">
@@ -432,7 +429,7 @@ export function FocusMode({
           )}
 
           {/* ═══════════════════════════════════════════════════════════
-              航行中 / 暂停
+              航行中 / 暂停 - 极简布局
               ═══════════════════════════════════════════════════════════ */}
           {(step === 'running' || step === 'paused') && (
             <motion.div
@@ -442,47 +439,35 @@ export function FocusMode({
               exit={{ opacity: 0 }}
               className="flex flex-col items-center"
             >
-              {/* 动态尺寸星球 */}
-              <motion.div
-                animate={{ scale: step === 'paused' ? [1, 1.02, 1] : 1 }}
-                transition={{
-                  duration: 2,
-                  repeat: step === 'paused' ? Infinity : 0,
-                  ease: 'easeInOut'
+              {/* SVG 手绘星球 - 唯一视觉焦点 */}
+              <div
+                ref={planetRef}
+                className="mb-8 transition-all duration-300"
+                style={{
+                  width: planetSize,
+                  height: planetSize,
+                  filter: colorConfig.filter
                 }}
-                className="mb-8"
-              >
-                <TimerPlanet
-                  size={planetSize}
-                  progress={progress}
-                  timeDisplay={formatTime(remainingSeconds)}
-                  isPaused={step === 'paused'}
-                  planet={planet}
-                />
-              </motion.div>
+                dangerouslySetInnerHTML={{ __html: svgContent }}
+              />
 
-              {/* 任务标题 */}
-              <p className="text-sm text-[var(--focus-text-secondary)] mb-2 max-w-md text-center">
-                {task.title}
-              </p>
-
-              {/* 倒计时（星球外显示） */}
-              <p className="text-4xl text-[var(--focus-text-bright)] font-light tabular-nums mb-8">
+              {/* 时间显示 */}
+              <p className="text-4xl text-[var(--focus-text-bright)] font-light tabular-nums mb-2">
                 {formatTime(remainingSeconds)}
               </p>
 
-              {/* 航行进度条 */}
-              <div className="mb-8">
-                <VoyageProgress progress={progress} />
-              </div>
+              {/* 任务标题 */}
+              <p className="text-sm text-[var(--focus-text-secondary)] mb-12 max-w-md text-center">
+                {task.title}
+              </p>
 
-              {/* 控制按钮 */}
+              {/* 最小化控制 */}
               <div className="flex items-center gap-6">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handlePauseToggle}
-                  className="w-14 h-14 rounded-full flex items-center justify-center transition-all"
+                  className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
                   style={{
                     background: 'var(--focus-button-bg)',
                     color: 'var(--focus-text-bright)',
@@ -496,18 +481,25 @@ export function FocusMode({
                   )}
                 </motion.button>
 
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleTaskComplete}
-                  className="text-sm text-[var(--focus-text-muted)] hover:text-[var(--focus-text-secondary)] transition-colors"
+                  className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid var(--focus-text-muted)',
+                    color: 'var(--focus-text-muted)'
+                  }}
                 >
-                  {t('focus.pomodoro.completeNow', '直接完成')}
-                </button>
+                  <Check className="w-5 h-5" />
+                </motion.button>
               </div>
             </motion.div>
           )}
 
           {/* ═══════════════════════════════════════════════════════════
-              抵达 - 征服仪式
+              完成 - 征服仪式
               ═══════════════════════════════════════════════════════════ */}
           {step === 'complete' && (
             <motion.div
@@ -517,31 +509,24 @@ export function FocusMode({
               exit={{ opacity: 0 }}
               className="flex flex-col items-center"
             >
-              {/* 最大尺寸星球 + 光晕 */}
+              {/* 最大尺寸星球 */}
               <motion.div
-                className="mb-8 relative"
-                animate={{
-                  scale: [1, 1.02, 1]
-                }}
+                className="mb-8"
+                animate={{ scale: [1, 1.02, 1] }}
                 transition={{
                   duration: 3,
                   repeat: Infinity,
                   ease: 'easeInOut'
                 }}
               >
-                <TimerPlanet
-                  size={400}
-                  progress={1}
-                  timeDisplay=""
-                  isPaused={false}
-                  planet={planet}
-                />
-                {/* 额外光晕 */}
                 <div
-                  className="absolute inset-0 rounded-full pointer-events-none"
+                  className="transition-all duration-300"
                   style={{
-                    boxShadow: `0 0 60px ${planet.glow}, 0 0 120px ${planet.glow}`
+                    width: 280,
+                    height: 280,
+                    filter: colorConfig.filter
                   }}
+                  dangerouslySetInnerHTML={{ __html: svgContent }}
                 />
               </motion.div>
 
@@ -619,3 +604,4 @@ export function FocusModeBackdrop({ isOpening }) {
     />
   )
 }
+

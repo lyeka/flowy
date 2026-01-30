@@ -1,6 +1,6 @@
 /**
- * [INPUT]: react, gsap, framer-motion, @/lib/utils, @/assets/plant/*
- * [OUTPUT]: Planet 组件, PLANET_COLORS 常量
+ * [INPUT]: react, gsap, framer-motion, @/lib/utils, @/lib/planet
+ * [OUTPUT]: Planet 组件
  * [POS]: 手绘风格行星，随机素材渲染，支持坍缩动画、红巨星状态、番茄环渲染、长按专注、右键菜单、星标功能
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,65 +10,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import gsap from 'gsap'
 import { cn } from '@/lib/utils'
-import plant1SVG from '@/assets/plant/plant1.svg?raw'
-import plant2SVG from '@/assets/plant/plant2.svg?raw'
-import plant3SVG from '@/assets/plant/plant3.svg?raw'
-import starSVG from '@/assets/plant/star.svg?raw'
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 星球素材列表
-// ═══════════════════════════════════════════════════════════════════════════
-const PLANET_SVGS = [plant1SVG, plant2SVG, plant3SVG, starSVG]
-
-// 根据任务 ID 确定性地选择素材（保持一致性）
-function selectPlanetSVG(taskId) {
-  // 简单哈希：将 ID 字符转为数字和，然后取模
-  const hash = taskId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  return PLANET_SVGS[hash % PLANET_SVGS.length]
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// 行星颜色配置 - 扩展颜色选项，通过 hue-rotate 滤镜实现
-// ═══════════════════════════════════════════════════════════════════════════
-const COLOR_KEYS = [
-  'red', 'orange', 'amber', 'yellow', 'lime', 'green',
-  'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo',
-  'violet', 'purple', 'fuchsia', 'pink', 'rose', 'cream'
-]
-
-export const PLANET_COLORS = {
-  // 暖色系
-  red: { filter: 'hue-rotate(0deg) saturate(1.3)' },
-  orange: { filter: 'hue-rotate(30deg) saturate(1.2)' },
-  amber: { filter: 'hue-rotate(45deg) saturate(1.3)' },
-  yellow: { filter: 'hue-rotate(60deg) saturate(1.2)' },
-  lime: { filter: 'hue-rotate(90deg) saturate(1.1)' },
-  // 绿色系
-  green: { filter: 'hue-rotate(120deg) saturate(1.0)' },
-  emerald: { filter: 'hue-rotate(140deg) saturate(1.1)' },
-  teal: { filter: 'hue-rotate(170deg) saturate(0.9)' },
-  // 冷色系
-  cyan: { filter: 'hue-rotate(180deg) saturate(1.0)' },
-  sky: { filter: 'hue-rotate(200deg) saturate(1.0)' },
-  blue: { filter: 'hue-rotate(220deg) saturate(1.1)' },
-  indigo: { filter: 'hue-rotate(250deg) saturate(1.0)' },
-  // 紫粉色系
-  violet: { filter: 'hue-rotate(270deg) saturate(1.0)' },
-  purple: { filter: 'hue-rotate(290deg) saturate(1.0)' },
-  fuchsia: { filter: 'hue-rotate(310deg) saturate(1.2)' },
-  pink: { filter: 'hue-rotate(330deg) saturate(1.2)' },
-  rose: { filter: 'hue-rotate(345deg) saturate(1.3)' },
-  // 中性
-  cream: { filter: 'hue-rotate(45deg) saturate(0.3) brightness(1.2)' },
-  // 紧急状态
-  urgent: { filter: 'hue-rotate(0deg) saturate(2.0) brightness(1.2)' },
-}
-
-// 根据任务 ID 确定性地选择颜色（保持一致性）
-function selectPlanetColor(taskId) {
-  const hash = taskId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  return COLOR_KEYS[hash % COLOR_KEYS.length]
-}
+import { selectSVG, selectColor, PLANET_COLORS } from '@/lib/planet'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 粒子效果组件
@@ -338,9 +280,9 @@ export function Planet({
   const [localPos, setLocalPos] = useState({ x: position.x, y: position.y })
 
   // 根据任务 ID 选择随机颜色（过期任务除外）
-  const randomColorKey = useMemo(() => selectPlanetColor(task.id), [task.id])
+  const { key: randomColorKey, config: randomColorConfig } = useMemo(() => selectColor(task.id), [task.id])
   const effectiveColorKey = isOverdue ? 'urgent' : randomColorKey
-  const colorConfig = PLANET_COLORS[effectiveColorKey] || PLANET_COLORS.cream
+  const colorConfig = isOverdue ? PLANET_COLORS.urgent : randomColorConfig
 
   // 层级配置
   const layerConfig = useMemo(() => {
@@ -615,7 +557,7 @@ export function Planet({
         <div
           className="w-full h-full flex items-center justify-center"
           style={{ filter: colorConfig.filter }}
-          dangerouslySetInnerHTML={{ __html: selectPlanetSVG(task.id) }}
+          dangerouslySetInnerHTML={{ __html: selectSVG(task.id) }}
         />
 
         {/* Tooltip - 重新设计 */}

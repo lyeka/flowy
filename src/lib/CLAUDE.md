@@ -17,5 +17,6 @@ fs/: 文件系统抽象层，统一 Tauri/Capacitor/Web 三端文件操作
 format/: 数据格式处理，任务 JSON + 日记 Markdown 序列化
 sync/: 云同步功能，WebDAV 同步 + 冲突检测与解决
 ai/: AI 功能模块，OpenAI API 集成 + 问题生成
+planet/: 共享星球素材系统，SVG 素材 + 颜色滤镜配置，供 Planet.jsx 和 FocusMode.jsx 共同使用
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

@@ -23,10 +23,8 @@ JournalChip.jsx: 日历内日记小卡片，虚线边框，不可拖拽，BookTe
 AIPromptCard.jsx: AI 问题卡片，展示生成的引导问题（无 emoji），支持点击插入、悬停删除、刷新，淡入淡出动画，显示加载状态
 FocusView.jsx: 专注视图主组件，柔性宇宙插画风格，整合 FocusMode 专注模式 + Constellation 星座系统 + OverdueCard 过期任务卡片 + OverflowCard 溢出任务卡片 + 两层空状态引导
 FocusCircle.jsx: 专注视图核心 - 深邃宇宙插画，时间感知背景，深度分层（far/mid/near）+ 鼠标视差，集成 DarkNebula/DeepSpaceDust/SpaceGlow/OrbitPaths/StarDust/BlueDust/Constellation
-Planet.jsx: 手绘风格行星，支持坍缩动画（GSAP 收缩 + 粒子迸发 + 闪白）+ 红巨星状态（过期任务暗红脉动）+ 番茄环渲染（显示已完成番茄钟数量）+ 长按进入专注模式 + 极简右键菜单（进入专注/完成任务）+ 拖拽整理位置 + 星标金色光晕
-FocusMode.jsx: 全屏专注模式组件，番茄钟计时器（15/25/45分钟可选）+ 旋转星球效果（TimerPlanet），倒计时进度，完成番茄钟/直接完成任务按钮，放弃专注，GSAP 入场动画
-TimerPlanet.jsx: FocusMode 专用计时星球，NASA 真实图片纹理（7种星球随机选择）+ CSS 旋转动画 + 进度轨道环绕 + 时间显示叠加 + 暂停呼吸动画
-planetTextures.js: 星球纹理配置，7种 NASA 真实图片（火星/木星/月球/金星/海王星/水星/冥王星）+ getRandomPlanet 随机选择函数
+Planet.jsx: 手绘风格行星，使用 @/lib/planet 共享素材系统，支持坍缩动画（GSAP 收缩 + 粒子迸发 + 闪白）+ 红巨星状态（过期任务暗红脉动）+ 番茄环渲染 + 长按进入专注模式 + 极简右键菜单 + 拖拽整理位置 + 星标金色光晕
+FocusMode.jsx: 全屏专注模式组件，极简设计（SVG 手绘星球 + 有机运动 + 尺寸进度），使用 @/lib/planet 共享素材系统，番茄钟计时器（15/25/45分钟可选），GSAP 呼吸漂移动画
 Constellation.jsx: 完成任务星座系统，已完成任务留下微弱恒星（闪烁动画），当天完成的恒星之间虚线连线，useConstellation hook 管理状态 + localStorage 持久化
 ZDepthLayer.jsx: 深度层管理器，定义 far/mid/near 三层配置（zIndex/blur/parallaxSpeed/opacity），提供 ParallaxProvider/使用视差组件/FarLayer/MidLayer/NearLayer
 DarkNebula.jsx: 巨大暗星云层，占据画面大比例，极暗透明度(2-3.5%)，大模糊(80px)，mix-blend-mode: multiply 实现遮挡效果，分钟级呼吸漂移
