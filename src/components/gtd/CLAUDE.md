@@ -40,7 +40,7 @@ TaskBubbleZone.jsx: 底部任务气泡区域，水平排列漂浮气泡，最多
 ProjectList.jsx: 项目列表组件，显示所有项目卡片，支持创建/删除/归档项目，折叠模式
 ProjectSettings.jsx: 项目设置对话框，支持编辑标题/描述/颜色，管理自定义列（添加/删除/重命名/排序）
 ProjectBoard.jsx: 项目看板主容器，整合列组件和拖拽功能，管理任务在列之间的流转，支持 dnd-kit
-ProjectColumn.jsx: 看板列组件，显示列内任务，支持任务拖拽，支持添加新任务
+ProjectColumn.jsx: 看板列组件，显示列内任务，支持任务拖拽，支持添加新任务（添加按钮固定在列头下方，始终可见）
 ProjectTaskCard.jsx: 看板任务卡片，显示任务信息，支持拖拽，显示 GTD 归属标签
 SortableTask.jsx: 可拖拽排序的任务卡片包装器，集成 dnd-kit
 
