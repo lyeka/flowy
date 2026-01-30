@@ -24,6 +24,8 @@ const isToday = (date) => isSameDay(date, new Date())
    日历网格生成
    ======================================== */
 
+const MIN_ROWS = 6 // 固定 5-6 行，一屏完整显示
+
 const getMonthGrid = (year, month) => {
   const firstDay = new Date(year, month, 1)
   const lastDay = new Date(year, month + 1, 0)
@@ -33,7 +35,7 @@ const getMonthGrid = (year, month) => {
   const grid = []
   let week = []
 
-  // 填充上月空白
+  // 填充上月日期
   for (let i = 0; i < startOffset; i++) {
     const d = new Date(year, month, 1 - startOffset + i)
     week.push({ date: d, isCurrentMonth: false, key: toDateKey(d) })
@@ -49,13 +51,16 @@ const getMonthGrid = (year, month) => {
     }
   }
 
-  // 填充下月空白
+  // 填充下月日期，确保至少 MIN_ROWS 行
   let nextDay = 1
-  while (week.length > 0 && week.length < 7) {
+  while (week.length > 0 || grid.length < MIN_ROWS) {
     const d = new Date(year, month + 1, nextDay++)
     week.push({ date: d, isCurrentMonth: false, key: toDateKey(d) })
+    if (week.length === 7) {
+      grid.push(week)
+      week = []
+    }
   }
-  if (week.length) grid.push(week)
 
   return grid
 }
@@ -116,7 +121,9 @@ export function useCalendar(tasks) {
   }, [year, month, day, viewMode])
 
   // 导航
-  const goToday = useCallback(() => setCurrentDate(new Date()), [])
+  const goToday = useCallback(() => {
+    setCurrentDate(new Date())
+  }, [])
 
   const goPrev = useCallback(() => {
     setCurrentDate(d => {

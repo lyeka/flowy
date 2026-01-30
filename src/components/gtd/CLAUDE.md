@@ -11,7 +11,7 @@ ConflictDialog.jsx: 同步冲突解决对话框，展示冲突详情 + 策略选
 TaskItem.jsx: 单任务项，支持完成/移动/删除/日期设置/星标切换，移动端支持滑动手势（右滑完成、左滑删除）和长按菜单，行高 64px，Checkbox 24px
 TaskList.jsx: 任务列表容器，处理空状态和序列动画
 CalendarView.jsx: 日历视图容器，组装 Header + Grid + UnscheduledPanel，移动端简化 Header，隐藏 UnscheduledPanel，支持日记显示
-CalendarGrid.jsx: 日历网格渲染，星期标题 + 日期矩阵，传递日记数据到 CalendarCell
+CalendarGrid.jsx: 日历网格渲染，星期标题 + 日期矩阵，固定 5-6 行一屏显示，自适应行高
 CalendarCell.jsx: 单日格子，显示日期、日记和任务，支持拖放，移动端减小尺寸（min-h-20，日期 text-xs）
 CalendarTaskChip.jsx: 日历内任务小卡片，可拖拽，实线边框
 UnscheduledPanel.jsx: 无日期任务面板，可折叠，支持拖拽到日历
