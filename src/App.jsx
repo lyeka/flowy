@@ -1,13 +1,14 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd, @/stores/journal, @/hooks/useFileSystem, @/hooks/useSync, @/components/gtd/*, @/components/ui/sonner, @/lib/platform, react-i18next
+ * [INPUT]: 依赖 @/stores/gtd, @/stores/project, @/stores/journal, @/hooks/useFileSystem, @/hooks/useSync, @/components/gtd/*, @/components/ui/sonner, @/lib/platform, react-i18next
  * [OUTPUT]: 导出 App 根组件
- * [POS]: 应用入口，组装 GTD 布局，支持专注/列表/日历/日记视图切换，集成跨平台功能（桌面端+移动端），管理抽屉和快速捕获状态，集成文件系统和云同步
+ * [POS]: 应用入口，组装 GTD 布局，支持专注/列表/看板/日历/日记视图切换，集成跨平台功能（桌面端+移动端），管理抽屉和快速捕获状态，集成文件系统和云同步
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGTD, GTD_LIST_META, GTD_LISTS } from '@/stores/gtd'
+import { useProject } from '@/stores/project'
 import { JournalProvider, useJournal } from '@/stores/journal'
 import { useFileSystem } from '@/hooks/useFileSystem'
 import { useSync } from '@/hooks/useSync'
@@ -17,6 +18,9 @@ import { Drawer } from '@/components/gtd/Drawer'
 import { QuickCapture } from '@/components/gtd/QuickCapture'
 import { TaskList } from '@/components/gtd/TaskList'
 import { CalendarView } from '@/components/gtd/CalendarView'
+import { ProjectBoard } from '@/components/gtd/ProjectBoard'
+import { ProjectSettings } from '@/components/gtd/ProjectSettings'
+import { ProjectList } from '@/components/gtd/ProjectList'
 import { NotesPanel } from '@/components/gtd/NotesPanel'
 import { JournalNowView } from '@/components/gtd/JournalNowView'
 import { JournalPastView } from '@/components/gtd/JournalPastView'
@@ -86,8 +90,25 @@ function AppContent({ fileSystem, sync }) {
     getJournalById
   } = useJournal()
 
-  const [viewMode, setViewMode] = useState('focus') // 'focus' | 'list' | 'calendar'
+  // 项目状态管理
+  const {
+    projects,
+    activeProject,
+    activeProjectId,
+    setActiveProjectId,
+    createProject,
+    updateProject,
+    deleteProject,
+    archiveProject,
+    addColumn,
+    updateColumn,
+    deleteColumn
+  } = useProject({ fileSystem: fileSystem.isReady ? fileSystem.fs : null })
+
+  const [viewMode, setViewMode] = useState('focus') // 'focus' | 'list' | 'board' | 'calendar'
   const [journalView, setJournalView] = useState(null) // 'now' | 'past' | null
+  const [projectSettingsOpen, setProjectSettingsOpen] = useState(false)
+  const [settingsProjectId, setSettingsProjectId] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false) // 移动端抽屉状态
   const [quickCaptureOpen, setQuickCaptureOpen] = useState(false) // 移动端快速捕获模态框状态
@@ -349,6 +370,17 @@ function AppContent({ fileSystem, sync }) {
           onMoveTask={moveTask}
           onDeleteTask={deleteTask}
           onToggleComplete={handleToggleComplete}
+          // 项目相关
+          projects={projects}
+          activeProjectId={activeProjectId}
+          onSelectProject={setActiveProjectId}
+          onCreateProject={createProject}
+          onDeleteProject={deleteProject}
+          onArchiveProject={archiveProject}
+          onOpenProjectSettings={(id) => {
+            setSettingsProjectId(id)
+            setProjectSettingsOpen(true)
+          }}
         />
       )}
       {/* 视图渲染优先级：journalView > viewMode */}
@@ -402,6 +434,41 @@ function AppContent({ fileSystem, sync }) {
           onAddEntry={handleCalendarAddEntry}
           onJournalClick={handleJournalClick}
         />
+      ) : viewMode === 'board' ? (
+        activeProject ? (
+          <ProjectBoard
+            project={activeProject}
+            tasks={tasks.filter(t => t.projectId === activeProject.id)}
+            onUpdateTask={updateTask}
+            onAddTask={(title, projectId, columnId) => {
+              const project = projects.find(p => p.id === projectId)
+              const firstColumnId = project?.columns[0]?.id
+              addTask(title, null, { projectId, columnId: columnId || firstColumnId })
+            }}
+            onDeleteProject={deleteProject}
+            onBack={() => setActiveProjectId(null)}
+            onOpenSettings={(id) => {
+              setSettingsProjectId(id)
+              setProjectSettingsOpen(true)
+            }}
+          />
+        ) : (
+          <main className="flex-1 p-6 overflow-auto">
+            <h2 className="text-2xl font-bold mb-6">项目</h2>
+            <ProjectList
+              projects={projects}
+              activeProjectId={activeProjectId}
+              onSelect={setActiveProjectId}
+              onCreateProject={createProject}
+              onDeleteProject={deleteProject}
+              onArchiveProject={archiveProject}
+              onOpenSettings={(id) => {
+                setSettingsProjectId(id)
+                setProjectSettingsOpen(true)
+              }}
+            />
+          </main>
+        )
       ) : (
         <main
           className={cn(
@@ -600,6 +667,17 @@ function AppContent({ fileSystem, sync }) {
             onMoveTask={moveTask}
             onDeleteTask={deleteTask}
             onToggleComplete={handleToggleComplete}
+            // 项目相关
+            projects={projects}
+            activeProjectId={activeProjectId}
+            onSelectProject={setActiveProjectId}
+            onCreateProject={createProject}
+            onDeleteProject={deleteProject}
+            onArchiveProject={archiveProject}
+            onOpenProjectSettings={(id) => {
+              setSettingsProjectId(id)
+              setProjectSettingsOpen(true)
+            }}
           />
 
           {/* 移动端抽屉 */}
@@ -652,6 +730,17 @@ function AppContent({ fileSystem, sync }) {
         }}
         conflict={sync.conflicts[0]}
         onResolve={(strategy) => sync.resolveConflicts(strategy)}
+      />
+
+      {/* 项目设置对话框 */}
+      <ProjectSettings
+        open={projectSettingsOpen}
+        onOpenChange={setProjectSettingsOpen}
+        project={projects.find(p => p.id === settingsProjectId)}
+        onUpdateProject={updateProject}
+        onAddColumn={addColumn}
+        onUpdateColumn={updateColumn}
+        onDeleteColumn={deleteColumn}
       />
 
       <Toaster position={mobile ? "top-center" : "bottom-right"} />

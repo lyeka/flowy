@@ -31,6 +31,8 @@ const CURRENT_VERSION = 1
  * @property {number|null} completedAt - 完成时间戳
  * @property {number|null} dueDate - 截止日期时间戳
  * @property {string} notes - 备注
+ * @property {string|null} projectId - 所属项目 ID
+ * @property {string|null} columnId - 在项目看板中的列 ID
  */
 
 // ============================================================================
@@ -53,7 +55,9 @@ export function serializeTasks(tasks) {
       createdAt: task.createdAt,
       completedAt: task.completedAt,
       dueDate: task.dueDate,
-      notes: task.notes || ''
+      notes: task.notes || '',
+      projectId: task.projectId || null,
+      columnId: task.columnId || null
     }))
   }
   return JSON.stringify(file, null, 2)

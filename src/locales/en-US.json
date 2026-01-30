@@ -29,6 +29,7 @@
   },
   "views": {
     "list": "Things",
+    "board": "Board",
     "calendar": "Schedule"
   },
   "calendar": {
@@ -337,5 +338,22 @@
     "abandonAll": "Abandon all",
     "writeJournal": "Write Journal",
     "viewTomorrow": "View Tomorrow"
+  },
+  "project": {
+    "title": "Projects",
+    "settings": "Project Settings",
+    "new": "New Project",
+    "newPlaceholder": "Project name...",
+    "titlePlaceholder": "Enter project title",
+    "description": "Description",
+    "descriptionPlaceholder": "Project description (optional)",
+    "color": "Color",
+    "columns": "Columns",
+    "newColumnPlaceholder": "New column name...",
+    "archive": "Archive",
+    "delete": "Delete Project",
+    "selectProject": "Select Project",
+    "noProject": "No Project",
+    "addToProject": "Add to Project"
   }
 }

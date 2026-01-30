@@ -5,17 +5,17 @@ Tauri 2.0 (桌面端) + Capacitor 8.0 (移动端) + Vite 7 + React 19 + Tailwind
 src/
 ├── components/
 │   ├── ui/          - shadcn 组件库
-│   └── gtd/         - GTD 业务组件 (28文件: QuickCapture, Sidebar, Settings, SyncSettings, ConflictDialog, FolderPicker, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip, AIPromptCard, AISettings, FocusView, FocusGreeting, FocusRecommendCard, FocusTaskItem, FocusOverdueCard, FocusEmptyState)
-├── stores/          - 状态管理 (5文件: gtd.js, calendar.js, journal.js, ai.js, editor.js)
+│   └── gtd/         - GTD 业务组件 (37文件: QuickCapture, Sidebar, Settings, SyncSettings, ConflictDialog, FolderPicker, TaskItem, TaskList, CalendarView, CalendarGrid, CalendarCell, CalendarTaskChip, UnscheduledPanel, NotesPanel, Drawer, ActionSheet, JournalNowView, JournalPastView, JournalItem, JournalChip, AIPromptCard, AISettings, FocusView, FocusGreeting, FocusRecommendCard, FocusTaskItem, FocusOverdueCard, FocusEmptyState, ProjectList, ProjectSettings, ProjectBoard, ProjectColumn, ProjectTaskCard, SortableTask)
+├── stores/          - 状态管理 (6文件: gtd.js, project.js, calendar.js, journal.js, ai.js, editor.js)
 ├── hooks/           - React Hooks (2文件: useFileSystem.js, useSync.js)
 ├── lib/             - 工具函数 (6文件: utils.js, motion.js, platform.js, haptics.js, tauri.js(废弃), i18n.js)
 │   ├── ai/          - AI 功能模块 (3文件: crypto.js, prompts.js, openai.js)
 │   ├── fs/          - 文件系统抽象层 (5文件: adapter.js, tauri.js, capacitor.js, web.js, index.js)
-│   ├── format/      - 数据格式处理 (3文件: task.js, journal.js, index.js)
+│   ├── format/      - 数据格式处理 (4文件: task.js, journal.js, project.js, index.js)
 │   ├── sync/        - 云同步功能 (3文件: conflict.js, webdav.js, index.js)
 │   └── planet/      - 共享星球素材系统 (3文件: index.js, svgs.js, colors.js)
 ├── locales/         - 国际化翻译文件 (2文件: zh-CN.json, en-US.json)
-├── App.jsx          - 应用入口，支持专注/列表/日历/日记视图切换，集成跨平台功能
+├── App.jsx          - 应用入口，支持专注/列表/看板/日历/日记视图切换，集成跨平台功能
 ├── main.jsx         - React 挂载点，初始化 i18n
 └── index.css        - 全局样式 + CSS 变量
 
@@ -70,6 +70,15 @@ package.json        - 包含 tauri:dev/tauri:build (桌面端) 和 cap:android/c
 - **暂停状态**：呼吸幅度加大（1.04），表示"等待"
 - **极简背景**：纯色背景 + 20个极微星点，无星云、无辉光、无噪点
 - **信息层级**：星球（视觉焦点）→ 时间 + 任务标题（上下文）→ 控制按钮（最小化）
+
+## 看板视图 (Board View)
+
+- **设计理念**：长期目标跟进系统，项目驱动而非 GTD 列表驱动
+- **双重归属**：任务同时属于项目和 GTD 列表，互不干扰
+- **自定义列**：每个项目可定义自己的状态流（默认：待办/进行中/完成）
+- **拖拽流转**：任务在列之间拖拽改变 columnId，不影响 GTD list 归属
+- **视觉区分**：项目颜色标识，GTD 归属标签显示
+- **职责定位**：长期目标管理和进度追踪，与 GTD 系统并行不悖
 
 ## 日历视图
 
@@ -134,6 +143,9 @@ package.json        - 包含 tauri:dev/tauri:build (桌面端) 和 cap:android/c
   │   ├── inbox.json
   │   ├── today.json
   │   └── done/       # 按月归档
+  ├── projects/       # 项目数据 (JSON)
+  │   ├── proj-xxx.json
+  │   └── proj-yyy.json
   └── journals/       # 日记数据 (Markdown)
       └── 2026/01/
   ```

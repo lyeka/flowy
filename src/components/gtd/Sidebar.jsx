@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/platform 跨平台 API，依赖 react-i18next
  * [OUTPUT]: 导出 Sidebar 组件
- * [POS]: GTD 侧边栏导航，响应式设计（桌面端侧边栏，移动端底部导航），支持视图切换和列表导航，日记分组与标题同组展示，专注视图入口
+ * [POS]: GTD 侧边栏导航，响应式设计（桌面端侧边栏，移动端底部导航），支持视图切换和列表导航，日记分组与标题同组展示，专注视图入口，看板入口和项目列表
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -10,15 +10,42 @@ import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { GTD_LISTS, GTD_LIST_META } from '@/stores/gtd'
-import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, Settings, Plus, Menu, BookText, PenLine, BookOpen, Focus } from 'lucide-react'
+import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, List, ChevronLeft, ChevronRight, Settings, Plus, Menu, BookText, PenLine, BookOpen, Focus, FolderKanban } from 'lucide-react'
 import { snappy } from '@/lib/motion'
 import { isMobile } from '@/lib/platform'
 import { hapticsLight } from '@/lib/haptics'
 import { Settings as SettingsDialog } from './settings'
+import { ProjectList } from './ProjectList'
 
 const ICONS = { Inbox, Sun, ArrowRight, Calendar, CheckCircle }
 
-export function Sidebar({ activeList, onSelect, counts, tasks = [], viewMode, onViewModeChange, journalView, onJournalViewChange, onExport, onImport, settingsOpen, onSettingsOpenChange, onDrawerOpen, onQuickCaptureOpen, sync, fileSystem, className }) {
+export function Sidebar({
+  activeList,
+  onSelect,
+  counts,
+  tasks = [],
+  viewMode,
+  onViewModeChange,
+  journalView,
+  onJournalViewChange,
+  onExport,
+  onImport,
+  settingsOpen,
+  onSettingsOpenChange,
+  onDrawerOpen,
+  onQuickCaptureOpen,
+  sync,
+  fileSystem,
+  // 项目相关
+  projects = [],
+  activeProjectId,
+  onSelectProject,
+  onCreateProject,
+  onDeleteProject,
+  onArchiveProject,
+  onOpenProjectSettings,
+  className
+}) {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(false)
   const [journalExpanded, setJournalExpanded] = useState(true)
@@ -197,6 +224,29 @@ export function Sidebar({ activeList, onSelect, counts, tasks = [], viewMode, on
           {!collapsed && <span className="flex-1 text-left">{t('views.list')}</span>}
         </motion.button>
 
+        {/* 看板视图 */}
+        <motion.button
+          whileHover={{ y: -2, scale: 1.02 }}
+          whileTap={{ scale: 0.96 }}
+          transition={snappy}
+          onClick={() => {
+            if (journalView) {
+              onJournalViewChange(null)
+            }
+            onViewModeChange('board')
+          }}
+          title={collapsed ? t('views.board') : undefined}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+            "hover:bg-sidebar-accent/50",
+            viewMode === 'board' && !journalView ? "text-foreground font-medium" : "text-muted-foreground",
+            collapsed && "justify-center"
+          )}
+        >
+          <FolderKanban className="h-[18px] w-[18px]" />
+          {!collapsed && <span className="flex-1 text-left">{t('views.board')}</span>}
+        </motion.button>
+
         {/* 日记 - 一级标题 */}
         <motion.button
           whileHover={{ y: -2, scale: 1.02 }}
@@ -288,6 +338,30 @@ export function Sidebar({ activeList, onSelect, counts, tasks = [], viewMode, on
                 </motion.button>
               )
             })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 项目分组 */}
+      <AnimatePresence>
+        {viewMode === 'board' && !journalView && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col gap-1 overflow-hidden border-t border-sidebar-primary/60 pt-2"
+          >
+            <ProjectList
+              projects={projects}
+              activeProjectId={activeProjectId}
+              onSelect={onSelectProject}
+              onCreateProject={onCreateProject}
+              onDeleteProject={onDeleteProject}
+              onArchiveProject={onArchiveProject}
+              onOpenSettings={onOpenProjectSettings}
+              collapsed={collapsed}
+            />
           </motion.div>
         )}
       </AnimatePresence>

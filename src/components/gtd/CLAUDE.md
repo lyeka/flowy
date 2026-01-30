@@ -4,7 +4,7 @@
 ## 成员清单
 
 QuickCapture.jsx: 快速收集输入框，顶部任务添加入口
-Sidebar.jsx: 侧边栏导航，GTD 五大列表切换 + 专注/列表/日历视图切换 + 日记分组（此刻/过往）+ 设置入口，移动端简化为 3 按钮底部导航（Menu、FAB、日历）
+Sidebar.jsx: 侧边栏导航，GTD 五大列表切换 + 专注/列表/看板/日历视图切换 + 日记分组（此刻/过往）+ 设置入口 + 项目列表（看板模式下显示），移动端简化为 3 按钮底部导航（Menu、FAB、日历）
 Drawer.jsx: 移动端左侧滑抽屉，显示 GTD 五大列表 + 日记分组 + 设置入口，替代底部导航的列表切换功能
 ActionSheet.jsx: 移动端底部操作表，显示任务操作选项（设置日期、移动到列表、删除），替代桌面端的下拉菜单
 ConflictDialog.jsx: 同步冲突解决对话框，展示冲突详情 + 策略选择（合并/本地/远程/保留两者）
@@ -37,6 +37,12 @@ MiniInfo.jsx: 右上角极简信息标签，GSAP 入场动画，问候语 + 数�
 NoiseOverlay.jsx: 全局噪点纹理层，SVG feTurbulence 实现颗粒感
 FloatingTaskBubble.jsx: 漂浮气泡任务卡片，圆角胶囊形状，渐变圆点前缀，与行星系统融为一体
 TaskBubbleZone.jsx: 底部任务气泡区域，水平排列漂浮气泡，最多显示5个
+ProjectList.jsx: 项目列表组件，显示所有项目卡片，支持创建/删除/归档项目，折叠模式
+ProjectSettings.jsx: 项目设置对话框，支持编辑标题/描述/颜色，管理自定义列（添加/删除/重命名/排序）
+ProjectBoard.jsx: 项目看板主容器，整合列组件和拖拽功能，管理任务在列之间的流转，支持 dnd-kit
+ProjectColumn.jsx: 看板列组件，显示列内任务，支持任务拖拽，支持添加新任务
+ProjectTaskCard.jsx: 看板任务卡片，显示任务信息，支持拖拽，显示 GTD 归属标签
+SortableTask.jsx: 可拖拽排序的任务卡片包装器，集成 dnd-kit
 
 ## 子目录
 

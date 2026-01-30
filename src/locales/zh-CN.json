@@ -29,6 +29,7 @@
   },
   "views": {
     "list": "事务",
+    "board": "看板",
     "calendar": "日程"
   },
   "calendar": {
@@ -337,5 +338,22 @@
     "abandonAll": "全部放弃",
     "writeJournal": "写篇日记",
     "viewTomorrow": "查看明日计划"
+  },
+  "project": {
+    "title": "项目",
+    "settings": "项目设置",
+    "new": "新建项目",
+    "newPlaceholder": "项目名称...",
+    "titlePlaceholder": "输入项目标题",
+    "description": "描述",
+    "descriptionPlaceholder": "项目描述（可选）",
+    "color": "颜色",
+    "columns": "列",
+    "newColumnPlaceholder": "新列名称...",
+    "archive": "归档",
+    "delete": "删除项目",
+    "selectProject": "选择项目",
+    "noProject": "无项目",
+    "addToProject": "添加到项目"
   }
 }

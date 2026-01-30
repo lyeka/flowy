@@ -1,6 +1,6 @@
 /**
  * [INPUT]: React useState/useEffect/useCallback/useMemo/useRef, format/task.js
- * [OUTPUT]: useGTD hook，提供任务 CRUD 和状态管理，支持文件系统持久化；calculateFocusState 专注度计算；isToday/isPast/isFuture 日期工具；星标功能
+ * [OUTPUT]: useGTD hook，提供任务 CRUD 和状态管理，支持文件系统持久化；calculateFocusState 专注度计算；isToday/isPast/isFuture 日期工具；星标功能；项目归属(projectId/columnId)
  * [POS]: stores 层核心状态模块，被所有 GTD 组件消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -357,7 +357,7 @@ export function useGTD(options = {}) {
   }, [tasks, isLoading, debouncedSave])
 
   // 添加任务
-  const addTask = useCallback((title, list = GTD_LISTS.INBOX) => {
+  const addTask = useCallback((title, list = GTD_LISTS.INBOX, projectOptions = {}) => {
     if (!title.trim()) return
     const now = Date.now()
     const dueDate = list === GTD_LISTS.TODAY
@@ -374,7 +374,10 @@ export function useGTD(options = {}) {
       completedAt: list === GTD_LISTS.DONE ? now : null,
       dueDate,
       starred: false,
-      notes: ''
+      notes: '',
+      // 项目归属字段
+      projectId: projectOptions.projectId || null,
+      columnId: projectOptions.columnId || null
     }
     setTasks(prev => [task, ...prev])
     return task
