@@ -121,7 +121,7 @@ function AppContent({ fileSystem, sync }) {
   const dockPanelRef = useRef(null)
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight })
   const selectedTask = tasks.find(t => t.id === selectedTaskId)
-  const showDockPanel = viewMode === 'list' && selectedTaskId && selectedTask
+  const showDockPanel = (viewMode === 'list' || viewMode === 'board') && selectedTaskId && selectedTask
   const showImmersivePanel = selectedTaskId && selectedTask && immersivePhase !== 'dock'
   const isImmersive = immersivePhase !== 'dock'
   const immersiveActive = immersivePhase === 'immersive'
@@ -452,6 +452,7 @@ function AppContent({ fileSystem, sync }) {
                 setSettingsProjectId(id)
                 setProjectSettingsOpen(true)
               }}
+              onTaskClick={setSelectedTaskId}
             />
           ) : (
             <main className="flex-1 p-6 overflow-auto">

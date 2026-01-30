@@ -9,7 +9,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { ProjectTaskCard } from './ProjectTaskCard'
 
-export function SortableTask({ task, onToggleComplete, onToggleStar, onTaskClick }) {
+export function SortableTask({ task, onToggleComplete, onToggleStar, onUpdateDate, onTaskClick }) {
   const {
     attributes,
     listeners,
@@ -38,6 +38,7 @@ export function SortableTask({ task, onToggleComplete, onToggleStar, onTaskClick
         task={task}
         onToggleComplete={onToggleComplete}
         onToggleStar={onToggleStar}
+        onUpdateDate={onUpdateDate}
         onClick={onTaskClick}
         isDragging={isDragging}
       />

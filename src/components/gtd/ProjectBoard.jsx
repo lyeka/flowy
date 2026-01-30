@@ -47,7 +47,8 @@ export function ProjectBoard({
   onAddTask,
   onDeleteProject,
   onBack,
-  onOpenSettings
+  onOpenSettings,
+  onTaskClick
 }) {
   const [activeId, setActiveId] = useState(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -204,9 +205,8 @@ export function ProjectBoard({
                 tasks={tasksByColumn[column.id] || []}
                 onToggleComplete={(id) => onUpdateTask(id, { completed: !tasks.find(t => t.id === id)?.completed })}
                 onToggleStar={(id) => onUpdateTask(id, { starred: !tasks.find(t => t.id === id)?.starred })}
-                onTaskClick={(task) => {
-                  // TODO: 打开任务编辑面板
-                }}
+                onUpdateDate={(id, dueDate) => onUpdateTask(id, { dueDate })}
+                onTaskClick={onTaskClick}
                 onAddTask={handleAddTask}
                 isOver={isColumnOver(column.id)}
               />
