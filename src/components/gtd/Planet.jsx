@@ -182,40 +182,64 @@ function PomodoroRings({ count, size }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 右键菜单组件
+// 右键菜单组件 - 星云风格
 // ═══════════════════════════════════════════════════════════════════════════
 function ContextMenu({ position, task, onClose, onComplete, onMoveToToday, onMoveToTomorrow, onDelete, onEdit, onFocus, onToggleStar }) {
+  const menuRef = useRef(null)
+  const [adjustedPos, setAdjustedPos] = useState({ x: 0, y: 0 })
+
+  // 边界检测 - 确保菜单不超出视口
+  useEffect(() => {
+    if (!menuRef.current || !position) return
+
+    const rect = menuRef.current.getBoundingClientRect()
+    const pad = 12
+
+    setAdjustedPos({
+      x: Math.min(position.x + 8, window.innerWidth - rect.width - pad),
+      y: Math.min(position.y + 8, window.innerHeight - rect.height - pad)
+    })
+  }, [position])
+
   if (!position) return null
 
   return (
     <>
-      {/* 透明遮罩层 - 点击时关闭菜单 */}
+      {/* 透明遮罩层 */}
       <div
         className="fixed inset-0 z-40 pointer-events-auto"
         onClick={onClose}
       />
-      {/* 菜单本体 */}
-      <div
-        className="fixed z-50 min-w-[160px] py-2 rounded-lg backdrop-blur-sm shadow-xl pointer-events-auto"
+      {/* 菜单本体 - 星云风格 */}
+      <motion.div
+        ref={menuRef}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.98 }}
+        transition={{ duration: 0.15, ease: 'easeOut' }}
+        className="fixed z-50 min-w-[140px] py-1.5 rounded-xl pointer-events-auto"
         style={{
-          left: `${position.x}px`,
-          top: `${position.y}px`,
-          transform: 'translate(8px, 8px)',
-          background: 'var(--focus-card-bg)',
-          border: '1px solid var(--focus-card-border)'
+          left: adjustedPos.x,
+          top: adjustedPos.y,
+          background: `
+            radial-gradient(ellipse 120% 80% at 50% 0%, var(--focus-nebula-cool-glow), transparent 70%),
+            oklch(from var(--focus-bg-night) l c h / 70%)
+          `,
+          border: '1px solid var(--focus-nebula-border)',
+          boxShadow: '0 0 30px var(--focus-nebula-cool-glow)'
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 进入专注 - 首选项 */}
+        {/* 进入专注 */}
         {onFocus && (
-          <ContextMenuButton onClick={onFocus} className="text-amber-600 hover:bg-amber-500/10 font-medium">
+          <ContextMenuButton onClick={onFocus}>
             进入专注
           </ContextMenuButton>
         )}
-        <ContextMenuButton onClick={onComplete} className="text-green-600 hover:bg-green-500/10">
+        <ContextMenuButton onClick={onComplete}>
           完成任务
         </ContextMenuButton>
-        <ContextMenuButton onClick={onToggleStar} className={task.starred ? "text-amber-500" : ""}>
+        <ContextMenuButton onClick={onToggleStar}>
           {task.starred ? '取消星标' : '添加星标'}
         </ContextMenuButton>
         <ContextMenuButton onClick={onEdit}>
@@ -227,28 +251,37 @@ function ContextMenu({ position, task, onClose, onComplete, onMoveToToday, onMov
         <ContextMenuButton onClick={onMoveToTomorrow}>
           移到明天
         </ContextMenuButton>
-        <div className="h-px bg-border/50 my-1" />
-        <ContextMenuButton onClick={onDelete} className="text-destructive hover:bg-destructive/10">
+        {/* 分隔线 */}
+        <div
+          className="h-px my-1 mx-3"
+          style={{ background: 'var(--focus-nebula-border)' }}
+        />
+        {/* 危险操作 */}
+        <ContextMenuButton onClick={onDelete} danger>
           删除
         </ContextMenuButton>
-      </div>
+      </motion.div>
     </>
   )
 }
 
-function ContextMenuButton({ children, onClick, className }) {
+function ContextMenuButton({ children, onClick, danger = false }) {
+  const [isHovered, setIsHovered] = useState(false)
+
   return (
-    <motion.button
-      whileHover={{ x: 2 }}
+    <button
       onClick={onClick}
-      className={cn(
-        "w-full px-4 py-2 text-left text-sm transition-colors",
-        "text-foreground hover:bg-accent",
-        className
-      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="w-full px-3 py-2 text-left text-sm transition-colors rounded-md mx-1"
+      style={{
+        color: danger ? 'var(--focus-nebula-warm)' : 'var(--focus-text-secondary)',
+        width: 'calc(100% - 8px)',
+        background: isHovered ? 'var(--focus-button-hover)' : 'transparent'
+      }}
     >
       {children}
-    </motion.button>
+    </button>
   )
 }
 
