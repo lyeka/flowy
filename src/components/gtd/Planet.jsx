@@ -314,13 +314,11 @@ export function Planet({
   colorKey = 'coral',
   hasRing = false,
   layer = 'mid',
-  isSelected = false,
   isOverdue = false,
   pomodoroCount = 0,
   onClick,
   onLongPress,
   onPositionChange,
-  onTaskSelect,
   onCollapsed,
   className
 }) {
@@ -477,19 +475,10 @@ export function Planet({
     setShowContextMenu(true)
   }
 
-  // 点击处理（只选中，不完成）
+  // 点击处理（阻止冒泡，不做其他操作）
   const handleClick = useCallback((e) => {
     e.stopPropagation()
-
-    // 如果已坍缩，不处理
-    if (collapsed) return
-
-    // 如果正在坍缩，不处理
-    if (isCollapsing) return
-
-    // 点击切换选中状态
-    onTaskSelect?.(task.id)
-  }, [collapsed, isCollapsing, onTaskSelect, task.id])
+  }, [])
 
   // GSAP 呼吸感动画
   useEffect(() => {
@@ -572,7 +561,6 @@ export function Planet({
           "absolute cursor-pointer transition-all duration-300",
           isHovered && !isDragging && !collapsed && "scale-110",
           isDragging && "scale-105 cursor-grabbing",
-          isSelected && !collapsed && "scale-125",
           className
         )}
         style={{
@@ -604,17 +592,6 @@ export function Planet({
         {/* 番茄环 */}
         <PomodoroRings count={pomodoroCount} size={size} />
 
-        {/* 选中状态脉冲光环 */}
-        {isSelected && !collapsed && (
-          <div
-            className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle, oklch(from var(--primary) l c h / 50%) 0%, transparent 70%)',
-              animation: 'pulse-glow 2s ease-in-out infinite',
-            }}
-          />
-        )}
-
         {/* 长按进度环 */}
         {isLongPressing && (
           <div className="absolute inset-0 rounded-full">
@@ -637,11 +614,7 @@ export function Planet({
         {/* SVG 素材 - 根据任务 ID 随机选择，使用素材自带的 viewBox */}
         <div
           className="w-full h-full flex items-center justify-center"
-          style={{
-            filter: isSelected
-              ? `${colorConfig.filter} drop-shadow(0 0 15px oklch(from var(--primary) l c h / 60%))`
-              : colorConfig.filter
-          }}
+          style={{ filter: colorConfig.filter }}
           dangerouslySetInnerHTML={{ __html: selectPlanetSVG(task.id) }}
         />
 

@@ -123,9 +123,7 @@ export function FocusCircle({
   completedCount = 0,
   planetTasks = [],
   allTasks = [],
-  selectedTaskId = null,
   onParticleClick,
-  onTaskSelect,
   onLongPress,
   onPlanetCollapsed,
   onPositionChange,
@@ -240,13 +238,11 @@ export function FocusCircle({
               colorKey={config.colorKey}
               hasRing={config.hasRing}
               layer={config.layer}
-              isSelected={task.id === selectedTaskId}
               isOverdue={isTaskOverdue(task)}
               pomodoroCount={getTaskPomodoros(task)}
               onClick={onParticleClick}
               onLongPress={onLongPress}
               onPositionChange={handlePositionChange}
-              onTaskSelect={onTaskSelect}
               onCollapsed={handleCollapsed}
             />
           )

@@ -454,9 +454,6 @@ export function FocusView({
 }) {
   const { t } = useTranslation()
 
-  // 选中任务状态
-  const [selectedTaskId, setSelectedTaskId] = useState(null)
-
   // 专注模式状态
   const [focusModeTask, setFocusModeTask] = useState(null)
 
@@ -466,13 +463,7 @@ export function FocusView({
   // 处理任务完成
   const handleComplete = useCallback((taskId) => {
     onComplete?.(taskId)
-    if (selectedTaskId === taskId) setSelectedTaskId(null)
-  }, [onComplete, selectedTaskId])
-
-  // 处理任务选择
-  const handleTaskSelect = useCallback((taskId) => {
-    setSelectedTaskId(prev => prev === taskId ? null : taskId)
-  }, [])
+  }, [onComplete])
 
   // 处理长按进入专注模式
   const handleLongPress = useCallback((task) => {
@@ -513,9 +504,7 @@ export function FocusView({
         completedCount={completedCount}
         planetTasks={planetTasks}
         allTasks={allTasks}
-        selectedTaskId={selectedTaskId}
         onParticleClick={handleComplete}
-        onTaskSelect={handleTaskSelect}
         onLongPress={handleLongPress}
         onPlanetCollapsed={handlePlanetCollapsed}
         className="flex-1"
