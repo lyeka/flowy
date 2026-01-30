@@ -141,7 +141,7 @@ export function ProjectBoard({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* 头部 */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-border/50">
         <div className="flex items-center gap-3">
@@ -189,14 +189,14 @@ export function ProjectBoard({
       </header>
 
       {/* 看板区域 */}
-      <div className="flex-1 p-6 overflow-x-auto">
+      <div className="flex-1 min-h-0 p-6 overflow-x-auto overflow-y-hidden">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-4 h-full">
+          <div className="flex gap-4 h-full min-w-max px-1">
             {project.columns.map((column) => (
               <ProjectColumn
                 key={column.id}

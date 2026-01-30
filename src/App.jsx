@@ -435,40 +435,42 @@ function AppContent({ fileSystem, sync }) {
           onJournalClick={handleJournalClick}
         />
       ) : viewMode === 'board' ? (
-        activeProject ? (
-          <ProjectBoard
-            project={activeProject}
-            tasks={tasks.filter(t => t.projectId === activeProject.id)}
-            onUpdateTask={updateTask}
-            onAddTask={(title, projectId, columnId) => {
-              const project = projects.find(p => p.id === projectId)
-              const firstColumnId = project?.columns[0]?.id
-              addTask(title, null, { projectId, columnId: columnId || firstColumnId })
-            }}
-            onDeleteProject={deleteProject}
-            onBack={() => setActiveProjectId(null)}
-            onOpenSettings={(id) => {
-              setSettingsProjectId(id)
-              setProjectSettingsOpen(true)
-            }}
-          />
-        ) : (
-          <main className="flex-1 p-6 overflow-auto">
-            <h2 className="text-2xl font-bold mb-6">项目</h2>
-            <ProjectList
-              projects={projects}
-              activeProjectId={activeProjectId}
-              onSelect={setActiveProjectId}
-              onCreateProject={createProject}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {activeProject ? (
+            <ProjectBoard
+              project={activeProject}
+              tasks={tasks.filter(t => t.projectId === activeProject.id)}
+              onUpdateTask={updateTask}
+              onAddTask={(title, projectId, columnId) => {
+                const project = projects.find(p => p.id === projectId)
+                const firstColumnId = project?.columns[0]?.id
+                addTask(title, null, { projectId, columnId: columnId || firstColumnId })
+              }}
               onDeleteProject={deleteProject}
-              onArchiveProject={archiveProject}
+              onBack={() => setActiveProjectId(null)}
               onOpenSettings={(id) => {
                 setSettingsProjectId(id)
                 setProjectSettingsOpen(true)
               }}
             />
-          </main>
-        )
+          ) : (
+            <main className="flex-1 p-6 overflow-auto">
+              <h2 className="text-2xl font-bold mb-6">项目</h2>
+              <ProjectList
+                projects={projects}
+                activeProjectId={activeProjectId}
+                onSelect={setActiveProjectId}
+                onCreateProject={createProject}
+                onDeleteProject={deleteProject}
+                onArchiveProject={archiveProject}
+                onOpenSettings={(id) => {
+                  setSettingsProjectId(id)
+                  setProjectSettingsOpen(true)
+                }}
+              />
+            </main>
+          )}
+        </div>
       ) : (
         <main
           className={cn(
