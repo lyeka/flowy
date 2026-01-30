@@ -129,11 +129,6 @@ export function FocusCircle({
   onLongPress,
   onPlanetCollapsed,
   onPositionChange,
-  onEditTask,
-  onMoveToToday,
-  onMoveToTomorrow,
-  onDeleteTask,
-  onToggleStar,
   className
 }) {
   // 时间感知背景
@@ -252,11 +247,6 @@ export function FocusCircle({
               onLongPress={onLongPress}
               onPositionChange={handlePositionChange}
               onTaskSelect={onTaskSelect}
-              onEdit={onEditTask}
-              onMoveToToday={onMoveToToday}
-              onMoveToTomorrow={onMoveToTomorrow}
-              onDelete={onDeleteTask}
-              onToggleStar={onToggleStar}
               onCollapsed={handleCollapsed}
             />
           )

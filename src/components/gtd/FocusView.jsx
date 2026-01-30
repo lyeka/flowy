@@ -518,11 +518,6 @@ export function FocusView({
         onTaskSelect={handleTaskSelect}
         onLongPress={handleLongPress}
         onPlanetCollapsed={handlePlanetCollapsed}
-        onEditTask={onEditTask}
-        onMoveToToday={onMoveToToday}
-        onMoveToTomorrow={onMoveToTomorrow}
-        onDeleteTask={onDelete}
-        onToggleStar={onToggleStar}
         className="flex-1"
       />
 

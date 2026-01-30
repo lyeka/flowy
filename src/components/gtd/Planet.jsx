@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import gsap from 'gsap'
 import { cn } from '@/lib/utils'
@@ -182,45 +183,35 @@ function PomodoroRings({ count, size }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 右键菜单组件 - 星云风格
+// 右键菜单组件 - 星云风格，使用 Portal 渲染到 body 避免 transform 影响 fixed 定位
 // ═══════════════════════════════════════════════════════════════════════════
-function ContextMenu({ position, task, onClose, onComplete, onMoveToToday, onMoveToTomorrow, onDelete, onEdit, onFocus, onToggleStar }) {
-  const menuRef = useRef(null)
-  const [adjustedPos, setAdjustedPos] = useState({ x: 0, y: 0 })
-
-  // 边界检测 - 确保菜单不超出视口
-  useEffect(() => {
-    if (!menuRef.current || !position) return
-
-    const rect = menuRef.current.getBoundingClientRect()
-    const pad = 12
-
-    setAdjustedPos({
-      x: Math.min(position.x + 8, window.innerWidth - rect.width - pad),
-      y: Math.min(position.y + 8, window.innerHeight - rect.height - pad)
-    })
-  }, [position])
-
+function ContextMenu({ position, onClose, onComplete, onFocus }) {
   if (!position) return null
 
-  return (
+  // 边界检测 - 菜单尺寸约 110x80，确保不超出视口
+  const menuWidth = 110
+  const menuHeight = 80
+  const pad = 12
+  const x = Math.min(position.x + 8, window.innerWidth - menuWidth - pad)
+  const y = Math.min(position.y + 8, window.innerHeight - menuHeight - pad)
+
+  return createPortal(
     <>
       {/* 透明遮罩层 */}
       <div
-        className="fixed inset-0 z-40 pointer-events-auto"
+        className="fixed inset-0 z-[9998] pointer-events-auto"
         onClick={onClose}
       />
       {/* 菜单本体 - 星云风格 */}
       <motion.div
-        ref={menuRef}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.98 }}
         transition={{ duration: 0.15, ease: 'easeOut' }}
-        className="fixed z-50 min-w-[140px] py-1.5 rounded-xl pointer-events-auto"
+        className="fixed z-[9999] py-1.5 px-1 rounded-lg pointer-events-auto"
         style={{
-          left: adjustedPos.x,
-          top: adjustedPos.y,
+          left: x,
+          top: y,
           background: `
             radial-gradient(ellipse 120% 80% at 50% 0%, var(--focus-nebula-cool-glow), transparent 70%),
             oklch(from var(--focus-bg-night) l c h / 70%)
@@ -239,29 +230,9 @@ function ContextMenu({ position, task, onClose, onComplete, onMoveToToday, onMov
         <ContextMenuButton onClick={onComplete}>
           完成任务
         </ContextMenuButton>
-        <ContextMenuButton onClick={onToggleStar}>
-          {task.starred ? '取消星标' : '添加星标'}
-        </ContextMenuButton>
-        <ContextMenuButton onClick={onEdit}>
-          编辑任务
-        </ContextMenuButton>
-        <ContextMenuButton onClick={onMoveToToday}>
-          移到今天
-        </ContextMenuButton>
-        <ContextMenuButton onClick={onMoveToTomorrow}>
-          移到明天
-        </ContextMenuButton>
-        {/* 分隔线 */}
-        <div
-          className="h-px my-1 mx-3"
-          style={{ background: 'var(--focus-nebula-border)' }}
-        />
-        {/* 危险操作 */}
-        <ContextMenuButton onClick={onDelete} danger>
-          删除
-        </ContextMenuButton>
       </motion.div>
-    </>
+    </>,
+    document.body
   )
 }
 
@@ -273,10 +244,9 @@ function ContextMenuButton({ children, onClick, danger = false }) {
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="w-full px-3 py-2 text-left text-sm transition-colors rounded-md mx-1"
+      className="block w-full px-4 py-1.5 text-left text-sm transition-colors whitespace-nowrap"
       style={{
         color: danger ? 'var(--focus-nebula-warm)' : 'var(--focus-text-secondary)',
-        width: 'calc(100% - 8px)',
         background: isHovered ? 'var(--focus-button-hover)' : 'transparent'
       }}
     >
@@ -351,11 +321,6 @@ export function Planet({
   onLongPress,
   onPositionChange,
   onTaskSelect,
-  onEdit,
-  onMoveToToday,
-  onMoveToTomorrow,
-  onDelete,
-  onToggleStar,
   onCollapsed,
   className
 }) {
@@ -745,15 +710,9 @@ export function Planet({
         {showContextMenu && (
           <ContextMenu
             position={contextMenuPos}
-            task={task}
             onClose={() => setShowContextMenu(false)}
             onComplete={() => { triggerCollapse(); onClick?.(task.id); setShowContextMenu(false) }}
             onFocus={() => { onLongPress?.(task); setShowContextMenu(false) }}
-            onToggleStar={() => { onToggleStar?.(task.id); setShowContextMenu(false) }}
-            onEdit={() => { onEdit?.(task); setShowContextMenu(false) }}
-            onMoveToToday={() => { onMoveToToday?.(task.id); setShowContextMenu(false) }}
-            onMoveToTomorrow={() => { onMoveToTomorrow?.(task.id); setShowContextMenu(false) }}
-            onDelete={() => { onDelete?.(task.id); setShowContextMenu(false) }}
           />
         )}
       </AnimatePresence>
