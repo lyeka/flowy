@@ -1,36 +1,17 @@
 /**
- * [INPUT]: 依赖 lucide-react 图标，依赖 framer-motion，依赖 react-i18next，依赖 @/stores/gtd，依赖 @/components/ui/popover，依赖 @/components/ui/calendar
+ * [INPUT]: 依赖 lucide-react 图标，依赖 framer-motion，依赖 @/components/ui/popover，依赖 @/components/ui/calendar
  * [OUTPUT]: 导出 ProjectTaskCard 组件
- * [POS]: 看板任务卡片，显示任务信息，支持拖拽，显示 GTD 归属标签，支持快速设置日期（Popover + Calendar）
+ * [POS]: 看板任务卡片，显示任务信息，支持拖拽，支持快速设置日期（Popover + Calendar）
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Calendar as CalendarIcon, Star, CheckCircle2, Circle, CalendarDays } from 'lucide-react'
-import { GTD_LISTS } from '@/stores/gtd'
+import { Star, CheckCircle2, Circle, CalendarDays } from 'lucide-react'
 import { snappy } from '@/lib/motion'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
-
-// GTD 列表标签颜色
-const GTD_TAG_COLORS = {
-  [GTD_LISTS.INBOX]: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
-  [GTD_LISTS.TODAY]: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  [GTD_LISTS.NEXT]: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  [GTD_LISTS.SOMEDAY]: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  [GTD_LISTS.DONE]: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-}
-
-const GTD_TAG_KEYS = {
-  [GTD_LISTS.INBOX]: 'inbox',
-  [GTD_LISTS.TODAY]: 'today',
-  [GTD_LISTS.NEXT]: 'next',
-  [GTD_LISTS.SOMEDAY]: 'someday',
-  [GTD_LISTS.DONE]: 'done'
-}
 
 export function ProjectTaskCard({
   task,
@@ -41,7 +22,6 @@ export function ProjectTaskCard({
   isDragging = false,
   className
 }) {
-  const { t } = useTranslation()
   const [dateOpen, setDateOpen] = useState(false)
 
   // 格式化日期
@@ -63,7 +43,6 @@ export function ProjectTaskCard({
 
   const dueDate = formatDate(task.dueDate)
   const isOverdue = task.dueDate && task.dueDate < Date.now() && !task.completed
-  const gtdList = task.list || GTD_LISTS.INBOX
 
   return (
     <motion.div
@@ -135,16 +114,6 @@ export function ProjectTaskCard({
             />
           </PopoverContent>
         </Popover>
-
-        {/* GTD 归属标签 */}
-        {gtdList && gtdList !== GTD_LISTS.DONE && (
-          <span className={cn(
-            'text-xs px-1.5 py-0.5 rounded',
-            GTD_TAG_COLORS[gtdList]
-          )}>
-            {t(`gtd.${GTD_TAG_KEYS[gtdList]}`)}
-          </span>
-        )}
       </div>
     </motion.div>
   )

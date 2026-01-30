@@ -57,6 +57,7 @@ const getDefaultTasks = () => {
       list: GTD_LISTS.TODAY,
       completed: false,
       createdAt: now,
+      updatedAt: now,
       completedAt: null,
       dueDate: now,
       starred: false,
@@ -371,6 +372,7 @@ export function useGTD(options = {}) {
       list,
       completed: list === GTD_LISTS.DONE,
       createdAt: now,
+      updatedAt: now,
       completedAt: list === GTD_LISTS.DONE ? now : null,
       dueDate,
       starred: false,
@@ -385,7 +387,9 @@ export function useGTD(options = {}) {
 
   // 更新任务
   const updateTask = useCallback((id, updates) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t))
+    setTasks(prev => prev.map(t =>
+      t.id === id ? { ...t, ...updates, updatedAt: Date.now() } : t
+    ))
   }, [])
 
   // 删除任务
@@ -397,11 +401,13 @@ export function useGTD(options = {}) {
   const toggleComplete = useCallback((id) => {
     setTasks(prev => prev.map(t => {
       if (t.id !== id) return t
+      const now = Date.now()
       const nextCompleted = !t.completed
       return {
         ...t,
         completed: nextCompleted,
-        completedAt: nextCompleted ? Date.now() : null,
+        completedAt: nextCompleted ? now : null,
+        updatedAt: now,
         list: nextCompleted ? GTD_LISTS.DONE : t.list === GTD_LISTS.DONE ? GTD_LISTS.INBOX : t.list
       }
     }))
@@ -416,7 +422,8 @@ export function useGTD(options = {}) {
         ...t,
         list,
         completed: list === GTD_LISTS.DONE,
-        completedAt: list === GTD_LISTS.DONE ? now : null
+        completedAt: list === GTD_LISTS.DONE ? now : null,
+        updatedAt: now
       }
       if (list === GTD_LISTS.TODAY) {
         next.dueDate = now
@@ -431,7 +438,9 @@ export function useGTD(options = {}) {
 
   // 切换星标状态
   const toggleStar = useCallback((id) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, starred: !t.starred } : t))
+    setTasks(prev => prev.map(t =>
+      t.id === id ? { ...t, starred: !t.starred, updatedAt: Date.now() } : t
+    ))
   }, [])
 
   // 加载任务(用于导入)

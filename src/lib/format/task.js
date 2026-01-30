@@ -28,6 +28,7 @@ const CURRENT_VERSION = 1
  * @property {string} title - 任务标题
  * @property {boolean} completed - 是否完成
  * @property {number} createdAt - 创建时间戳
+ * @property {number} updatedAt - 最后更新时间戳
  * @property {number|null} completedAt - 完成时间戳
  * @property {number|null} dueDate - 截止日期时间戳
  * @property {string} notes - 备注
@@ -53,6 +54,7 @@ export function serializeTasks(tasks) {
       title: task.title,
       completed: task.completed,
       createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
       completedAt: task.completedAt,
       dueDate: task.dueDate,
       notes: task.notes || '',
@@ -127,7 +129,7 @@ export function mergeTasks(local, remote) {
 
   // 计算任务的"更新时间"
   const getTaskTime = (task) => {
-    return Math.max(
+    return task.updatedAt || Math.max(
       task.completedAt || 0,
       task.createdAt || 0
     )
