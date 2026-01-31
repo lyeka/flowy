@@ -692,9 +692,16 @@ function AppContent({ fileSystem, sync }) {
             activeList={activeList}
             onSelect={setActiveList}
             counts={counts}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
             journalView={journalView}
             onJournalViewChange={handleJournalViewChange}
             onSettingsOpen={() => setSettingsOpen(true)}
+            projects={projects}
+            tasks={tasks}
+            activeProjectId={activeProjectId}
+            onSelectProject={onSelectProject}
+            onCreateProject={onCreateProject}
           />
 
           {/* 移动端快速捕获模态框 */}
