@@ -216,12 +216,12 @@ export function ProjectBoard({
             variant="ghost"
             size="sm"
             onClick={onBack}
-            className="gap-1"
+            className="gap-1 hover:text-primary"
           >
             <ChevronLeft className="h-4 w-4" />
             返回
           </Button>
-          <h2 className="font-bold">{project.title}</h2>
+          <h2 className="font-bold pl-3 border-l-2 border-primary">{project.title}</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button

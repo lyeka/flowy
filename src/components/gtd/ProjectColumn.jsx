@@ -97,7 +97,10 @@ export function ProjectColumn({
         {/* 进度条 + 百分比 */}
         <div className="flex items-center gap-2">
           <Progress value={progress} className="w-12 h-1" />
-          <span className="text-xs text-muted-foreground w-8 text-right tabular-nums">
+          <span className={cn(
+            "text-xs w-8 text-right tabular-nums",
+            progress === 100 && totalCount > 0 ? "text-primary font-medium" : "text-muted-foreground"
+          )}>
             {totalCount > 0 ? `${progress}%` : '—'}
           </span>
         </div>
@@ -133,7 +136,7 @@ export function ProjectColumn({
             whileTap={{ scale: 0.98 }}
             transition={snappy}
             onClick={() => setIsAdding(true)}
-            className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md border border-dashed border-border/50 text-muted-foreground text-xs hover:border-border hover:text-foreground hover:bg-background/50 transition-colors"
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md border border-dashed border-border/50 text-muted-foreground text-xs hover:border-primary/50 hover:text-primary hover:bg-primary/5 transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />
             添加任务

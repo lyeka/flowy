@@ -100,7 +100,7 @@ export function ProjectTaskCard({
             onClick={onClick}
             className={cn(
               'p-3 bg-card rounded-lg border border-border/50 cursor-pointer',
-              'hover:border-border hover:shadow-sm transition-all',
+              'hover:border-primary/30 hover:shadow-sm transition-all',
               isDragging && 'shadow-lg opacity-90',
               task.completed && 'opacity-60',
               className
@@ -116,7 +116,7 @@ export function ProjectTaskCard({
                 className="mt-0.5 flex-shrink-0"
               >
                 {task.completed ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                 ) : (
                   <Circle className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
                 )}
@@ -146,7 +146,7 @@ export function ProjectTaskCard({
                 <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
                   <button className={cn(
                     'inline-flex items-center gap-1 text-xs hover:bg-muted-foreground/10 rounded px-1.5 py-0.5 transition-colors',
-                    isOverdue ? 'text-destructive' : 'text-muted-foreground'
+                    isOverdue ? 'text-destructive' : 'text-muted-foreground hover:text-primary'
                   )}>
                     <CalendarDays className="h-3 w-3" />
                     {dueDate || '设置日期'}
