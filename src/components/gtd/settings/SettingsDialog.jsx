@@ -82,7 +82,7 @@ export function SettingsDialog({ open, onOpenChange, sync, fileSystem, onExport,
                   <SheetTitle>{t(currentSectionTitle)}</SheetTitle>
                 </div>
               </SheetHeader>
-              <div className="p-4 overflow-y-auto flex-1">
+              <div className="p-4 overflow-y-auto flex-1 elegant-scroll">
                 <SettingsContent
                   activeSection={activeSection}
                   sync={sync}
@@ -117,7 +117,7 @@ export function SettingsDialog({ open, onOpenChange, sync, fileSystem, onExport,
           </div>
 
           {/* 右侧内容 */}
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div className="flex-1 p-6 overflow-y-auto elegant-scroll">
             <SettingsContent
               activeSection={activeSection}
               sync={sync}

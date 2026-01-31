@@ -379,7 +379,7 @@ function OverflowCard({ tasks, onTaskClick, onToggleStar }) {
               className="border-t"
               style={{ borderColor: 'var(--focus-nebula-border)' }}
             >
-              <div className="p-3 space-y-2 max-h-48 overflow-y-auto">
+              <div className="p-3 space-y-2 max-h-48 overflow-y-auto elegant-scroll">
                 {tasks.map(task => (
                   <div
                     key={task.id}

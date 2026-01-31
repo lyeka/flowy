@@ -145,7 +145,7 @@ export function ProjectColumn({
       </div>
 
       {/* 任务列表 - 可滚动 */}
-      <div className="flex-1 p-3 space-y-2 overflow-y-auto min-h-0">
+      <div className="flex-1 p-3 space-y-2 overflow-y-auto min-h-0 elegant-scroll">
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           <AnimatePresence mode="popLayout">
             {sortedTasks.map((task) => (

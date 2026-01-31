@@ -258,14 +258,14 @@ export function ProjectGallery({
   // 空状态
   if (projects.length === 0 && !isCreating) {
     return (
-      <div className={cn('flex-1 p-6 overflow-auto', className)}>
+      <div className={cn('flex-1 p-6 overflow-auto elegant-scroll', className)}>
         <EmptyState onCreate={() => setIsCreating(true)} />
       </div>
     )
   }
 
   return (
-    <div className={cn('flex-1 p-6 overflow-auto', className)}>
+    <div className={cn('flex-1 p-6 overflow-auto elegant-scroll', className)}>
       {/* 标题栏 */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">{t('project.title')}</h2>
