@@ -1,37 +1,38 @@
 /**
- * [INPUT]: 依赖 @/stores/project，依赖 lucide-react 图标，依赖 framer-motion，依赖 react-i18next
+ * [INPUT]: 依赖 @/stores/project，依赖 lucide-react 图标，依赖 framer-motion，依赖 react-i18next，依赖 @/components/ui/circular-progress
  * [OUTPUT]: 导出 ProjectList 组件
- * [POS]: 项目列表组件，显示所有项目卡片，支持创建新项目
+ * [POS]: 项目列表组件，侧边栏导航，仅支持点击切换视图，操作功能移至主区域卡片
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Plus, FolderKanban, MoreHorizontal, Trash2, Archive, Settings } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { snappy } from '@/lib/motion'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+import { CircularProgress } from '@/components/ui/circular-progress'
 
 export function ProjectList({
   projects,
+  tasks = [],
   activeProjectId,
   onSelect,
   onCreateProject,
-  onDeleteProject,
-  onArchiveProject,
-  onOpenSettings,
   collapsed = false,
   className
 }) {
   const { t } = useTranslation()
   const [isCreating, setIsCreating] = useState(false)
   const [newTitle, setNewTitle] = useState('')
+
+  // 计算项目进度
+  const getProjectProgress = useCallback((projectId) => {
+    const projectTasks = tasks.filter(t => t.projectId === projectId)
+    const total = projectTasks.length
+    const completed = projectTasks.filter(t => t.completed).length
+    return total > 0 ? Math.round((completed / total) * 100) : 0
+  }, [tasks])
 
   const handleCreate = () => {
     if (newTitle.trim()) {
@@ -52,71 +53,38 @@ export function ProjectList({
 
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      {/* 项目列表 */}
+      {/* 项目列表 - 仅导航 */}
       <AnimatePresence mode="popLayout">
         {projects.map((project) => {
           const isActive = activeProjectId === project.id
           return (
-            <motion.div
+            <motion.button
               key={project.id}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={snappy}
-              className="group relative"
+              whileHover={{ x: 2 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => onSelect(project.id)}
+              title={collapsed ? project.title : undefined}
+              className={cn(
+                'flex items-center gap-3 py-2 rounded-lg text-sm transition-colors w-full',
+                'px-3',
+                'hover:bg-sidebar-accent',
+                isActive && 'bg-sidebar-accent text-sidebar-accent-foreground font-medium',
+                collapsed && 'justify-center'
+              )}
             >
-              <motion.button
-                whileHover={{ y: -2, scale: 1.02 }}
-                whileTap={{ scale: 0.96 }}
-                transition={snappy}
-                onClick={() => onSelect(project.id)}
-                title={collapsed ? project.title : undefined}
-                className={cn(
-                  'flex items-center gap-3 py-2 rounded-lg text-sm transition-colors w-full',
-                  'px-3',
-                  'hover:bg-sidebar-accent',
-                  isActive && 'bg-sidebar-accent text-sidebar-accent-foreground font-medium',
-                  collapsed && 'justify-center'
-                )}
-              >
-                <div
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: project.color }}
-                />
-                {!collapsed && (
-                  <>
-                    <span className="flex-1 text-left truncate">{project.title}</span>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          onClick={(e) => e.stopPropagation()}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-sidebar-accent rounded transition-opacity"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onOpenSettings(project.id)}>
-                          <Settings className="h-4 w-4 mr-2" />
-                          {t('project.settings')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onArchiveProject(project.id)}>
-                          <Archive className="h-4 w-4 mr-2" />
-                          {t('project.archive')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onDeleteProject(project.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          {t('common.delete')}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                )}
-              </motion.button>
-            </motion.div>
+              <CircularProgress
+                value={getProjectProgress(project.id)}
+                size={16}
+                strokeWidth={2}
+              />
+              {!collapsed && (
+                <span className="flex-1 text-left truncate">{project.title}</span>
+              )}
+            </motion.button>
           )
         })}
       </AnimatePresence>
@@ -144,7 +112,7 @@ export function ProjectList({
         </div>
       ) : (
         <motion.button
-          whileHover={{ y: -2, scale: 1.02 }}
+          whileHover={{ x: 2 }}
           whileTap={{ scale: 0.96 }}
           transition={snappy}
           onClick={() => setIsCreating(true)}

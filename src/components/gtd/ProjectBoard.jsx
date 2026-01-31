@@ -45,6 +45,7 @@ export function ProjectBoard({
   tasks,
   onUpdateTask,
   onAddTask,
+  onDeleteTask,
   onDeleteProject,
   onBack,
   onOpenSettings,
@@ -155,13 +156,7 @@ export function ProjectBoard({
             <ChevronLeft className="h-4 w-4" />
             返回
           </Button>
-          <div className="flex items-center gap-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: project.color }}
-            />
-            <h2 className="font-bold">{project.title}</h2>
-          </div>
+          <h2 className="font-bold">{project.title}</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -206,6 +201,8 @@ export function ProjectBoard({
                 onToggleComplete={(id) => onUpdateTask(id, { completed: !tasks.find(t => t.id === id)?.completed })}
                 onToggleStar={(id) => onUpdateTask(id, { starred: !tasks.find(t => t.id === id)?.starred })}
                 onUpdateDate={(id, dueDate) => onUpdateTask(id, { dueDate })}
+                onUpdateTitle={(id, title) => onUpdateTask(id, { title })}
+                onDeleteTask={onDeleteTask}
                 onTaskClick={onTaskClick}
                 onAddTask={handleAddTask}
                 isOver={isColumnOver(column.id)}

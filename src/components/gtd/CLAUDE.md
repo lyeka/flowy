@@ -37,8 +37,9 @@ MiniInfo.jsx: 右上角极简信息标签，GSAP 入场动画，问候语 + 数�
 NoiseOverlay.jsx: 全局噪点纹理层，SVG feTurbulence 实现颗粒感
 FloatingTaskBubble.jsx: 漂浮气泡任务卡片，圆角胶囊形状，渐变圆点前缀，与行星系统融为一体
 TaskBubbleZone.jsx: 底部任务气泡区域，水平排列漂浮气泡，最多显示5个
-ProjectList.jsx: 项目列表组件，显示所有项目卡片，支持创建/删除/归档项目，折叠模式
-ProjectSettings.jsx: 项目设置对话框，支持编辑标题/描述/颜色，管理自定义列（添加/删除/重命名/排序）
+ProjectList.jsx: 项目列表组件，侧边栏导航，仅支持点击切换视图和创建项目，操作功能（设置/归档/删除）移至主区域 ProjectGallery 右键菜单
+ProjectGallery.jsx: 项目画廊组件，呼吸感卡片网格布局（h-40 垂直居中），系统主题色进度环 + 标题 + 纯文字统计，响应式 1/2/3 列，hover 仅背景色变化，右键菜单操作（设置/归档/删除）
+ProjectSettings.jsx: 项目设置对话框，支持编辑标题/描述，管理自定义列（添加/删除/重命名/排序），移除颜色选择，统一使用系统主题色
 ProjectBoard.jsx: 项目看板主容器，整合列组件和拖拽功能，管理任务在列之间的流转，支持 dnd-kit
 ProjectColumn.jsx: 看板列组件，显示列内任务，支持任务拖拽，支持添加新任务（添加按钮固定在列头下方，始终可见）
 ProjectTaskCard.jsx: 看板任务卡片，显示任务信息，支持拖拽，显示 GTD 归属标签

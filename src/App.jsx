@@ -21,6 +21,7 @@ import { CalendarView } from '@/components/gtd/CalendarView'
 import { ProjectBoard } from '@/components/gtd/ProjectBoard'
 import { ProjectSettings } from '@/components/gtd/ProjectSettings'
 import { ProjectList } from '@/components/gtd/ProjectList'
+import { ProjectGallery } from '@/components/gtd/ProjectGallery'
 import { NotesPanel } from '@/components/gtd/NotesPanel'
 import { JournalNowView } from '@/components/gtd/JournalNowView'
 import { JournalPastView } from '@/components/gtd/JournalPastView'
@@ -446,6 +447,7 @@ function AppContent({ fileSystem, sync }) {
                 const firstColumnId = project?.columns[0]?.id
                 addTask(title, null, { projectId, columnId: columnId || firstColumnId })
               }}
+              onDeleteTask={deleteTask}
               onDeleteProject={deleteProject}
               onBack={() => setActiveProjectId(null)}
               onOpenSettings={(id) => {
@@ -455,21 +457,19 @@ function AppContent({ fileSystem, sync }) {
               onTaskClick={setSelectedTaskId}
             />
           ) : (
-            <main className="flex-1 p-6 overflow-auto">
-              <h2 className="text-2xl font-bold mb-6">项目</h2>
-              <ProjectList
-                projects={projects}
-                activeProjectId={activeProjectId}
-                onSelect={setActiveProjectId}
-                onCreateProject={createProject}
-                onDeleteProject={deleteProject}
-                onArchiveProject={archiveProject}
-                onOpenSettings={(id) => {
-                  setSettingsProjectId(id)
-                  setProjectSettingsOpen(true)
-                }}
-              />
-            </main>
+            <ProjectGallery
+              projects={projects}
+              tasks={tasks}
+              activeProjectId={activeProjectId}
+              onSelect={setActiveProjectId}
+              onCreateProject={createProject}
+              onDeleteProject={deleteProject}
+              onArchiveProject={archiveProject}
+              onOpenSettings={(id) => {
+                setSettingsProjectId(id)
+                setProjectSettingsOpen(true)
+              }}
+            />
           )}
         </div>
       ) : (

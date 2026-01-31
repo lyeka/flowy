@@ -9,7 +9,9 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "close": "Close",
-    "back": "Back"
+    "back": "Back",
+    "delete": "Delete",
+    "save": "Save"
   },
   "themes": {
     "light": "Light",
@@ -354,6 +356,15 @@
     "delete": "Delete Project",
     "selectProject": "Select Project",
     "noProject": "No Project",
-    "addToProject": "Add to Project"
+    "addToProject": "Add to Project",
+    "gallery": {
+      "emptyTitle": "No projects yet",
+      "emptyDesc": "Projects are great for long-term goals. Create your first one",
+      "createButton": "Create new project",
+      "newProject": "New Project",
+      "enterBoard": "View board",
+      "noTasks": "No tasks yet",
+      "completed": "completed"
+    }
   }
 }

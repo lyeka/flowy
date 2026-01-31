@@ -9,7 +9,9 @@
     "cancel": "取消",
     "confirm": "确认",
     "close": "关闭",
-    "back": "返回"
+    "back": "返回",
+    "delete": "删除",
+    "save": "保存"
   },
   "themes": {
     "light": "浅色",
@@ -354,6 +356,15 @@
     "delete": "删除项目",
     "selectProject": "选择项目",
     "noProject": "无项目",
-    "addToProject": "添加到项目"
+    "addToProject": "添加到项目",
+    "gallery": {
+      "emptyTitle": "还没有任何项目",
+      "emptyDesc": "项目是长期目标的好搭档，创建你的第一个项目吧",
+      "createButton": "创建新项目",
+      "newProject": "新建项目",
+      "enterBoard": "进入看板",
+      "noTasks": "暂无任务",
+      "completed": "完成"
+    }
   }
 }

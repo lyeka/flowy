@@ -22,6 +22,8 @@ export function ProjectColumn({
   onToggleComplete,
   onToggleStar,
   onUpdateDate,
+  onUpdateTitle,
+  onDeleteTask,
   onTaskClick,
   onAddTask,
   isOver = false
@@ -150,6 +152,8 @@ export function ProjectColumn({
                 onToggleComplete={onToggleComplete}
                 onToggleStar={onToggleStar}
                 onUpdateDate={onUpdateDate}
+                onUpdateTitle={onUpdateTitle}
+                onDelete={onDeleteTask}
                 onTaskClick={onTaskClick}
               />
             ))}

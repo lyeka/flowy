@@ -1,7 +1,7 @@
 /**
  * [INPUT]: React useState/useEffect/useCallback/useMemo, format/project.js
  * [OUTPUT]: useProject hook，提供项目 CRUD 和状态管理，支持文件系统持久化
- * [POS]: stores 层项目状态模块，被看板组件消费
+ * [POS]: stores 层项目状态模块，被看板组件消费，移除 PROJECT_COLORS 常量，统一使用系统主题色
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -21,18 +21,6 @@ export const DEFAULT_COLUMNS = [
   { id: 'backlog', title: '待办' },
   { id: 'in_progress', title: '进行中' },
   { id: 'done', title: '完成' }
-]
-
-// 项目颜色选项
-export const PROJECT_COLORS = [
-  '#3b82f6', // blue
-  '#22c55e', // green
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#8b5cf6', // violet
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#f97316'  // orange
 ]
 
 /* ========================================
@@ -91,15 +79,15 @@ export function useProject(options = {}) {
 
       const files = await fileSystem.list(PROJECTS_DIR)
       for (const file of files) {
-        if (!file.endsWith('.json')) continue
+        if (!file.name.endsWith('.json')) continue
         try {
-          const content = await fileSystem.read(`${PROJECTS_DIR}/${file}`)
+          const content = await fileSystem.read(`${PROJECTS_DIR}/${file.name}`)
           const project = deserializeProject(content)
           if (project && !project.archived) {
             allProjects.push(project)
           }
         } catch (err) {
-          console.error(`Failed to load project ${file}:`, err)
+          console.error(`Failed to load project ${file.name}:`, err)
         }
       }
     } catch (err) {
@@ -195,7 +183,6 @@ export function useProject(options = {}) {
       id: generateId(),
       title: title.trim(),
       description,
-      color: PROJECT_COLORS[Math.floor(Math.random() * PROJECT_COLORS.length)],
       columns: DEFAULT_COLUMNS.map(col => ({ ...col, id: generateColumnId() })),
       createdAt: now,
       updatedAt: now,

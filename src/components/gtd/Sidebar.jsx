@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/platform 跨平台 API，依赖 react-i18next
+ * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/platform 跨平台 API，依赖 react-i18next，依赖 @/components/gtd/settings/Settings
  * [OUTPUT]: 导出 Sidebar 组件
- * [POS]: GTD 侧边栏导航，响应式设计（桌面端侧边栏，移动端底部导航），支持视图切换和列表导航，日记分组与标题同组展示，专注视图入口，看板入口和项目列表
+ * [POS]: GTD 侧边栏导航，响应式设计（桌面端侧边栏，移动端底部导航），支持视图切换和列表导航，日记分组与标题同组展示，专注视图入口，看板入口和项目列表（传入 tasks 计算项目进度）
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -354,12 +354,10 @@ export function Sidebar({
           >
             <ProjectList
               projects={projects}
+              tasks={tasks}
               activeProjectId={activeProjectId}
               onSelect={onSelectProject}
               onCreateProject={onCreateProject}
-              onDeleteProject={onDeleteProject}
-              onArchiveProject={onArchiveProject}
-              onOpenSettings={onOpenProjectSettings}
               collapsed={collapsed}
             />
           </motion.div>

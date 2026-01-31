@@ -1,20 +1,20 @@
 /**
  * [INPUT]: 依赖 @/stores/project，依赖 lucide-react 图标，依赖 @/components/ui/*，依赖 react-i18next
  * [OUTPUT]: 导出 ProjectSettings 组件
- * [POS]: 项目设置对话框，支持编辑标题/描述/颜色，管理自定义列
+ * [POS]: 项目设置对话框，支持编辑标题/描述，管理自定义列（移除颜色选择，统一使用系统主题色）
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { PROJECT_COLORS } from '@/stores/project'
 import { GripVertical, Plus, Trash2, X } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
+  DialogDescription
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,7 +33,6 @@ export function ProjectSettings({
   const { t } = useTranslation()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [color, setColor] = useState('')
   const [newColumnTitle, setNewColumnTitle] = useState('')
   const [editingColumnId, setEditingColumnId] = useState(null)
   const [editingColumnTitle, setEditingColumnTitle] = useState('')
@@ -43,14 +42,13 @@ export function ProjectSettings({
     if (project) {
       setTitle(project.title)
       setDescription(project.description || '')
-      setColor(project.color)
     }
   }, [project])
 
   if (!project) return null
 
   const handleSave = () => {
-    onUpdateProject(project.id, { title, description, color })
+    onUpdateProject(project.id, { title, description })
     onOpenChange(false)
   }
 
@@ -74,6 +72,9 @@ export function ProjectSettings({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{t('project.settings')}</DialogTitle>
+          <DialogDescription className="sr-only">
+            编辑项目设置
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -96,24 +97,6 @@ export function ProjectSettings({
                 placeholder={t('project.descriptionPlaceholder')}
                 rows={3}
               />
-            </div>
-
-            {/* 颜色选择 */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t('project.color')}</label>
-              <div className="flex gap-2 flex-wrap">
-                {PROJECT_COLORS.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setColor(c)}
-                    className={cn(
-                      'w-8 h-8 rounded-full transition-all',
-                      color === c && 'ring-2 ring-offset-2 ring-primary'
-                    )}
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
             </div>
           </div>
 
