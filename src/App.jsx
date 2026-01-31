@@ -103,7 +103,8 @@ function AppContent({ fileSystem, sync }) {
     archiveProject,
     addColumn,
     updateColumn,
-    deleteColumn
+    deleteColumn,
+    reorderColumns
   } = useProject({ fileSystem: fileSystem.isReady ? fileSystem.fs : null })
 
   const [viewMode, setViewMode] = useState('focus') // 'focus' | 'list' | 'board' | 'calendar'
@@ -449,6 +450,7 @@ function AppContent({ fileSystem, sync }) {
               }}
               onDeleteTask={deleteTask}
               onDeleteProject={deleteProject}
+              onReorderColumns={reorderColumns}
               onBack={() => setActiveProjectId(null)}
               onOpenSettings={(id) => {
                 setSettingsProjectId(id)

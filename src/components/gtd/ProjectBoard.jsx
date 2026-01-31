@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 @dnd-kit/core，依赖 @dnd-kit/sortable，依赖 ./ProjectColumn，依赖 @/stores/project，依赖 @/stores/gtd，依赖 lucide-react
  * [OUTPUT]: 导出 ProjectBoard 组件
- * [POS]: 项目看板主容器，整合列组件和拖拽功能，管理任务在列之间的流转
+ * [POS]: 项目看板主容器，整合列组件和拖拽功能，管理任务在列之间的流转，支持列拖拽排序
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -15,7 +15,14 @@ import {
   useSensor,
   useSensors
 } from '@dnd-kit/core'
-import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { ChevronLeft, Settings, MoreHorizontal } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -40,6 +47,36 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 
+// ============================================
+// 可排序列包装器
+// ============================================
+
+function SortableColumn({ column, children }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({
+    id: column.id,
+    data: { type: 'column', column }
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {children}
+    </div>
+  )
+}
+
 export function ProjectBoard({
   project,
   tasks,
@@ -47,11 +84,13 @@ export function ProjectBoard({
   onAddTask,
   onDeleteTask,
   onDeleteProject,
+  onReorderColumns,
   onBack,
   onOpenSettings,
   onTaskClick
 }) {
   const [activeId, setActiveId] = useState(null)
+  const [activeType, setActiveType] = useState(null) // 'task' | 'column'
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   // 按列分组任务
@@ -75,21 +114,45 @@ export function ProjectBoard({
     })
   )
 
-  // 查找活动任务
-  const activeTask = activeId ? tasks.find(t => t.id === activeId) : null
+  // 查找活动任务或列
+  const activeTask = activeType === 'task' && activeId ? tasks.find(t => t.id === activeId) : null
+  const activeColumn = activeType === 'column' && activeId ? project.columns.find(c => c.id === activeId) : null
 
   // 处理拖拽开始
   const handleDragStart = (event) => {
-    setActiveId(event.active.id)
+    const { active } = event
+    setActiveId(active.id)
+
+    // 判断拖拽的是列还是任务
+    if (active.data.current?.type === 'column') {
+      setActiveType('column')
+    } else {
+      setActiveType('task')
+    }
   }
 
   // 处理拖拽结束
   const handleDragEnd = (event) => {
     const { active, over } = event
     setActiveId(null)
+    setActiveType(null)
 
     if (!over) return
 
+    // 列排序
+    if (active.data.current?.type === 'column') {
+      if (active.id !== over.id) {
+        const oldIndex = project.columns.findIndex(c => c.id === active.id)
+        const newIndex = project.columns.findIndex(c => c.id === over.id)
+        if (oldIndex !== -1 && newIndex !== -1 && onReorderColumns) {
+          const newColumns = arrayMove(project.columns, oldIndex, newIndex)
+          onReorderColumns(project.id, newColumns)
+        }
+      }
+      return
+    }
+
+    // 任务拖拽
     const activeTask = tasks.find(t => t.id === active.id)
     if (!activeTask) return
 
@@ -139,8 +202,10 @@ export function ProjectBoard({
 
   // 获取列的拖拽状态
   const isColumnOver = (columnId) => {
-    return activeId && tasks.find(t => t.id === activeId)?.columnId !== columnId
+    return activeType === 'task' && activeId && tasks.find(t => t.id === activeId)?.columnId !== columnId
   }
+
+  const columnIds = project.columns.map(c => c.id)
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -192,23 +257,26 @@ export function ProjectBoard({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-4 h-full min-w-max px-1">
-            {project.columns.map((column) => (
-              <ProjectColumn
-                key={column.id}
-                column={column}
-                tasks={tasksByColumn[column.id] || []}
-                onToggleComplete={(id) => onUpdateTask(id, { completed: !tasks.find(t => t.id === id)?.completed })}
-                onToggleStar={(id) => onUpdateTask(id, { starred: !tasks.find(t => t.id === id)?.starred })}
-                onUpdateDate={(id, dueDate) => onUpdateTask(id, { dueDate })}
-                onUpdateTitle={(id, title) => onUpdateTask(id, { title })}
-                onDeleteTask={onDeleteTask}
-                onTaskClick={onTaskClick}
-                onAddTask={handleAddTask}
-                isOver={isColumnOver(column.id)}
-              />
-            ))}
-          </div>
+          <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
+            <div className="flex gap-4 h-full min-w-max px-1">
+              {project.columns.map((column) => (
+                <SortableColumn key={column.id} column={column}>
+                  <ProjectColumn
+                    column={column}
+                    tasks={tasksByColumn[column.id] || []}
+                    onToggleComplete={(id) => onUpdateTask(id, { completed: !tasks.find(t => t.id === id)?.completed })}
+                    onToggleStar={(id) => onUpdateTask(id, { starred: !tasks.find(t => t.id === id)?.starred })}
+                    onUpdateDate={(id, dueDate) => onUpdateTask(id, { dueDate })}
+                    onUpdateTitle={(id, title) => onUpdateTask(id, { title })}
+                    onDeleteTask={onDeleteTask}
+                    onTaskClick={onTaskClick}
+                    onAddTask={handleAddTask}
+                    isOver={isColumnOver(column.id)}
+                  />
+                </SortableColumn>
+              ))}
+            </div>
+          </SortableContext>
 
           {/* 拖拽预览 */}
           <DragOverlay>
@@ -221,6 +289,10 @@ export function ProjectBoard({
                 isDragging
                 className="rotate-3 shadow-xl"
               />
+            ) : activeColumn ? (
+              <div className="w-[280px] h-20 bg-muted/80 rounded-lg border-2 border-primary/50 flex items-center justify-center">
+                <span className="font-medium text-sm">{activeColumn.title}</span>
+              </div>
             ) : null}
           </DragOverlay>
         </DndContext>
