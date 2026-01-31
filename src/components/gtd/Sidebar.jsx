@@ -193,7 +193,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "border-r bg-sidebar p-4 flex flex-col gap-2 overflow-y-auto",
+        "border-r bg-sidebar p-4 flex flex-col gap-2 overflow-y-auto elegant-scroll",
         collapsed ? "w-20" : "w-64",
         className
       )}

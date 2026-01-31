@@ -126,7 +126,7 @@ export function Drawer({
             </div>
 
             {/* 内容区 */}
-            <div className="flex-1 overflow-y-auto p-2">
+            <div className="flex-1 overflow-y-auto p-2 elegant-scroll">
               {/* ─────────────────────────────────────────────────────────────
                * 固定导航区：专注、日程
                * ───────────────────────────────────────────────────────────── */}
