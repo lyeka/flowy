@@ -13,6 +13,10 @@
     "delete": "Delete",
     "save": "Save"
   },
+  "sidebar": {
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar"
+  },
   "themes": {
     "light": "Light",
     "dark": "Dark",

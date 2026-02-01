@@ -5,7 +5,7 @@
 
 QuickCapture.jsx: 快速收集输入框，顶部任务添加入口
 SidebarGroup.jsx: 侧边栏可折叠分组组件，统一处理展开/折叠逻辑、箭头旋转动画、分组标题样式（小号、大写、灰色）
-Sidebar.jsx: 侧边栏导航，分组式设计（固定导航区：专注/日程 + 可折叠分组区：GTD/项目/日记），移动端简化为 3 按钮底部导航（Menu、FAB、日历），分组状态持久化到 localStorage
+Sidebar.jsx: 侧边栏导航，分组式设计（固定导航区：专注/日程 + 可折叠分组区：GTD/项目/日记），折叠时只显示固定导航区（隐藏分组区），折叠按钮使用 PanelLeftClose/PanelLeftOpen 图标 + 旋转动画，移动端简化为 3 按钮底部导航（Menu、FAB、日历），分组状态持久化到 localStorage
 Drawer.jsx: 移动端左侧滑抽屉，分组式设计（固定导航区 + 可折叠分组区），与桌面端 Sidebar 保持一致，共享分组折叠状态
 ActionSheet.jsx: 移动端底部操作表，显示任务操作选项（设置日期、移动到列表、删除），替代桌面端的下拉菜单
 ConflictDialog.jsx: 同步冲突解决对话框，展示冲突详情 + 策略选择（合并/本地/远程/保留两者）

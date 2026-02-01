@@ -13,6 +13,10 @@
     "delete": "删除",
     "save": "保存"
   },
+  "sidebar": {
+    "expand": "展开侧边栏",
+    "collapse": "折叠侧边栏"
+  },
   "themes": {
     "light": "浅色",
     "dark": "深色",

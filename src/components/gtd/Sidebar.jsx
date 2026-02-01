@@ -1,16 +1,16 @@
 /**
- * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标，依赖 framer-motion，依赖 @/lib/platform 跨平台 API，依赖 react-i18next，依赖 @/components/gtd/settings/Settings，依赖 @/components/gtd/SidebarGroup
+ * [INPUT]: 依赖 @/stores/gtd 的 GTD_LISTS/GTD_LIST_META，依赖 lucide-react 图标（PanelLeftClose/PanelLeftOpen），依赖 framer-motion（AnimatePresence），依赖 @/lib/platform 跨平台 API，依赖 react-i18next，依赖 @/components/gtd/settings/Settings，依赖 @/components/gtd/SidebarGroup
  * [OUTPUT]: 导出 Sidebar 组件
- * [POS]: GTD 侧边栏导航，分组式设计（固定导航区 + 可折叠分组区），响应式设计（桌面端侧边栏，移动端底部导航）
+ * [POS]: GTD 侧边栏导航，分组式设计（固定导航区 + 可折叠分组区），折叠时只显示固定导航区（专注/日程/设置），隐藏分组区（GTD/项目/日记），响应式设计（桌面端侧边栏，移动端底部导航）
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { GTD_LIST_META } from '@/stores/gtd'
-import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, ChevronLeft, ChevronRight, Settings, Plus, Menu, PenLine, BookOpen, Focus } from 'lucide-react'
+import { Inbox, Sun, ArrowRight, Calendar, CheckCircle, CalendarDays, PanelLeftClose, PanelLeftOpen, Settings, Plus, Menu, PenLine, BookOpen, Focus } from 'lucide-react'
 import { snappy } from '@/lib/motion'
 import { isMobile } from '@/lib/platform'
 import { hapticsLight } from '@/lib/haptics'
@@ -209,15 +209,49 @@ export function Sidebar({
         "flex items-center px-3 mb-2",
         collapsed ? "justify-center" : "justify-between"
       )}>
-        {!collapsed && <h1 className="text-xl font-bold text-primary">Flowy</h1>}
+        {/* 标题 - 展开时显示 */}
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.h1
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.15 }}
+              className="text-xl font-bold text-primary"
+            >
+              Flowy
+            </motion.h1>
+          )}
+        </AnimatePresence>
+
+        {/* 折叠按钮 */}
         <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           transition={snappy}
           onClick={() => setCollapsed(!collapsed)}
-          className="text-muted-foreground hover:text-foreground transition-colors"
+          title={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+          className={cn(
+            "p-1.5 rounded-md transition-colors",
+            "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50",
+            collapsed && "bg-sidebar-accent/30"
+          )}
         >
-          {collapsed ? <ChevronRight className="h-[18px] w-[18px]" /> : <ChevronLeft className="h-[18px] w-[18px]" />}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={collapsed ? 'open' : 'close'}
+              initial={{ scale: 0.8, opacity: 0, rotate: -90 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              exit={{ scale: 0.8, opacity: 0, rotate: 90 }}
+              transition={{ duration: 0.15 }}
+            >
+              {collapsed ? (
+                <PanelLeftOpen className="h-[18px] w-[18px]" />
+              ) : (
+                <PanelLeftClose className="h-[18px] w-[18px]" />
+              )}
+            </motion.div>
+          </AnimatePresence>
         </motion.button>
       </div>
 
@@ -272,13 +306,14 @@ export function Sidebar({
         </motion.button>
       </div>
 
-      {/* 分隔线 */}
-      <div className="h-px bg-sidebar-primary/30 mx-2 my-1" />
+      {/* 分隔线 - 折叠时隐藏 */}
+      {!collapsed && <div className="h-px bg-sidebar-primary/30 mx-2 my-1" />}
 
       {/* ─────────────────────────────────────────────────────────────
-       * 可折叠分组区：GTD 列表
+       * 可折叠分组区：GTD 列表 - 折叠时隐藏
        * ───────────────────────────────────────────────────────────── */}
-      <SidebarGroup
+      {!collapsed && (
+        <SidebarGroup
         title="GTD"
         collapsed={collapsed}
         expanded={!collapsedGroups.has('gtd')}
@@ -323,11 +358,13 @@ export function Sidebar({
           )
         })}
       </SidebarGroup>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
-       * 可折叠分组区：项目
+       * 可折叠分组区：项目 - 折叠时隐藏
        * ───────────────────────────────────────────────────────────── */}
-      <SidebarGroup
+      {!collapsed && (
+        <SidebarGroup
         title={t('views.board')}
         collapsed={collapsed}
         expanded={!collapsedGroups.has('projects')}
@@ -356,11 +393,13 @@ export function Sidebar({
           />
         </div>
       </SidebarGroup>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
-       * 可折叠分组区：日记
+       * 可折叠分组区：日记 - 折叠时隐藏
        * ───────────────────────────────────────────────────────────── */}
-      <SidebarGroup
+      {!collapsed && (
+        <SidebarGroup
         title={t('journal.title')}
         collapsed={collapsed}
         expanded={!collapsedGroups.has('journal')}
@@ -402,6 +441,7 @@ export function Sidebar({
           {!collapsed && <span className="flex-1 text-left">{t('journal.past')}</span>}
         </motion.button>
       </SidebarGroup>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
        * 设置按钮
